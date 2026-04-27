@@ -21,7 +21,7 @@ echo "=== [4/4] Ensuring LIBERO venv deps are installed ==="
 cd /workspace/openpi
 # Python 3.8 binary is on container disk — wiped on pod stop — so venv symlink breaks every restart.
 # Recreate the venv (packages in site-packages persist on /workspace, but uv venv resets them).
-uv venv --python 3.8 examples/libero/.venv
+uv venv --python 3.8 --clear examples/libero/.venv
 source examples/libero/.venv/bin/activate
 uv pip install -r examples/libero/requirements.txt -r third_party/libero/requirements.txt \
   --extra-index-url https://download.pytorch.org/whl/cu113 --index-strategy=unsafe-best-match
