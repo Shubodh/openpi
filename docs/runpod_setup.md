@@ -100,7 +100,7 @@ The agent handles all installs, waits for the server to come up, and launches th
 | `setup_once.sh` | Once per network volume | Clone openpi, create venv, all pip installs |
 | `setup_pod.sh` | Every pod restart (~1-2 min) | uv + Claude Code + Codex reinstall + env vars |
 | `setup_agents.sh` | Once per volume | Node.js + Claude Code + Codex CLI |
-| `start_libero.sh [suite]` | After setup_pod.sh | tmux: pane 0 = server, pane 1 = client |
+| `start_libero.sh [suite]` | After setup_pod.sh | tmux: pane 0 = server, pane 1 = waits → env ready → prints python command |
 | `run_libero_client.sh [suite] [trials] [seed]` | Add parallel suite runs | Client against running server |
 
 ---
@@ -151,7 +151,7 @@ Scripts live at `runpod/` in this repo (i.e., `/workspace/openpi/runpod/` on the
 |--------|-------------|--------------|
 | `setup_once.sh` | **Once per network volume** — only if `/workspace/openpi/` does not yet exist | Clone, submodules, uv, venv, all pip installs |
 | `setup_pod.sh` | **Every pod restart** (~1-2 min) | Reinstall uv + restore env vars (venv + checkpoint persist on `/workspace`) |
-| `start_libero.sh [suite]` | After `setup_pod.sh` | tmux session: pane 0 = server, pane 1 = client (auto-waits for server) |
+| `start_libero.sh [suite]` | After `setup_pod.sh` | tmux session: pane 0 = server, pane 1 = waits for server → activates venv + exports → prints python command for you to run |
 | `run_libero_client.sh [suite] [trials] [seed] [video_path]` | To add parallel suite runs | Runs a client against the already-running server |
 
 ```bash
@@ -242,11 +242,11 @@ uv pip install -e third_party/libero
 export PYTHONPATH=$PYTHONPATH:$PWD/third_party/libero
 export MUJOCO_GL=egl   # headless rendering; fallback: MUJOCO_GL=glx
 
-# Pause now till Pane 1 server is up: Would say something like "Server listening on port 8000" when ready.
-python examples/libero/main.py
+# Wait until Pane 1 server is up ("Server listening on port 8000"), then run:
+python examples/libero/main.py --args.task-suite-name libero_object --args.video-out-path data/libero/videos/libero_object
 
-# To run a different suite:
-python examples/libero/main.py --args.task-suite-name libero_spatial
+# Different suite:
+python examples/libero/main.py --args.task-suite-name libero_spatial --args.video-out-path data/libero/videos/libero_spatial
 ```
 
 **Step 5 — Running multiple suites in parallel**
