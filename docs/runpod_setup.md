@@ -319,7 +319,25 @@ Confirm π₀.₅ achieves ~98% on libero_object before running any experiments.
 > **EGL cleanup errors at exit** — harmless. After all episodes complete, Python prints `EGLError: EGL_NOT_INITIALIZED` during garbage collection (`__del__`). This is the EGL context being destroyed after the display is already torn down. Does not affect results. Fix if annoying: `apt-get install -y libglu1-mesa`.
 
 **TODO — optimization: fast pod restarts**
-- [ ] Install Python 3.8 to `/workspace` so it persists across pod stops. Currently Python 3.8 and uv's package cache live on the container disk (wiped on stop), forcing a full venv recreate + package reinstall on every restart (~15-20 min). Fix: `uv python install 3.8 --install-dir /workspace/python` in setup_once.sh, then point setup_pod.sh at that interpreter. Confirm current full flow works end-to-end before attempting this.
+
+Currently `setup_pod.sh` takes ~15-20 min on every restart because:
+1. **Python 3.8** lives on the container disk → wiped on pod stop → uv re-downloads it every restart
+2. **uv's package cache** also lives on the container disk → wiped → all packages re-downloaded even if previously installed
+3. **The venv** is on `/workspace` (persists), but its Python symlink is broken since the interpreter is gone → must recreate venv every restart → all site-packages lost
+
+Net result: full venv recreate + full package reinstall on every pod restart, even though the packages themselves could in principle be cached.
+
+- [ ] **Fix:** In `setup_once.sh`, install Python 3.8 directly to `/workspace`:
+  ```bash
+  uv python install 3.8 --install-dir /workspace/python
+  ```
+  Then in `setup_pod.sh`, point `uv venv` at that interpreter:
+  ```bash
+  uv venv --python /workspace/python/cpython-3.8.../bin/python3.8 examples/libero/.venv
+  ```
+  Since `/workspace` persists, Python 3.8 survives pod stop. The venv symlink stays valid. Package reinstall on restart becomes a fast no-op (already installed, just verified by uv).
+  **Target restart time: ~2-3 min** (uv reinstall + apt + env vars only).
+  **Prerequisite:** Confirm full flow works end-to-end with current slow approach first.
 
 **TODO — fill in as Step 2 progresses:**
 - [x] Confirm uv install works on RunPod PyTorch template ✓
