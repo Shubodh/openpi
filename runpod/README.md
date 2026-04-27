@@ -10,7 +10,7 @@ Bash scripts for pod lifecycle management on RunPod. Full guide → [`docs/runpo
 | `setup_pod.sh` | Every pod restart (~1-2 min) | Reinstalls uv (wiped on stop); restores env vars — no agent install |
 | `setup_agents.sh` | Once per volume, or each restart if you want agents | Installs Node.js + Claude Code + Codex CLI; prints API key and permissions setup instructions |
 | `start_libero.sh [suite]` | After `setup_pod.sh` | Launches tmux session: pane 0 = π₀.₅ policy server, pane 1 = clean shell with reminder |
-| `libero_env.sh [suite]` | **Source** in pane 1 once server is up | Activates venv + exports env vars + prints python command to run |
+| `libero_env.sh` | **Source** in pane 1 once server is up | Activates venv + exports env vars + prints python command to run |
 | `run_libero_client.sh [suite] [trials] [seed] [video_path]` | To add parallel suite runs | Runs a LIBERO client against an already-running policy server |
 
 ## Typical flow

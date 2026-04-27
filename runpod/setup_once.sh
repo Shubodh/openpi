@@ -25,7 +25,7 @@ echo "=== [5/5] Setting up LIBERO client venv and installing deps ==="
 cd /workspace/openpi
 uv venv --python 3.8 examples/libero/.venv
 source examples/libero/.venv/bin/activate
-uv pip sync examples/libero/requirements.txt third_party/libero/requirements.txt \
+uv pip install -r examples/libero/requirements.txt -r third_party/libero/requirements.txt \
   --extra-index-url https://download.pytorch.org/whl/cu113 --index-strategy=unsafe-best-match
 uv pip install -e packages/openpi-client
 uv pip install -e third_party/libero
