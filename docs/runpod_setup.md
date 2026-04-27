@@ -232,10 +232,20 @@ Open two tmux panes. First run will download the checkpoint from GCS — takes a
 cd /workspace/openpi
 uv run scripts/serve_policy.py --env LIBERO
 
-# Pane 2: once Pane 1 says "listening on :8000", source the env script:
+# Pane 2: LIBERO client — first time only (creates venv + installs deps):
+cd /workspace/openpi
+uv venv --python 3.8 examples/libero/.venv
+source examples/libero/.venv/bin/activate
+uv pip install -r examples/libero/requirements.txt -r third_party/libero/requirements.txt \
+  --extra-index-url https://download.pytorch.org/whl/cu113 --index-strategy=unsafe-best-match
+uv pip install -e packages/openpi-client
+uv pip install -e third_party/libero
+export PYTHONPATH=$PYTHONPATH:$PWD/third_party/libero
+export MUJOCO_GL=egl   # headless rendering; fallback: MUJOCO_GL=glx
+
+# Pane 2: every subsequent run (venv already exists) — once Pane 1 says "listening on :8000":
 source /workspace/openpi/runpod/libero_env.sh
 
-# It activates the venv, sets PYTHONPATH + MUJOCO_GL, and prints example commands.
 # Then run whichever suite you want:
 python examples/libero/main.py --args.task-suite-name libero_object --args.video-out-path data/libero/videos/libero_object
 ```
