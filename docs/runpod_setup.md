@@ -52,22 +52,67 @@ npm install -g @openai/codex
 
 Or use the script: `bash /workspace/openpi/runpod/setup_agents.sh` (installs both).
 
-### Step 3 — Launch the agent
+### Step 3 — Set agent permissions (do this once per network volume)
+
+Agents prompt for every tool use by default. On a trusted isolated pod you want them to run without interruption. Configure each agent's permissions files:
+
+**Claude Code** — create `~/.claude/settings.json` (global, persists on `/root/` which is container disk, so recreate on each pod restart or store on `/workspace`):
+```bash
+mkdir -p ~/.claude
+cat > ~/.claude/settings.json << 'EOF'
+{
+  "permissions": {
+    "allow": ["Bash", "Read", "Edit", "Write", "Glob", "Grep"]
+  },
+  "defaultMode": "bypassPermissions"
+}
+EOF
+```
+
+**Codex CLI** — create `~/.codex/config.toml`:
+```bash
+mkdir -p ~/.codex
+cat > ~/.codex/config.toml << 'EOF'
+approval_policy = "never"
+EOF
+```
+
+> `bypassPermissions` skips all Claude Code prompts. `approval_policy = "never"` does the same for Codex. Both are appropriate on an isolated pod where you're the only user.
+
+**Key permission files (for reference):**
+
+| Agent | File | Scope | Notes |
+|-------|------|-------|-------|
+| Claude Code | `~/.claude/settings.json` | Global (all projects) | On pod: lives on container disk, recreate on restart |
+| Claude Code | `.claude/settings.json` | Project (committed) | Committed to repo — takes precedence over global |
+| Claude Code | `.claude/settings.local.json` | Project (local only) | Gitignored — per-machine overrides |
+| Codex CLI | `~/.codex/config.toml` | Global | On pod: container disk, recreate on restart |
+| Codex CLI | `.codex/config.toml` | Project | Project-level override |
+
+> **Persistence note:** Both `~/.claude/` and `~/.codex/` are on the container disk (`/root/`), wiped on pod stop. Either recreate them in `setup_pod.sh`, or symlink/copy them to `/workspace/` on first run.
+
+### Step 4 — Launch the agent
 
 **First-time (fresh network volume — openpi not yet cloned):**
 ```bash
 cd /workspace
 git clone https://github.com/Shubodh/openpi.git
 cd openpi
-claude --dangerously-skip-permissions
+claude
 # Prompt: "Run runpod/setup_once.sh to set up the LIBERO environment"
 ```
 
 **Every pod restart (network volume already has openpi + venv):**
 ```bash
 cd /workspace/openpi
-claude --dangerously-skip-permissions
+claude
 # Prompt: "Run runpod/setup_pod.sh then start_libero.sh for suite libero_object"
+```
+
+**Codex equivalent:**
+```bash
+cd /workspace/openpi
+codex "Run runpod/setup_pod.sh then start_libero.sh for suite libero_object"
 ```
 
 The agent handles all installs, waits for the server to come up, and launches the tmux session. You can detach (`Ctrl+B D`) and walk away.
