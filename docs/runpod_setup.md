@@ -1,5 +1,7 @@
 # RunPod Setup Guide — LIBERO & VLA Models
 
+> **TODO (optimization, low priority):** Every pod restart currently takes ~15-20 min because Python 3.8 lives on container disk (wiped on stop), forcing a full venv recreate + pip reinstall. Fix: install Python 3.8 to `/workspace/python` in `setup_once.sh` so the interpreter persists; venv symlink stays valid; packages don't rebuild; restart drops to ~2-3 min. Not done yet — implement once the current flow is confirmed stable.
+
 ## Table of Contents
 
 0. [Agent-First Setup (Recommended)](#0-agent-first-setup-recommended)
@@ -91,7 +93,7 @@ cd /workspace/openpi
 | Script | When | What |
 |--------|------|------|
 | `setup_once.sh` | Once per network volume | Clone openpi, create venv, all pip installs |
-| `setup_pod.sh` | Every pod restart (~1-2 min) | Reinstalls uv + restores env vars |
+| `setup_pod.sh` | Every pod restart (~15-20 min) | Reinstalls uv, recreates venv, reinstalls all deps |
 | `setup_agents.sh` | Once per volume, or each restart if you want agents | Node.js + Claude Code + Codex CLI |
 | `start_libero.sh [suite]` | After setup_pod.sh | tmux: pane 0 = server, pane 1 = clean shell with reminder |
 | `libero_env.sh` | **Source** in pane 1 once server is up | Activates venv + exports env vars + prints python command |
@@ -155,9 +157,9 @@ Typically you'd run 2nd option below.
 ```bash
 # 1. Fresh network volume (only if /workspace/openpi/ does not yet exist):
 bash /workspace/openpi/runpod/setup_once.sh
-bash /workspace/openpi/runpod/setup_agents.sh   # install Claude Code + Codex
 bash /workspace/openpi/runpod/start_libero.sh
 # Once left pane says "listening on :8000", in right pane:
+bash /workspace/openpi/runpod/setup_agents.sh   # install Claude Code + Codex
 source /workspace/openpi/runpod/libero_env.sh
 python examples/libero/main.py --args.task-suite-name libero_object --args.video-out-path data/libero/videos/libero_object
 
@@ -165,8 +167,9 @@ python examples/libero/main.py --args.task-suite-name libero_object --args.video
 bash /workspace/openpi/runpod/setup_pod.sh
 bash /workspace/openpi/runpod/start_libero.sh
 # Once left pane says "listening on :8000", in right pane:
+bash /workspace/openpi/runpod/setup_agents.sh   # install Claude Code + Codex
 source /workspace/openpi/runpod/libero_env.sh
-python examples/libero/main.py --args.task-suite-name libero_object --args.video-out-path data/libero/videos/libero_object
+python examples/libero/main.py --args.task-suite-name libero_object --args.video-out-path data/libero/videos/libero_object_new
 ```
 
 To reattach to the session after detaching: `tmux attach -t libero`
@@ -318,7 +321,7 @@ Confirm π₀.₅ achieves ~98% on libero_object before running any experiments.
 
 > **EGL cleanup errors at exit** — harmless. After all episodes complete, Python prints `EGLError: EGL_NOT_INITIALIZED` during garbage collection (`__del__`). This is the EGL context being destroyed after the display is already torn down. Does not affect results. Fix if annoying: `apt-get install -y libglu1-mesa`.
 
-**TODO — optimization: fast pod restarts**
+**TODO — optimization: fast pod restarts - bring down ~15-20 min to ~2-3 min for installation during restarts**
 
 Currently `setup_pod.sh` takes ~15-20 min on every restart because:
 1. **Python 3.8** lives on the container disk → wiped on pod stop → uv re-downloads it every restart
