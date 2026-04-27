@@ -52,44 +52,19 @@ npm install -g @openai/codex
 
 Or use the script: `bash /workspace/openpi/runpod/setup_agents.sh` (installs both).
 
-### Step 3 — Set agent permissions (do this once per network volume)
+### Step 3 — Agent permissions reference
 
-Agents prompt for every tool use by default. On a trusted isolated pod you want them to run without interruption. Configure each agent's permissions files:
-
-**Claude Code** — create `~/.claude/settings.json` (global, persists on `/root/` which is container disk, so recreate on each pod restart or store on `/workspace`):
-```bash
-mkdir -p ~/.claude
-cat > ~/.claude/settings.json << 'EOF'
-{
-  "permissions": {
-    "allow": ["Bash", "Read", "Edit", "Write", "Glob", "Grep"]
-  },
-  "defaultMode": "bypassPermissions"
-}
-EOF
-```
-
-**Codex CLI** — create `~/.codex/config.toml`:
-```bash
-mkdir -p ~/.codex
-cat > ~/.codex/config.toml << 'EOF'
-approval_policy = "never"
-EOF
-```
-
-> `bypassPermissions` skips all Claude Code prompts. `approval_policy = "never"` does the same for Codex. Both are appropriate on an isolated pod where you're the only user.
-
-**Key permission files (for reference):**
+Both agents will prompt for approval on tool use. Approve as needed, or configure permissions to reduce interruptions. Key files for reference:
 
 | Agent | File | Scope | Notes |
 |-------|------|-------|-------|
-| Claude Code | `~/.claude/settings.json` | Global (all projects) | On pod: lives on container disk, recreate on restart |
-| Claude Code | `.claude/settings.json` | Project (committed) | Committed to repo — takes precedence over global |
-| Claude Code | `.claude/settings.local.json` | Project (local only) | Gitignored — per-machine overrides |
-| Codex CLI | `~/.codex/config.toml` | Global | On pod: container disk, recreate on restart |
+| Claude Code | `~/.claude/settings.json` | Global (all projects) | On pod: container disk, wiped on pod stop |
+| Claude Code | `.claude/settings.json` | Project (committed to repo) | Picked up automatically when running from project dir |
+| Claude Code | `.claude/settings.local.json` | Project (local only, gitignored) | Per-machine overrides |
+| Codex CLI | `~/.codex/config.toml` | Global | On pod: container disk, wiped on pod stop |
 | Codex CLI | `.codex/config.toml` | Project | Project-level override |
 
-> **Persistence note:** Both `~/.claude/` and `~/.codex/` are on the container disk (`/root/`), wiped on pod stop. Either recreate them in `setup_pod.sh`, or symlink/copy them to `/workspace/` on first run.
+See [Claude Code docs](https://docs.anthropic.com/en/docs/claude-code/) and [Codex CLI docs](https://developers.openai.com/codex/config-reference) for permission configuration options.
 
 ### Step 4 — Launch the agent
 

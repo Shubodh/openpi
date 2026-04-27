@@ -53,8 +53,27 @@ NOTE: `GIT_LFS_SKIP_SMUDGE=1` is needed to pull LeRobot as a dependency.
 
 **Docker**: As an alternative to uv installation, we provide instructions for installing openpi using Docker. If you encounter issues with your system setup, consider using Docker to simplify installation. See [Docker Setup](docs/docker.md) for more details.
 
+---
 
+## ⚠️ MUST READ if you are using an agent (Claude Code, Codex, etc.)
 
+This fork adds RunPod infrastructure for running π₀.₅ + LIBERO evaluations. If you are an AI agent (or a human setting one up), read this before doing anything else.
+
+**Where to find setup scripts and the full guide:**
+
+| What | Where |
+|------|-------|
+| Pod setup scripts | [`runpod/`](runpod/) — see [`runpod/README.md`](runpod/README.md) for a description of each |
+| Full operational guide | [`docs/runpod_setup.md`](docs/runpod_setup.md) — covers agent setup, LIBERO eval, video download |
+| This fork's purpose | [`CLAUDE.md`](CLAUDE.md) |
+
+**Agent permissions:** Both Claude Code and Codex CLI will prompt for approval on tool use by default — this is intentional. If you need to adjust permissions, the relevant config files are:
+- Claude Code: `~/.claude/settings.json` (global) or `.claude/settings.json` (project-level, auto-loaded from project dir)
+- Codex CLI: `~/.codex/config.toml` (global) or `.codex/config.toml` (project-level)
+
+Do **not** use `--dangerously-skip-permissions` or `bypassPermissions` unless you have explicitly decided the environment is isolated and you understand the implications. The default prompting behaviour is there for a reason.
+
+---
 
 ## Model Checkpoints
 
