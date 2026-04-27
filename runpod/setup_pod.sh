@@ -1,7 +1,8 @@
 #!/bin/bash
-# setup_pod.sh — run after EVERY pod restart (~3-5 min)
-# Venv + checkpoint on /workspace survive pod stop — packages persist.
-# uv and system packages are wiped on pod stop — reinstalled here.
+# setup_pod.sh — run after EVERY pod restart (~15-20 min)
+# Checkpoint on /workspace survives pod stop.
+# uv, Python 3.8, and system packages are wiped on pod stop — reinstalled here.
+# Venv is on /workspace but its Python symlink breaks (Python wiped) — recreated every restart.
 # AI agents (Claude Code, Codex) are NOT reinstalled here — run setup_agents.sh separately if needed.
 set -e
 
@@ -18,6 +19,9 @@ echo 'export OPENPI_DATA_HOME=/workspace/openpi_assets' >> ~/.bashrc
 
 echo "=== [4/4] Ensuring LIBERO venv deps are installed ==="
 cd /workspace/openpi
+# Python 3.8 binary is on container disk — wiped on pod stop — so venv symlink breaks every restart.
+# Recreate the venv (packages in site-packages persist on /workspace, but uv venv resets them).
+uv venv --python 3.8 examples/libero/.venv
 source examples/libero/.venv/bin/activate
 uv pip install -r examples/libero/requirements.txt -r third_party/libero/requirements.txt \
   --extra-index-url https://download.pytorch.org/whl/cu113 --index-strategy=unsafe-best-match
