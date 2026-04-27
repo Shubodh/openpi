@@ -237,6 +237,31 @@ python examples/libero/main.py --args.task-suite-name libero_object
 
 Videos land in `data/libero/videos/` (relative to where you ran the command, i.e. `/workspace/openpi/data/libero/videos/`) — one `.mp4` per episode, auto-saved. Video filenames are `rollout_{task_name}_{success|failure}.mp4`. Task names and their distinguishing patterns per suite → `docs/` section "Task names per suite" in `libero_suite_choice_detailed.md` (in AXMech_meta).
 
+**Separating mixed-suite videos** (if two suites wrote to the same dir):
+```bash
+# spatial: all filenames contain black_bowl
+mkdir -p data/libero/videos/libero_spatial
+mv data/libero/videos/*black_bowl*.mp4 data/libero/videos/libero_spatial/
+
+# object: all filenames contain in_the_basket
+mkdir -p data/libero/videos/libero_object
+mv data/libero/videos/*in_the_basket*.mp4 data/libero/videos/libero_object/
+```
+
+**Downloading videos to your local machine** — run this from your **local terminal** (not the pod). The pod can't push to your local machine (it's behind NAT); you must pull from local:
+```bash
+# Get SSH details: RunPod UI → pod → "Connect" button
+rsync -avz --progress \
+  -e "ssh -p <PORT> -i ~/.ssh/id_ed25519" \
+  root@<IP>:/workspace/openpi/data/libero/videos/ \
+  ~/Downloads/libero_videos/
+
+# Or with scp:
+scp -r -P <PORT> -i ~/.ssh/id_ed25519 \
+  root@<IP>:/workspace/openpi/data/libero/videos/ \
+  ~/Downloads/libero_videos/
+```
+
 **`main.py` arguments reference:**
 
 | Argument | Default | Notes |
