@@ -17,7 +17,7 @@ Operational documentation for this fork. Upstream openpi docs live in the upstre
 
 | Section | What's in it |
 |---------|-------------|
-| **§0 Agent-First Setup** | The recommended entry point: API keys → install Claude Code + Codex → set permissions → launch agent with one prompt. Covers both `bypassPermissions` (Claude Code) and `approval_policy = "never"` (Codex). |
+| **§0 Agent-First Setup** | The recommended entry point: API keys → install Claude Code + Codex → permissions file reference → launch agent with one prompt. |
 | **§1 Quick Reference** | GPU choice, volume config, template, MuJoCo GL setting |
 | **§2 Pod Configuration** | GPU (A40 locked), network volume size, first-boot commands |
 | **§3 π₀.₅ + LIBERO Setup** | Why no Docker; automated scripts table; full manual steps; parallel suite runs; video separation and download; `main.py` args reference; baseline verification numbers |
