@@ -39,6 +39,8 @@ export OPENAI_API_KEY=sk-...
 
 ### Step 2 — Install Claude Code (30 seconds, one command)
 
+**Use the script instead of running the below commands**: `bash /workspace/openpi/runpod/setup_agents.sh` (installs both).
+
 ```bash
 curl -fsSL https://claude.ai/install.sh | bash && source ~/.bashrc
 ```
@@ -50,7 +52,6 @@ curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && apt-get install -y 
 npm install -g @openai/codex
 ```
 
-Or use the script: `bash /workspace/openpi/runpod/setup_agents.sh` (installs both).
 
 ### Step 3 — Agent permissions reference
 
@@ -148,13 +149,13 @@ Scripts live at `runpod/` in this repo (i.e., `/workspace/openpi/runpod/` on the
 
 | Script | When to run | What it does |
 |--------|-------------|--------------|
-| `setup_once.sh` | **Once ever** per network volume | Clone, submodules, uv, venv, all pip installs |
-| `setup_pod.sh` | **Every pod restart** (~1-2 min) | Reinstall uv + agents + restore env vars (venv + checkpoint persist) |
+| `setup_once.sh` | **Once per network volume** — only if `/workspace/openpi/` does not yet exist | Clone, submodules, uv, venv, all pip installs |
+| `setup_pod.sh` | **Every pod restart** (~1-2 min) | Reinstall uv + restore env vars (venv + checkpoint persist on `/workspace`) |
 | `start_libero.sh [suite]` | After `setup_pod.sh` | tmux session: pane 0 = server, pane 1 = client (auto-waits for server) |
 | `run_libero_client.sh [suite] [trials] [seed] [video_path]` | To add parallel suite runs | Runs a client against the already-running server |
 
 ```bash
-# First time ever:
+# Fresh network volume (only if /workspace/openpi/ does not yet exist):
 bash /workspace/openpi/runpod/setup_once.sh
 bash /workspace/openpi/runpod/setup_agents.sh   # install Claude Code + Codex
 bash /workspace/openpi/runpod/start_libero.sh
@@ -172,6 +173,14 @@ To reattach to the session after detaching: `tmux attach -t libero`
 ---
 
 ### Manual steps (reference — what the scripts do)
+
+
+**Step 0 -- tmux and vim**
+
+```bash
+apt-get update && apt-get install -y tmux vim
+# set -w mode-keys vi   ← add to ~/.tmux.conf for vim keybindings in tmux
+```
 
 **Step 1 — Clone and init submodules**
 
