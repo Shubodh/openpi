@@ -318,6 +318,9 @@ Confirm π₀.₅ achieves ~98% on libero_object before running any experiments.
 
 > **EGL cleanup errors at exit** — harmless. After all episodes complete, Python prints `EGLError: EGL_NOT_INITIALIZED` during garbage collection (`__del__`). This is the EGL context being destroyed after the display is already torn down. Does not affect results. Fix if annoying: `apt-get install -y libglu1-mesa`.
 
+**TODO — optimization: fast pod restarts**
+- [ ] Install Python 3.8 to `/workspace` so it persists across pod stops. Currently Python 3.8 and uv's package cache live on the container disk (wiped on stop), forcing a full venv recreate + package reinstall on every restart (~15-20 min). Fix: `uv python install 3.8 --install-dir /workspace/python` in setup_once.sh, then point setup_pod.sh at that interpreter. Confirm current full flow works end-to-end before attempting this.
+
 **TODO — fill in as Step 2 progresses:**
 - [x] Confirm uv install works on RunPod PyTorch template ✓
 - [ ] Confirm OPENPI_DATA_HOME redirect works — checkpoint lands at /workspace/openpi_assets
