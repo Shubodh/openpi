@@ -165,13 +165,16 @@ Scripts live at `runpod/` in this repo (i.e., `/workspace/openpi/runpod/` on the
 bash /workspace/openpi/runpod/setup_once.sh
 bash /workspace/openpi/runpod/setup_agents.sh   # install Claude Code + Codex
 bash /workspace/openpi/runpod/start_libero.sh
+# Once left pane says "listening on :8000", in right pane:
+source /workspace/openpi/runpod/libero_env.sh
+python examples/libero/main.py --args.task-suite-name libero_object --args.video-out-path data/libero/videos/libero_object
 
 # Every restart after that:
 bash /workspace/openpi/runpod/setup_pod.sh
 bash /workspace/openpi/runpod/start_libero.sh
-
-# Different suite:
-bash /workspace/openpi/runpod/start_libero.sh libero_spatial
+# Once left pane says "listening on :8000", in right pane:
+source /workspace/openpi/runpod/libero_env.sh
+python examples/libero/main.py --args.task-suite-name libero_object --args.video-out-path data/libero/videos/libero_object
 ```
 
 To reattach to the session after detaching: `tmux attach -t libero`
