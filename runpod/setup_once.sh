@@ -4,7 +4,7 @@
 set -e
 
 echo "=== [1/5] Installing system packages ==="
-apt-get update -q && apt-get install -y -q tmux vim libegl1-mesa  # libegl1-mesa required for MUJOCO_GL=egl
+apt-get update -q && apt-get install -y -q tmux vim libegl1-mesa cmake  # libegl1-mesa for MUJOCO_GL=egl; cmake for egl-probe build
 
 echo "=== [2/5] Cloning openpi ==="
 cd /workspace

@@ -7,7 +7,7 @@
 set -e
 
 echo "=== [1/4] Installing system packages ==="
-apt-get update -q && apt-get install -y -q tmux vim libegl1-mesa
+apt-get update -q && apt-get install -y -q tmux vim libegl1-mesa cmake  # libegl1-mesa for MUJOCO_GL=egl; cmake for egl-probe build
 
 echo "=== [2/4] Re-installing uv (wiped on pod stop) ==="
 curl -LsSf https://astral.sh/uv/install.sh | sh
