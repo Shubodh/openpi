@@ -95,17 +95,17 @@ cd /workspace/openpi
 codex "Run runpod/setup_pod.sh then start_libero.sh for suite libero_object"
 ```
 
-The agent handles all installs, waits for the server to come up, and launches the tmux session. You can detach (`Ctrl+B D`) and walk away.
+The agent handles installs and launches the tmux session. Once the server is up ("listening on :8000"), source `libero_env.sh` in the right pane and run the python command manually.
 
 ### Scripts reference (all in `/workspace/openpi/runpod/` on the pod)
 
 | Script | When | What |
 |--------|------|------|
 | `setup_once.sh` | Once per network volume | Clone openpi, create venv, all pip installs |
-| `setup_pod.sh` | Every pod restart (~1-2 min) | uv + Claude Code + Codex reinstall + env vars |
-| `setup_agents.sh` | Once per volume | Node.js + Claude Code + Codex CLI |
+| `setup_pod.sh` | Every pod restart (~1-2 min) | Reinstalls uv + restores env vars |
+| `setup_agents.sh` | Once per volume, or each restart if you want agents | Node.js + Claude Code + Codex CLI |
 | `start_libero.sh [suite]` | After setup_pod.sh | tmux: pane 0 = server, pane 1 = clean shell with reminder |
-| `libero_env.sh [suite]` | **Source** in pane 1 once server is up | Activates venv + exports env vars + prints python command |
+| `libero_env.sh` | **Source** in pane 1 once server is up | Activates venv + exports env vars + prints python command |
 | `run_libero_client.sh [suite] [trials] [seed]` | Add parallel suite runs | Client against running server |
 
 ---
@@ -157,11 +157,14 @@ Scripts live at `runpod/` in this repo (i.e., `/workspace/openpi/runpod/` on the
 | `setup_once.sh` | **Once per network volume** — only if `/workspace/openpi/` does not yet exist | Clone, submodules, uv, venv, all pip installs |
 | `setup_pod.sh` | **Every pod restart** (~1-2 min) | Reinstall uv + restore env vars (venv + checkpoint persist on `/workspace`) |
 | `start_libero.sh [suite]` | After `setup_pod.sh` | tmux session: pane 0 = server, pane 1 = clean shell with reminder |
-| `libero_env.sh [suite]` | **Source** in pane 1 once server is up | Activates venv + exports env vars + prints python command to run |
+| `libero_env.sh` | **Source** in pane 1 once server is up | Activates venv + exports env vars + prints python command to run |
 | `run_libero_client.sh [suite] [trials] [seed] [video_path]` | To add parallel suite runs | Runs a client against the already-running server |
 
+
+Typically you'd run 2nd option below. 
+
 ```bash
-# Fresh network volume (only if /workspace/openpi/ does not yet exist):
+# 1. Fresh network volume (only if /workspace/openpi/ does not yet exist):
 bash /workspace/openpi/runpod/setup_once.sh
 bash /workspace/openpi/runpod/setup_agents.sh   # install Claude Code + Codex
 bash /workspace/openpi/runpod/start_libero.sh
@@ -169,7 +172,7 @@ bash /workspace/openpi/runpod/start_libero.sh
 source /workspace/openpi/runpod/libero_env.sh
 python examples/libero/main.py --args.task-suite-name libero_object --args.video-out-path data/libero/videos/libero_object
 
-# Every restart after that:
+# 2. Every restart after that: THIS IS WHAT YOU'D TYPICALLY RUN
 bash /workspace/openpi/runpod/setup_pod.sh
 bash /workspace/openpi/runpod/start_libero.sh
 # Once left pane says "listening on :8000", in right pane:
