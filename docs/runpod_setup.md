@@ -73,16 +73,7 @@ See [Claude Code docs](https://docs.anthropic.com/en/docs/claude-code/) and [Cod
 
 ### Step 4 — Launch the agent
 
-**First-time (fresh network volume — openpi not yet cloned):**
-```bash
-cd /workspace
-git clone https://github.com/Shubodh/openpi.git
-cd openpi
-claude
-# Prompt: "Run runpod/setup_once.sh to set up the LIBERO environment"
-```
 
-**Every pod restart (network volume already has openpi + venv):**
 ```bash
 cd /workspace/openpi
 claude
@@ -92,10 +83,8 @@ claude
 **Codex equivalent:**
 ```bash
 cd /workspace/openpi
-codex "Run runpod/setup_pod.sh then start_libero.sh for suite libero_object"
 ```
 
-The agent handles installs and launches the tmux session. Once the server is up ("listening on :8000"), source `libero_env.sh` in the right pane and run the python command manually.
 
 ### Scripts reference (all in `/workspace/openpi/runpod/` on the pod)
 
