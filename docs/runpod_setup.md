@@ -20,7 +20,7 @@
 
 ## 0. Agent-First Setup (Recommended)
 
-Instead of manually running setup commands (~2 hrs first time, ~1 min on restarts), hand the whole thing to an AI agent.
+**You can first "manually" run the "automated" setup from 3rd section under automated sideheading (see "Every restart after that"). Once the setup of policy server and libero client is done, fire up the agents.**
 
 ### Step 1 — Set API keys (do this before starting the pod)
 
@@ -55,7 +55,11 @@ npm install -g @openai/codex
 
 ### Step 3 — Agent permissions reference
 
-Both agents will prompt for approval on tool use. Approve as needed, or configure permissions to reduce interruptions. Key files for reference:
+Both agents will prompt for approval on tool use. Approve as needed, or configure permissions to reduce interruptions. 
+
+**For now, we're going with local `settings.json` in the current `openpi/.claude` folder.**
+
+Key files for reference:
 
 | Agent | File | Scope | Notes |
 |-------|------|-------|-------|
@@ -100,7 +104,8 @@ The agent handles all installs, waits for the server to come up, and launches th
 | `setup_once.sh` | Once per network volume | Clone openpi, create venv, all pip installs |
 | `setup_pod.sh` | Every pod restart (~1-2 min) | uv + Claude Code + Codex reinstall + env vars |
 | `setup_agents.sh` | Once per volume | Node.js + Claude Code + Codex CLI |
-| `start_libero.sh [suite]` | After setup_pod.sh | tmux: pane 0 = server, pane 1 = waits → env ready → prints python command |
+| `start_libero.sh [suite]` | After setup_pod.sh | tmux: pane 0 = server, pane 1 = clean shell with reminder |
+| `libero_env.sh [suite]` | **Source** in pane 1 once server is up | Activates venv + exports env vars + prints python command |
 | `run_libero_client.sh [suite] [trials] [seed]` | Add parallel suite runs | Client against running server |
 
 ---
@@ -151,7 +156,8 @@ Scripts live at `runpod/` in this repo (i.e., `/workspace/openpi/runpod/` on the
 |--------|-------------|--------------|
 | `setup_once.sh` | **Once per network volume** — only if `/workspace/openpi/` does not yet exist | Clone, submodules, uv, venv, all pip installs |
 | `setup_pod.sh` | **Every pod restart** (~1-2 min) | Reinstall uv + restore env vars (venv + checkpoint persist on `/workspace`) |
-| `start_libero.sh [suite]` | After `setup_pod.sh` | tmux session: pane 0 = server, pane 1 = waits for server → activates venv + exports → prints python command for you to run |
+| `start_libero.sh [suite]` | After `setup_pod.sh` | tmux session: pane 0 = server, pane 1 = clean shell with reminder |
+| `libero_env.sh [suite]` | **Source** in pane 1 once server is up | Activates venv + exports env vars + prints python command to run |
 | `run_libero_client.sh [suite] [trials] [seed] [video_path]` | To add parallel suite runs | Runs a client against the already-running server |
 
 ```bash
@@ -231,35 +237,23 @@ Open two tmux panes. First run will download the checkpoint from GCS — takes a
 cd /workspace/openpi
 uv run scripts/serve_policy.py --env LIBERO
 
-# Pane 2: LIBERO client (default suite: libero_object)
-cd /workspace/openpi
-uv venv --python 3.8 examples/libero/.venv
-source examples/libero/.venv/bin/activate
-uv pip sync examples/libero/requirements.txt third_party/libero/requirements.txt \
-  --extra-index-url https://download.pytorch.org/whl/cu113 --index-strategy=unsafe-best-match
-uv pip install -e packages/openpi-client
-uv pip install -e third_party/libero
-export PYTHONPATH=$PYTHONPATH:$PWD/third_party/libero
-export MUJOCO_GL=egl   # headless rendering; fallback: MUJOCO_GL=glx
+# Pane 2: once Pane 1 says "listening on :8000", source the env script:
+source /workspace/openpi/runpod/libero_env.sh             # default: libero_object
+source /workspace/openpi/runpod/libero_env.sh libero_spatial  # or a specific suite
 
-# Wait until Pane 1 server is up ("Server listening on port 8000"), then run:
+# It activates the venv, sets PYTHONPATH + MUJOCO_GL, and prints the python command.
+# Then run the printed command:
 python examples/libero/main.py --args.task-suite-name libero_object --args.video-out-path data/libero/videos/libero_object
-
-# Different suite:
-python examples/libero/main.py --args.task-suite-name libero_spatial --args.video-out-path data/libero/videos/libero_spatial
 ```
 
 **Step 5 — Running multiple suites in parallel**
 
-The policy server is stateless per request — multiple clients can connect simultaneously. To run a second suite while one is already going, open a new tmux pane (no reinstall needed, venv already exists):
+The policy server is stateless per request — multiple clients can connect simultaneously. To run a second suite while one is already going, open a new tmux pane and source the env script again:
 
 ```bash
 # New tmux pane:
-cd /workspace/openpi
-source examples/libero/.venv/bin/activate
-export PYTHONPATH=$PYTHONPATH:$PWD/third_party/libero
-export MUJOCO_GL=egl
-python examples/libero/main.py --args.task-suite-name libero_object
+source /workspace/openpi/runpod/libero_env.sh libero_spatial
+python examples/libero/main.py --args.task-suite-name libero_spatial --args.video-out-path data/libero/videos/libero_spatial
 ```
 
 > **Default suite is `libero_spatial`**, not libero_object. Always pass `--args.task-suite-name` explicitly. Our primary suite for patching experiments is `libero_object`.
