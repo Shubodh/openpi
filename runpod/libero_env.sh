@@ -5,7 +5,6 @@
 #
 # Run once server says "listening on :8000", then paste the python command below.
 
-SUITE=${1:-libero_object}
 OPENPI_DIR="/workspace/openpi"
 
 cd "$OPENPI_DIR"
@@ -15,6 +14,5 @@ export MUJOCO_GL=egl
 
 echo ""
 echo "Env ready. Run:"
-echo "  python examples/libero/main.py --args.task-suite-name $SUITE --args.video-out-path data/libero/videos/$SUITE"
-echo ""
-echo "Different suite: source libero_env.sh libero_spatial"
+echo "  python examples/libero/main.py --args.task-suite-name libero_object --args.video-out-path data/libero/videos/libero_object"
+echo "  python examples/libero/main.py --args.task-suite-name libero_spatial --args.video-out-path data/libero/videos/libero_spatial"

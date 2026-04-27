@@ -238,11 +238,10 @@ cd /workspace/openpi
 uv run scripts/serve_policy.py --env LIBERO
 
 # Pane 2: once Pane 1 says "listening on :8000", source the env script:
-source /workspace/openpi/runpod/libero_env.sh             # default: libero_object
-source /workspace/openpi/runpod/libero_env.sh libero_spatial  # or a specific suite
+source /workspace/openpi/runpod/libero_env.sh
 
-# It activates the venv, sets PYTHONPATH + MUJOCO_GL, and prints the python command.
-# Then run the printed command:
+# It activates the venv, sets PYTHONPATH + MUJOCO_GL, and prints example commands.
+# Then run whichever suite you want:
 python examples/libero/main.py --args.task-suite-name libero_object --args.video-out-path data/libero/videos/libero_object
 ```
 
@@ -252,7 +251,7 @@ The policy server is stateless per request — multiple clients can connect simu
 
 ```bash
 # New tmux pane:
-source /workspace/openpi/runpod/libero_env.sh libero_spatial
+source /workspace/openpi/runpod/libero_env.sh
 python examples/libero/main.py --args.task-suite-name libero_spatial --args.video-out-path data/libero/videos/libero_spatial
 ```
 
