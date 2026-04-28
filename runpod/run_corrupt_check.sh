@@ -8,12 +8,20 @@
 #   Clean run  — correct prompt, baseline should be ~98%
 #   Corrupt run — wrong object name, same scene/states
 #
-# Results are logged to stdout. Videos saved to data/libero/videos/corrupt_check_{clean,corrupt}/
+# Output: tee'd to stdout AND scripts_outputs_txt/corrupt_check_YYYYMMDD_HHMMSS.txt
+# Videos saved to data/libero/videos/corrupt_check_{clean,corrupt}/
 
 set -e
 OPENPI_DIR="/workspace/openpi"
 cd "$OPENPI_DIR"
 
+TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+OUT_DIR="scripts_outputs_txt"
+OUT_FILE="$OUT_DIR/corrupt_check_${TIMESTAMP}.txt"
+mkdir -p "$OUT_DIR"
+
+{
+echo "=== corrupt_check run: $TIMESTAMP ==="
 echo "=== [1/2] Clean run: correct prompt on milk task ==="
 python examples/libero/main.py \
   --args.task-suite-name libero_object \
@@ -32,3 +40,7 @@ python examples/libero/main.py \
 
 echo ""
 echo "=== Both conditions complete. Record results in status_cc/corrupt_run_experiment.md ==="
+} 2>&1 | tee "$OUT_FILE"
+
+echo ""
+echo "=== Full log saved to: $OUT_FILE ==="
