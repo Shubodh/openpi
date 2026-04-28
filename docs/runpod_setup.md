@@ -161,7 +161,7 @@ bash /workspace/openpi/runpod/start_libero.sh
 # Once left pane says "listening on :8000", in right pane:
 bash /workspace/openpi/runpod/setup_agents.sh   # install Claude Code + Codex
 source /workspace/openpi/runpod/libero_env.sh
-python examples/libero/main.py --args.task-suite-name libero_object --args.video-out-path data/libero/videos/libero_object
+python examples/libero/main_original.py --args.task-suite-name libero_object --args.video-out-path data/libero/videos/libero_object
 
 # 2. Every restart after that: THIS IS WHAT YOU'D TYPICALLY RUN
 bash /workspace/openpi/runpod/setup_pod.sh
@@ -169,7 +169,7 @@ bash /workspace/openpi/runpod/start_libero.sh
 # Once left pane says "listening on :8000", in right pane:
 bash /workspace/openpi/runpod/setup_agents.sh   # install Claude Code + Codex
 source /workspace/openpi/runpod/libero_env.sh
-python examples/libero/main.py --args.task-suite-name libero_object --args.video-out-path data/libero/videos/libero_object_new
+python examples/libero/main_original.py --args.task-suite-name libero_object --args.video-out-path data/libero/videos/libero_object_new
 ```
 
 To reattach to the session after detaching: `tmux attach -t libero`
@@ -250,7 +250,7 @@ export MUJOCO_GL=egl   # headless rendering; fallback: MUJOCO_GL=glx
 source /workspace/openpi/runpod/libero_env.sh
 
 # Then run whichever suite you want:
-python examples/libero/main.py --args.task-suite-name libero_object --args.video-out-path data/libero/videos/libero_object
+python examples/libero/main_original.py --args.task-suite-name libero_object --args.video-out-path data/libero/videos/libero_object
 ```
 
 **Step 5 — Running multiple suites in parallel**
@@ -260,7 +260,7 @@ The policy server is stateless per request — multiple clients can connect simu
 ```bash
 # New tmux pane:
 source /workspace/openpi/runpod/libero_env.sh
-python examples/libero/main.py --args.task-suite-name libero_spatial --args.video-out-path data/libero/videos/libero_spatial
+python examples/libero/main_original.py --args.task-suite-name libero_spatial --args.video-out-path data/libero/videos/libero_spatial
 ```
 
 > **Default suite is `libero_spatial`**, not libero_object. Always pass `--args.task-suite-name` explicitly. Our primary suite for patching experiments is `libero_object`.
@@ -284,7 +284,7 @@ mv data/libero/videos/*in_the_basket*.mp4 data/libero/videos/libero_object/
 rsync -avz --progress \
   -e "ssh -p <PORT> -i ~/.ssh/id_ed25519" \
   root@<IP>:/workspace/openpi/data/libero/videos/ \
-  ~/Downloads/libero_videos/
+  /media/shubodh/mydisk/shubodh/Downloads/data-non-onedrive/actionXMech_project/openpi/data/libero/videos/
 
 # Or with scp:
 scp -r -P <PORT> -i ~/.ssh/id_ed25519 \
@@ -292,7 +292,7 @@ scp -r -P <PORT> -i ~/.ssh/id_ed25519 \
   ~/Downloads/libero_videos/
 ```
 
-**`main.py` arguments reference:**
+**`main_original.py` / `main_corrupt_run_expt.py` arguments reference:**
 
 | Argument | Default | Notes |
 |----------|---------|-------|

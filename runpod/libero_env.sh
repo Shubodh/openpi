@@ -14,5 +14,5 @@ export MUJOCO_GL=egl
 
 echo ""
 echo "Env ready. Run:"
-echo "  python examples/libero/main.py --args.task-suite-name libero_object --args.video-out-path data/libero/videos/libero_object"
-echo "  python examples/libero/main.py --args.task-suite-name libero_spatial --args.video-out-path data/libero/videos/libero_spatial"
+echo "  python examples/libero/main_original.py --args.task-suite-name libero_object --args.video-out-path data/libero/videos/libero_object"
+echo "  python examples/libero/main_original.py --args.task-suite-name libero_spatial --args.video-out-path data/libero/videos/libero_spatial"

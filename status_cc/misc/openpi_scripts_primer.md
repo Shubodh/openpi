@@ -11,7 +11,7 @@ The entire evaluation system is a **client–server split**:
 ```
 ┌─────────────────────────────────────┐     WebSocket     ┌─────────────────────────────┐
 │   LIBERO client (Python 3.8 venv)   │ ────────────────> │  π₀.₅ policy server (uv)    │
-│   examples/libero/main.py           │  obs dict (msgpack)│  scripts/serve_policy.py    │
+│   examples/libero/main_corrupt_run_expt.py           │  obs dict (msgpack)│  scripts/serve_policy.py    │
 │                                     │ <──────────────── │                             │
 │   - runs MuJoCo sim                 │  action chunk      │  - loads checkpoint         │
 │   - sends observations each step    │                    │  - runs transformer forward │
@@ -25,7 +25,7 @@ The **prompt (language instruction) lives entirely on the client side** and is s
 
 ## File-by-File Breakdown
 
-### `examples/libero/main.py` — The Evaluation Client
+### `examples/libero/main_corrupt_run_expt.py` (renamed from `main.py`) — The Evaluation Client
 
 This is the only file that needs to change for the corrupt-run experiment.
 
@@ -119,7 +119,7 @@ These handle infrastructure, not experiment logic.
 | `libero_env.sh` | **Source** (not run) this to activate the venv, set `PYTHONPATH` and `MUJOCO_GL=egl`, and print the baseline python command |
 | `run_libero_client.sh [suite] [trials] [seed] [video_path]` | Convenience wrapper that activates the venv and calls `main.py` with positional args. Used for adding parallel suite runs. |
 
-The typical pod workflow is: `setup_pod.sh` → `start_libero.sh` → (server is up) → `source libero_env.sh` → `python examples/libero/main.py ...`
+The typical pod workflow is: `setup_pod.sh` → `start_libero.sh` → (server is up) → `source libero_env.sh` → `python examples/libero/main_corrupt_run_expt.py ...`
 
 ---
 

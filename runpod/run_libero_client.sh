@@ -32,7 +32,7 @@ export OPENPI_DATA_HOME=/workspace/openpi_assets
 
 echo "Suite: $SUITE | Trials/task: $NUM_TRIALS | Seed: $SEED | Videos: $OPENPI_DIR/$VIDEO_OUT"
 
-python examples/libero/main.py \
+python examples/libero/main_original.py \
   --args.task-suite-name "$SUITE" \
   --args.num-trials-per-task "$NUM_TRIALS" \
   --args.seed "$SEED" \

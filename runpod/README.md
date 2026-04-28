@@ -23,7 +23,7 @@ bash /workspace/openpi/runpod/start_libero.sh
 # [pane 0] wait for "listening on :8000", then in pane 1:
 bash /workspace/openpi/runpod/setup_agents.sh   # Claude Code + Codex (optional)
 source /workspace/openpi/runpod/libero_env.sh
-python examples/libero/main.py --args.task-suite-name libero_object --args.video-out-path data/libero/videos/libero_object
+python examples/libero/main_original.py --args.task-suite-name libero_object --args.video-out-path data/libero/videos/libero_object
 
 # Every pod restart after that (most common):
 bash /workspace/openpi/runpod/setup_pod.sh      # ~15-20 min

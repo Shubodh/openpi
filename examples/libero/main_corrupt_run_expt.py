@@ -43,6 +43,7 @@ class Args:
     #################################################################################################################
     task_name_filter: Optional[str] = None  # if set, only run tasks whose description contains this substring (case-insensitive)
     corrupt_prompt: Optional[str] = None  # if set, replaces the prompt sent to the model (scene/states unchanged)
+    save_all_videos: bool = False  # if set, saves every episode as a separate file (ep{idx} in filename); default overwrites per outcome label
 
     #################################################################################################################
     # Utils
@@ -181,8 +182,12 @@ def eval_libero(args: Args) -> None:
             # Save a replay video of the episode
             suffix = "success" if done else "failure"
             task_segment = task_description.replace(" ", "_")
+            if args.save_all_videos:
+                video_filename = f"rollout_{task_segment}_ep{episode_idx:03d}_{suffix}.mp4"
+            else:
+                video_filename = f"rollout_{task_segment}_{suffix}.mp4"
             imageio.mimwrite(
-                pathlib.Path(args.video_out_path) / f"rollout_{task_segment}_{suffix}.mp4",
+                pathlib.Path(args.video_out_path) / video_filename,
                 [np.asarray(x) for x in replay_images],
                 fps=10,
             )

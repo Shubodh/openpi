@@ -24,19 +24,21 @@ mkdir -p "$OUT_DIR"
 echo "=== corrupt_check run: $TIMESTAMP ==="
 echo "=== [1/2] Clean run: correct prompt on milk task ==="
 # "n" answers LIBERO's dataset path prompt on first run after pod restart
-printf "n\n" | python examples/libero/main.py \
+printf "n\n" | python examples/libero/main_corrupt_run_expt.py \
   --args.task-suite-name libero_object \
   --args.task-name-filter "milk" \
-  --args.num-trials-per-task 25 \
+  --args.num-trials-per-task 10 \
+  --args.save-all-videos \
   --args.video-out-path data/libero/videos/corrupt_check_clean
 
 echo ""
 echo "=== [2/2] Corrupt run: tomato sauce prompt on milk task ==="
-printf "n\n" | python examples/libero/main.py \
+printf "n\n" | python examples/libero/main_corrupt_run_expt.py \
   --args.task-suite-name libero_object \
   --args.task-name-filter "milk" \
   --args.corrupt-prompt "Pick up the tomato sauce and place it in the basket" \
-  --args.num-trials-per-task 25 \
+  --args.num-trials-per-task 10 \
+  --args.save-all-videos \
   --args.video-out-path data/libero/videos/corrupt_check_corrupt
 
 echo ""

@@ -46,7 +46,7 @@ LIBERO-Object tasks have deterministic object placement — the target object is
 
 ## What to Implement
 
-The modification to `examples/libero/main.py` is minimal — two new CLI flags.
+The modification to `examples/libero/main_corrupt_run_expt.py` (renamed from `main.py`) is minimal — two new CLI flags.
 
 ### Flag 1: `--args.corrupt-prompt`
 
@@ -56,7 +56,7 @@ Optional string. If set, replaces the prompt sent to the model (overrides `task_
 
 Optional string. If set, only runs tasks where `task_description` contains the filter as a substring (case-insensitive). Allows isolating just the milk task without modifying any other logic. Default: `None` (run all tasks — existing behavior unchanged).
 
-### Resulting `main.py` changes (conceptual)
+### Resulting `main_corrupt_run_expt.py` changes (conceptual)
 
 In the `Args` dataclass, add:
 ```python
@@ -79,14 +79,14 @@ A convenience script that documents the exact commands to run both conditions:
 
 ```bash
 # Clean run (25 trials on milk task only):
-python examples/libero/main.py \
+python examples/libero/main_corrupt_run_expt.py \
   --args.task-suite-name libero_object \
   --args.task-name-filter "milk" \
   --args.num-trials-per-task 25 \
   --args.video-out-path data/libero/videos/corrupt_check_clean
 
 # Corrupt run (same, different prompt):
-python examples/libero/main.py \
+python examples/libero/main_corrupt_run_expt.py \
   --args.task-suite-name libero_object \
   --args.task-name-filter "milk" \
   --args.corrupt-prompt "Pick up the tomato sauce and place it in the basket" \
