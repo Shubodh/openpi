@@ -1,6 +1,6 @@
 # Corrupt Run Experiment — Prompt-Ablation Check
 
-**Status:** 🔍 Ready to implement
+**Status:** ✅ Complete — results recorded below
 
 **What this is:** Step 3's prerequisite check for the AXMech ActPatch project. Before running activation-patching experiments on π₀.₅ + LIBERO-Object, we must confirm that the language prompt is actually load-bearing — i.e., changing the object name in the prompt changes what the robot picks up. If the model ignores the prompt (positional shortcut), patching the object-name token would be meaningless regardless of patching mechanism.
 
@@ -126,11 +126,15 @@ Script reference: `runpod/README.md`
 
 ## Results
 
-*(to be filled in after running)*
+Run: `scripts_outputs_txt/corrupt_check_20260428_095455.txt` — A40, seed 7, 25 trials per condition.
 
 | Condition | Rollouts | Successes | Success Rate |
 |-----------|----------|-----------|--------------|
-| Clean (milk prompt on milk scene) | — | — | — |
-| Corrupt (tomato sauce prompt on milk scene) | — | — | — |
+| Clean (milk prompt on milk scene) | 25 | 24 | **96.0%** |
+| Corrupt (tomato sauce prompt on milk scene) | 25 | 9 | **36.0%** |
 
-**Conclusion:** *(is language load-bearing?)*
+**Conclusion: Language is load-bearing.** The corrupt prompt dropped success from 96% to 36% — a 60pp collapse. LIBERO-Object is a valid suite for ActPatch; proceed to Step 4.
+
+The 36% residual (9/25 successes even under the wrong prompt) is consistent with a partial positional shortcut: the milk carton is always at the same location, so the policy sometimes picks it up despite being told to pick tomato sauce. But the language signal is clearly dominant — the model is not ignoring the prompt.
+
+**Cross-check with baseline:** Clean run 96.0% vs full-suite baseline 97.8% (489/500, A40, seed 7). The 1.8pp gap is within expected single-task variance at n=25.
