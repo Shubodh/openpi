@@ -17,7 +17,12 @@ This is the **Shubodh fork** of the Physical Intelligence [openpi](https://githu
 
 ## When you're asked about the research / experiments
 
-This fork is used for the AXMech mechanistic interpretability project. Experiment design, suite choices, and research status live in a separate repo (`AXMech_meta-discussion-FS`) — not here. This repo is infrastructure only.
+This fork is used for the AXMech mechanistic interpretability project. Experiment design, suite choices, and high-level research status live in a separate repo (`AXMech_meta-discussion-FS`).
+
+**Experiment-specific implementation work lives here**, in `status_cc/`. When a new experiment is ready to implement, a briefing document is added to `status_cc/` with everything an agent needs to implement and run it without reading the meta repo.
+
+**Current active experiment:**
+- `status_cc/corrupt_run_experiment.md` — prompt-ablation check (clean run vs. corrupt run). Step 3 prerequisite check for the ActPatch project. **Start here.**
 
 ## Upstream openpi
 
