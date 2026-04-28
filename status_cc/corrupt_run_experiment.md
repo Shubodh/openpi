@@ -74,6 +74,9 @@ Also update the video filename suffix to make it clear which condition produced 
 ### Also create: `runpod/run_corrupt_check.sh`
 
 A convenience script that documents the exact commands to run both conditions:
+
+(50 trials is default)
+
 ```bash
 # Clean run (25 trials on milk task only):
 python examples/libero/main.py \
