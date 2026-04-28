@@ -3,6 +3,7 @@ import dataclasses
 import logging
 import math
 import pathlib
+from typing import Optional
 
 import imageio
 from libero.libero import benchmark
@@ -36,6 +37,12 @@ class Args:
     )
     num_steps_wait: int = 10  # Number of steps to wait for objects to stabilize i n sim
     num_trials_per_task: int = 50  # Number of rollouts per task
+
+    #################################################################################################################
+    # Experiment overrides (for corrupt-run / prompt-ablation experiments)
+    #################################################################################################################
+    task_name_filter: Optional[str] = None  # if set, only run tasks whose description contains this substring (case-insensitive)
+    corrupt_prompt: Optional[str] = None  # if set, replaces the prompt sent to the model (scene/states unchanged)
 
     #################################################################################################################
     # Utils
@@ -83,6 +90,13 @@ def eval_libero(args: Args) -> None:
 
         # Initialize LIBERO environment and task description
         env, task_description = _get_libero_env(task, LIBERO_ENV_RESOLUTION, args.seed)
+
+        # Skip tasks that don't match the filter
+        if args.task_name_filter and args.task_name_filter.lower() not in task_description.lower():
+            continue
+
+        # Determine the prompt to send to the model (corrupt_prompt overrides task language)
+        prompt = args.corrupt_prompt if args.corrupt_prompt else str(task_description)
 
         # Start episodes
         task_episodes, task_successes = 0, 0
@@ -137,7 +151,7 @@ def eval_libero(args: Args) -> None:
                                     obs["robot0_gripper_qpos"],
                                 )
                             ),
-                            "prompt": str(task_description),
+                            "prompt": prompt,
                         }
 
                         # Query model to get action
