@@ -11,7 +11,7 @@
 # Output: tee'd to stdout AND scripts_outputs_txt/corrupt_check_YYYYMMDD_HHMMSS.txt
 # Videos saved to data/libero/videos/corrupt_check_{clean,corrupt}/
 
-set -e
+set -eo pipefail
 OPENPI_DIR="/workspace/openpi"
 cd "$OPENPI_DIR"
 
