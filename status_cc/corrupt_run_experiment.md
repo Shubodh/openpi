@@ -138,3 +138,22 @@ Run: `scripts_outputs_txt/corrupt_check_20260428_095455.txt` — A40, seed 7, 25
 The 36% residual (9/25 successes even under the wrong prompt) is consistent with a partial positional shortcut: the milk carton is always at the same location, so the policy sometimes picks it up despite being told to pick tomato sauce. But the language signal is clearly dominant — the model is not ignoring the prompt.
 
 **Cross-check with baseline:** Clean run 96.0% vs full-suite baseline 97.8% (489/500, A40, seed 7). The 1.8pp gap is within expected single-task variance at n=25.
+
+### Video observations (2026-04-28)
+
+**Coverage limitation:** The current script saves only one video per outcome label per condition — `rollout_{task_description}_{success|failure}.mp4` — so each new episode overwrites the previous one with the same label. After 25 episodes we are left with exactly 4 videos total: 1 clean-success, 1 clean-failure, 1 corrupt-success, 1 corrupt-failure. This is insufficient for qualitative analysis of the corrupt run.
+
+**Object description (important for interpreting failure modes):**
+- **Milk carton** — the target object for the task. Upright rectangular carton.
+- **Tomato sauce bottle** — the corrupt prompt object. Red in colour, cylindrical shape.
+- **Cream cheese box** — a blue, flat cigarette-box-shaped container. Visually and dimensionally unlike the tomato sauce bottle.
+
+**Clean run videos:** Behave exactly as expected — the robot reaches for and picks up the milk carton and places it in the basket. Consistent with the 97.8% baseline.
+
+**Corrupt run — success video:** The robot picks up the milk carton and places it in the basket, identical in trajectory to the clean run. This is a LIBERO "success" (milk ends up in basket) even though the prompt asked for tomato sauce. These episodes represent the positional shortcut dominating: the model reverted to its trained milk-picking trajectory despite the conflicting language. The prompt did not successfully redirect behaviour in these cases.
+
+**Corrupt run — failure video:** The robot picks up the cream cheese box (blue, cigarette-box shaped) — *not* the tomato sauce bottle it was prompted to retrieve, and *not* the milk carton either. This is a critical qualitative finding: in at least some failure episodes, the model is responding to the corrupt prompt in a confused way — it is neither picking the trained object (milk) nor the prompted object (tomato sauce), but an unrelated third object. This suggests the corrupt prompt is genuinely disrupting the policy's object selection, but not steering it cleanly to the intended corrupt target.
+
+**What we cannot determine from 4 videos:** Whether the failure-mode breakdown is consistent (always cream cheese? other objects?) or variable across the 16 failure episodes. We need more video samples — ideally all 16 corrupt-run failure videos — to characterise the failure distribution.
+
+**Next step:** Modify the script to save all rollout videos with episode index in the filename so no overwriting occurs. Re-run the corrupt condition (or save videos from a future run) and inspect the full failure set.
