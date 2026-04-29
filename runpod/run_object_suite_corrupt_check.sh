@@ -1,5 +1,5 @@
 #!/bin/bash
-# run_corrupt_check.sh — run the prompt-ablation (corrupt-run) experiment
+# run_object_suite_corrupt_check.sh — run the LIBERO-object prompt-ablation experiment
 #
 # Prerequisite: policy server must already be running (start_libero.sh),
 # and venv must be active (source libero_env.sh).

@@ -12,7 +12,8 @@ Bash scripts for pod lifecycle management on RunPod. Full guide → [`docs/runpo
 | `start_libero.sh [suite]` | After `setup_pod.sh` | Launches tmux session: pane 0 = π₀.₅ policy server, pane 1 = clean shell with reminder |
 | `libero_env.sh` | **Source** in pane 1 once server is up | Activates venv + exports env vars + prints python command to run |
 | `run_libero_client.sh [suite] [trials] [seed] [video_path]` | To add parallel suite runs | Runs a LIBERO client against an already-running policy server |
-| `run_corrupt_check.sh` | After `source libero_env.sh`, to run the prompt-ablation experiment | Clean run + corrupt run on milk task (25 trials each); logs tee'd to `scripts_outputs_txt/` |
+| `run_object_suite_corrupt_check.sh` | After `source libero_env.sh`, to run the LIBERO-object prompt-ablation experiment | Clean run + corrupt run on milk task (25 trials each); logs tee'd to `scripts_outputs_txt/` |
+| `run_goal_suite_corrupt_check.sh` | After `source libero_env.sh`, to run the LIBERO-goal prompt-ablation experiment | Clean run + corrupt run on bowl/cabinet task (25 trials each); logs tee'd to `scripts_outputs_txt/` |
 
 ## Typical flow
 
@@ -32,7 +33,7 @@ bash /workspace/openpi/runpod/start_libero.sh
 bash /workspace/openpi/runpod/setup_agents.sh   # Claude Code + Codex (optional)
 source /workspace/openpi/runpod/libero_env.sh
 # Then run whatever experiment you need, e.g.:
-bash /workspace/openpi/runpod/run_corrupt_check.sh
+bash /workspace/openpi/runpod/run_goal_suite_corrupt_check.sh
 ```
 
 For the agent-first workflow (recommended), API key setup, and permission configuration → see [`docs/runpod_setup.md §0`](../docs/runpod_setup.md).

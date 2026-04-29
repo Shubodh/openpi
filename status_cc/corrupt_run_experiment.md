@@ -75,7 +75,7 @@ In `eval_libero`, after `task_description` is set:
 
 Also update the video filename suffix to make it clear which condition produced the video — e.g., append `_corrupt` to the video directory name or filename when `corrupt_prompt` is active.
 
-### Also create: `runpod/run_corrupt_check.sh`
+### Also create: `runpod/run_object_suite_corrupt_check.sh`
 
 A convenience script that documents the exact commands to run both conditions:
 
@@ -119,8 +119,8 @@ The policy server and LIBERO client are already confirmed working (baseline: 97.
 # On pod (after setup_pod.sh + start_libero.sh):
 source /workspace/openpi/runpod/libero_env.sh
 
-# Then run the corrupt check script:
-bash /workspace/openpi/runpod/run_corrupt_check.sh
+# Then run the LIBERO-object corrupt check script:
+bash /workspace/openpi/runpod/run_object_suite_corrupt_check.sh
 ```
 
 Full RunPod setup guide: `docs/runpod_setup.md`  
