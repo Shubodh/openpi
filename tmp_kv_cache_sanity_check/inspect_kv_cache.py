@@ -33,13 +33,14 @@ import sentencepiece as _spm
 
 _TOKENIZER_CACHE = '/tmp/paligemma_tokenizer.model'
 
+_TOKENIZER_URL = "https://storage.googleapis.com/big_vision/paligemma_tokenizer.model"
+
 def _load_sp() -> _spm.SentencePieceProcessor:
     if not os.path.exists(_TOKENIZER_CACHE):
-        print(f"[tokenizer] Downloading from GCS → {_TOKENIZER_CACHE}")
-        import gcsfs
-        fs = gcsfs.GCSFileSystem(token="anon")
+        print(f"[tokenizer] Downloading from {_TOKENIZER_URL}")
+        import urllib.request
         os.makedirs(os.path.dirname(_TOKENIZER_CACHE), exist_ok=True)
-        fs.get("big_vision/paligemma_tokenizer.model", _TOKENIZER_CACHE)
+        urllib.request.urlretrieve(_TOKENIZER_URL, _TOKENIZER_CACHE)
         print(f"[tokenizer] Downloaded ({os.path.getsize(_TOKENIZER_CACHE)} bytes)")
     else:
         print(f"[tokenizer] Using cached tokenizer ({os.path.getsize(_TOKENIZER_CACHE)} bytes)")
