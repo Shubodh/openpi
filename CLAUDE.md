@@ -21,8 +21,10 @@ This fork is used for the AXMech mechanistic interpretability project. Experimen
 
 **Experiment-specific implementation work lives here**, in `status_cc/`. When a new experiment is ready to implement, a briefing document is added to `status_cc/` with everything an agent needs to implement and run it without reading the meta repo.
 
-**Current active experiment:**
-- `status_cc/corrupt_run_experiment.md` — prompt-ablation check (clean run vs. corrupt run). Step 3 prerequisite check for the ActPatch project. **Start here.**
+**Current active experiments:**
+- `status_cc/corrupt_run_experiment.md` — ✅ Complete. Prompt-ablation check on LIBERO-Object (96% clean, 36% corrupt). Language is load-bearing but suite generalizes poorly. Pivot to LIBERO-Goal for ActPatch.
+- `status_cc/libero_goal_baseline.md` — Next: confirm LIBERO-Goal baseline (30-min test while KV-cache check + patching implementation proceeds).
+- Step 4 (KV-cache sanity check + activation patching implementation) — in progress in the AXMech_meta repo.
 
 ## Upstream openpi
 

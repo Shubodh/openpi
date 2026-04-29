@@ -2,9 +2,13 @@
 
 **Status:** ✅ Complete — results recorded below
 
-**What this is:** Step 3's prerequisite check for the AXMech ActPatch project. Before running activation-patching experiments on π₀.₅ + LIBERO-Object, we must confirm that the language prompt is actually load-bearing — i.e., changing the object name in the prompt changes what the robot picks up. If the model ignores the prompt (positional shortcut), patching the object-name token would be meaningless regardless of patching mechanism.
+**What this is:** Step 3's prerequisite check for the AXMech ActPatch project. We ran a prompt-ablation check on LIBERO-Object to confirm that language is load-bearing on individual tasks — i.e., changing the object name in the prompt changes what the robot picks up.
 
-These are also the first two legs of ActPatch (clean run + corrupt run). Running them now builds the infrastructure that patching (Step 5) slots into directly.
+**Key finding:** Language *is* load-bearing on single tasks (96% clean → 36% corrupt = 60pp drop), but **LIBERO-Object is not suitable for ActPatch experiments** because the model does not generalize across different tasks in the suite. Each task has a unique layout; the model learns layout→object mappings without reading language deeply. This makes it impossible to distinguish ActPatch success from generalization failure.
+
+**Suite pivot:** ActPatch experiments will proceed on **LIBERO-Goal** instead, which has identical layouts across all tasks and contrastive task pairs (single-word differences in prompts).
+
+These experiments (clean run + corrupt run) built the infrastructure that patching (Step 4 implementation) slots into directly.
 
 ---
 
