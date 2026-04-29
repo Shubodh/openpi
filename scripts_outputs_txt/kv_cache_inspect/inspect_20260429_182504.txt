@@ -1,0 +1,79 @@
+=== kv_cache_inspect run: 20260429_182504 ===
+=== Script: tmp_kv_cache_sanity_check/inspect_kv_cache.py ===
+
+[tokenizer] Using cached tokenizer (4264023 bytes)
+
+============================================================
+TOKENIZATION RESULTS
+============================================================
+
+Prompt (clean): 'put the bowl on top of the cabinet'
+  Tokens (with BOS): 9
+  [  0] id=      2  piece='<bos>'
+  [  1] id=   1065  piece='put'
+  [  2] id=    573  piece='▁the'
+  [  3] id=  14581  piece='▁bowl'  <-- OBJECT
+  [  4] id=    611  piece='▁on'
+  [  5] id=   2267  piece='▁top'
+  [  6] id=    576  piece='▁of'
+  [  7] id=    573  piece='▁the'
+  [  8] id=  22402  piece='▁cabinet'
+  Object-name token(s): [(3, 'bowl')]
+
+Prompt (corrupt): 'put the wine bottle on top of the cabinet'
+  Tokens (with BOS): 10
+  [  0] id=      2  piece='<bos>'
+  [  1] id=   1065  piece='put'
+  [  2] id=    573  piece='▁the'
+  [  3] id=  10058  piece='▁wine'  <-- OBJECT
+  [  4] id=  12989  piece='▁bottle'  <-- OBJECT
+  [  5] id=    611  piece='▁on'
+  [  6] id=   2267  piece='▁top'
+  [  7] id=    576  piece='▁of'
+  [  8] id=    573  piece='▁the'
+  [  9] id=  22402  piece='▁cabinet'
+  Object-name token(s): [(3, 'wine'), (4, 'bottle')]
+
+============================================================
+ABSOLUTE PREFIX POSITIONS (object-name tokens)
+============================================================
+  Image token count per view  : 196
+  Number of cameras           : 3
+  Language region starts at   : 588
+  Max language token length   : 200
+  Total prefix length         : 788
+
+  clean:
+    'bowl' → local index 3 → absolute prefix index 591
+  corrupt:
+    'wine' → local index 3 → absolute prefix index 591
+    'bottle' → local index 4 → absolute prefix index 592
+============================================================
+KV CACHE SHAPE (statically derived from gemma_2b config)
+============================================================
+  kv_cache[0] (K): (18, 1, 788, 1, 256)
+  kv_cache[1] (V): (18, 1, 788, 1, 256)
+  = (layers, batch, prefix_seq_len, num_kv_heads, head_dim)
+
+  Memory (bfloat16): 7092.0 KB for K, same for V
+  Total cache: 14184.0 KB
+
+============================================================
+CACHE REUSE (from static code analysis of pi0.py)
+============================================================
+  sample_actions() flow:
+  1. embed_prefix(obs)  → prefix_tokens [B, 788, emb]
+  2. llm([prefix_tokens, None], ...)  → kv_cache  (computed ONCE)
+  3. for each diffusion step:
+       embed_suffix(obs, x_t, time)  → suffix_tokens
+       llm([None, suffix_tokens], kv_cache=kv_cache, ...)  → suffix_out
+       x_t += dt * action_out_proj(suffix_out)
+  Prefix KV cache is NEVER recomputed — reused across all diffusion steps.
+  Patching point: between step 2 and step 3 (overwrite kv_cache slots).
+
+  Hook location: pi0.py:sample_actions, after line 237, before the step() loop.
+    `_, kv_cache = self.PaliGemma.llm([prefix_tokens, None], ...)`
+    ← insert patch here →
+    `while cond(carry): carry = step(carry)`
+
+=== Done. Paste output into status_cc/kv_cache_findings.md Section 3. ===
