@@ -1,0 +1,48 @@
+=== kv_cache_inspect run: 20260429_181943 ===
+=== Script: tmp_kv_cache_sanity_check/inspect_kv_cache.py ===
+
+/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/google/auth/__init__.py:52: FutureWarning: You are using a Python version 3.8 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.8"), FutureWarning)
+/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/google/oauth2/__init__.py:38: FutureWarning: You are using a Python version 3.8 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.8"), FutureWarning)
+[tokenizer] Downloading from GCS → /tmp/paligemma_tokenizer.model
+Traceback (most recent call last):
+  File "tmp_kv_cache_sanity_check/inspect_kv_cache.py", line 48, in <module>
+    sp = _load_sp()
+  File "tmp_kv_cache_sanity_check/inspect_kv_cache.py", line 42, in _load_sp
+    fs.get("big_vision/paligemma_tokenizer.model", _TOKENIZER_CACHE)
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/fsspec/asyn.py", line 118, in wrapper
+    return sync(self.loop, func, *args, **kwargs)
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/fsspec/asyn.py", line 103, in sync
+    raise return_result
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/fsspec/asyn.py", line 56, in _runner
+    result[0] = await coro
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/fsspec/asyn.py", line 669, in _get
+    return await _run_coros_in_chunks(
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/fsspec/asyn.py", line 268, in _run_coros_in_chunks
+    result, k = await done.pop()
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/fsspec/asyn.py", line 245, in _run_coro
+    return await asyncio.wait_for(coro, timeout=timeout), i
+  File "/root/.local/share/uv/python/cpython-3.8-linux-x86_64-gnu/lib/python3.8/asyncio/tasks.py", line 455, in wait_for
+    return await fut
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/fsspec/callbacks.py", line 81, in func
+    return await fn(path1, path2, callback=child, **kwargs)
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/gcsfs/core.py", line 1215, in _get_file
+    async with self.session.get(
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/aiohttp/client.py", line 1360, in __aenter__
+    self._resp: _RetType = await self._coro
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/aiohttp/client.py", line 635, in _request
+    req = self._request_class(
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/aiohttp/client_reqrep.py", line 314, in __init__
+    url = url.extend_query(params)
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/yarl/_url.py", line 1395, in extend_query
+    new_query_string = self._get_str_query(*args, **kwargs)
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/yarl/_url.py", line 1336, in _get_str_query
+    return self._get_str_query_from_sequence_iterable(query.items())
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/yarl/_url.py", line 1265, in _get_str_query_from_sequence_iterable
+    pairs = [
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/yarl/_url.py", line 1266, in <listcomp>
+    f"{quoter(k)}={quoter(v if type(v) is str else self._query_var(v))}"
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/yarl/_url.py", line 1295, in _query_var
+    raise TypeError(
+TypeError: Invalid variable type: value should be str, int or float, got <fsspec.callbacks.NoOpCallback object at 0x737ec799f160> of type <class 'fsspec.callbacks.NoOpCallback'>
