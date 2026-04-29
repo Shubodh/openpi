@@ -4,7 +4,7 @@
 
 **What this is:** A read-only inspection of π₀.₅'s prefix KV cache during a single forward pass on a LIBERO-Goal task. The output of this task is a short findings note that briefs the next implementation step (the patching code). **No patching, no behavioral changes — just inspect and document.**
 
-This is the "Task B / Option 1" decision in `HUMAN.md`: the openpi agent runs the sanity check and reports findings back; the human + meta-repo agent then design the patching code based on those findings.
+The openpi agent runs the sanity check and reports findings back; the human + meta-repo agent then design the patching code based on those findings.
 
 ---
 
@@ -66,5 +66,40 @@ Do **not** start writing intervention code based on findings — the human + met
 
 - `status_cc/corrupt_run_experiment.md` — prior LIBERO-Object experiment infrastructure (clean/corrupt run flags). Reuse the prompt-override mechanism if helpful.
 - `status_cc/misc/libero_suite_choice_detailed.md` — full task list and prompt strings for LIBERO-Goal.
-- `HUMAN.md` (root of this repo) — Step 4 decision framework; this doc resolves Task B.
+- `status_cc/misc/kv_cache_primer.md` — conceptual + implementation primer (KV-cache basics, openpi inference path, PaliGemma tokenizer wiring). Read this before the findings doc for orientation.
 - AXMech repo (`~/claude_code_workspace/2026_AXMech/AXMech/`) — SmolVLA patching implementation (residual-stream hook at layer 0, pos 131). Useful as a *conceptual* reference for what the analogous π₀.₅ intervention point should look like, but the mechanism is different (KV cache, not residual stream).
+
+---
+
+## Agent plan (2026-04-29)
+
+This is the agent's execution plan for the sanity check, written so future-me (or another agent) can pick up cold without re-deriving it.
+
+**Phase 0 — Primer first.** Before any inspection, write `status_cc/misc/kv_cache_primer.md` covering KV-cache fundamentals, our patching goal, the openpi inference path at a conceptual level, and PaliGemma tokenizer wiring. The primer is the conceptual scaffolding that `kv_cache_findings.md` will rely on; it is not the deliverable. Get human review on the primer before proceeding.
+
+**Phase 1 — Offline static analysis (no pod needed).**
+1. Map openpi inference path by reading code:
+   - Locate where the prefix is built (image tokens + text tokens) and where the prefix KV cache is populated.
+   - Locate where the cache is consumed by the action-decoding loop (action chunks across closed-loop steps).
+   - Confirm whether prefix is computed once per episode and reused, or recomputed each step.
+   - Likely files: `src/openpi/models/pi0*.py`, `src/openpi/policies/`, `scripts/serve_policy.py`. Grep for `kv_cache`, `cache`, `prefix`.
+2. Run the PaliGemma tokenizer locally (no policy server, no GPU) on both prompts:
+   - Clean: `"put the bowl on top of the cabinet"`
+   - Corrupt: `"put the wine bottle on top of the cabinet"`
+   - Print token ids + decoded strings; identify object-name token position(s); note whether `wine bottle` is one token or multiple.
+3. From the static read, infer the KV-cache shape per layer (num_layers, num_heads, head_dim from the PaliGemma config). Note as "expected; to confirm with live forward pass."
+
+**Phase 2 — Decide whether a live forward pass is needed.**
+- If Phase 1 fully resolves the three sanity-check questions (cache shape, token positions, cache reuse), draft `kv_cache_findings.md` from offline analysis alone and flag any remaining uncertainty.
+- If a live forward pass is genuinely required (e.g., the cache structure isn't statically determinable, or there's a wrapper that mutates shapes), surface this back to the human *before* asking for the pod to be restarted. Do not silently restart the pod.
+
+**Phase 3 — Write findings and stop.**
+- Deliverable: `status_cc/kv_cache_findings.md` per the spec in "Concrete steps → 3" above.
+- Hard stop: do not write patching/intervention code. The next move is a discussion with the human + meta-repo agent on architecture.
+
+**Files this plan will touch (anticipated):**
+- New: `status_cc/misc/kv_cache_primer.md` (Phase 0)
+- New: `status_cc/kv_cache_findings.md` (Phase 3)
+- Possibly new: a small read-only inspection script under `examples/libero/` (e.g. `inspect_kv_cache.py`) — only if Phase 1 needs it for the tokenizer sweep
+- Read-only: `src/openpi/...` inference path files
+- No edits to inference path, server, or policy code.
