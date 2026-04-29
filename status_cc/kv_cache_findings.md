@@ -186,3 +186,8 @@ Given the above, the key design choice is how to handle the **token count mismat
 | Right-wrist tokens patchable | No — masked, no effect | ✅ Static |
 
 **One RunPod run of `inspect_kv_cache.py` will fill in the 🔶 entries** and complete this document. No full model load needed — just the tokenizer.
+
+
+# Verification by Codex
+
+One useful nuance: pi05_libero sets discrete_state_input=False in src/openpi/training/config.py:743, so for this LIBERO config the tokenizer should be prompt-only, not Task: ..., State: ...; Action:. That makes the current raw-prompt tokenizer script direction plausible.
