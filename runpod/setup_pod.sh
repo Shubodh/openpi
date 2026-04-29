@@ -27,6 +27,8 @@ uv pip install -r examples/libero/requirements.txt -r third_party/libero/require
   --extra-index-url https://download.pytorch.org/whl/cu113 --index-strategy=unsafe-best-match
 uv pip install -e packages/openpi-client
 uv pip install -e third_party/libero
+# Extra openpi deps not pulled in by the libero requirements (needed for analysis scripts):
+uv pip install sentencepiece "fsspec[gcs]" filelock tqdm-loggable
 
 echo ""
 echo "=== setup_pod.sh complete ==="
