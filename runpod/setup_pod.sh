@@ -6,6 +6,10 @@
 # AI agents (Claude Code, Codex) are NOT reinstalled here — run setup_agents.sh separately if needed.
 set -e
 
+echo "=== [0/4] Configuring git identity ==="
+git config --global user.name "Shubodh RunPod April"
+git config --global user.email "p.saishubodh@gmail.com"
+
 echo "=== [1/4] Installing system packages ==="
 apt-get update -q && apt-get install -y -q tmux vim libegl1-mesa cmake rsync  # libegl1-mesa for MUJOCO_GL=egl; cmake for egl-probe build
 
