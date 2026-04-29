@@ -23,8 +23,9 @@ This fork is used for the AXMech mechanistic interpretability project. Experimen
 
 **Current active experiments:**
 - `status_cc/corrupt_run_experiment.md` — ✅ Complete. Prompt-ablation check on LIBERO-Object (96% clean, 36% corrupt). Language is load-bearing but suite generalizes poorly. Pivot to LIBERO-Goal for ActPatch.
-- `status_cc/libero_goal_baseline.md` — Next: confirm LIBERO-Goal baseline (30-min test while KV-cache check + patching implementation proceeds).
-- Step 4 (KV-cache sanity check + activation patching implementation) — in progress in the AXMech_meta repo.
+- `status_cc/kv_cache_sanity_check.md` — ⏳ **Next task for the agent here.** Read-only inspection of π₀.₅'s prefix KV cache on a LIBERO-Goal prompt pair. Output: a short findings note (`status_cc/kv_cache_findings.md`). Stops before any patching code is written. Resolves Task B in `HUMAN.md`.
+- LIBERO-Goal baseline — being run by the human in parallel; not the agent's responsibility (per `HUMAN.md` Task D).
+- Step 4 patching implementation — design discussion happening in the AXMech_meta repo. Will be briefed back here after the human + meta agent decide on architecture (Task A in `HUMAN.md`).
 
 ## Upstream openpi
 
