@@ -19,6 +19,8 @@ What this script does:
 No model weights are loaded. Tokenizer is downloaded from GCS on first run (~800 KB).
 """
 
+from __future__ import annotations
+
 import sys
 import os
 
