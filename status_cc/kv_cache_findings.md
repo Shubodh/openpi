@@ -1,6 +1,6 @@
 # KV-Cache Sanity Check — Findings
 
-**Status:** 🔶 Partially complete — static analysis done; tokenizer verification pending (needs RunPod).
+**Status:** ✅ Complete — static analysis + RunPod tokenizer verification done (2026-04-29).
 
 **Read this alongside:** `status_cc/misc/kv_cache_primer.md` for conceptual background.
 
@@ -55,51 +55,46 @@ The right-wrist tokens occupy indices 392–587 in the cache tensor but have `in
 
 ---
 
-## 3. Tokenizer — 🔶 Needs RunPod verification
+## 3. Tokenizer — ✅ Verified on RunPod (2026-04-29)
 
-**What we know statically:** PaliGemma uses a SentencePiece tokenizer with vocab size 256,000 (same as Gemma). SentencePiece adds a `▁` prefix to represent the space before a word. In a 256K vocabulary, common English words like `bowl`, `wine`, `bottle` are almost certainly single tokens.
+**Source:** `scripts_outputs_txt/kv_cache_inspect/inspect_20260429_182504.txt`
 
-**What needs to be confirmed on RunPod:**
+**Background:** PaliGemma uses a SentencePiece tokenizer with vocab size 256,000 (same as Gemma). SentencePiece adds a `▁` prefix to represent the space before a word. In a 256K vocabulary, common English words like `bowl`, `wine`, `bottle` are almost certainly single tokens — this is confirmed below. BOS token is always prepended (id=2), so local token indices are 1-based relative to the prompt words.
 
-Run `tmp_kv_cache_sanity_check/inspect_kv_cache.py` from the openpi venv on RunPod. It will print:
+All object-name words are single tokens. `cabinet` is also a single token. No surprises.
 
-1. The full token sequence for each prompt (ids + piece strings).
-2. The local index of each object-name token within the tokenized prompt.
-3. The absolute prefix index: `588 + local_index`.
-
-**Expected output (to be filled in after RunPod run):**
-
-For `"put the bowl on top of the cabinet"` (with BOS):
+For `"put the bowl on top of the cabinet"` (9 tokens with BOS):
 ```
-[0] BOS
-[1] ▁put
-[2] ▁the
-[3] ▁bowl    ← object-name token, local index 3 → absolute prefix index 591
-[4] ▁on
-[5] ▁top
-[6] ▁of
-[7] ▁the
-[8] ▁cabinet (may be 1 or 2 tokens — verify)
+[0] id=2      <bos>
+[1] id=1065   put
+[2] id=573    ▁the
+[3] id=14581  ▁bowl     ← object-name token, local index 3 → absolute prefix index 591
+[4] id=611    ▁on
+[5] id=2267   ▁top
+[6] id=576    ▁of
+[7] id=573    ▁the
+[8] id=22402  ▁cabinet
 ```
 
-For `"put the wine bottle on top of the cabinet"` (with BOS):
+For `"put the wine bottle on top of the cabinet"` (10 tokens with BOS):
 ```
-[0] BOS
-[1] ▁put
-[2] ▁the
-[3] ▁wine    ← object-name token 1, local index 3 → absolute prefix index 591
-[4] ▁bottle  ← object-name token 2, local index 4 → absolute prefix index 592
-[5] ▁on
-...
+[0] id=2      <bos>
+[1] id=1065   put
+[2] id=573    ▁the
+[3] id=10058  ▁wine     ← object-name token 1, local index 3 → absolute prefix index 591
+[4] id=12989  ▁bottle   ← object-name token 2, local index 4 → absolute prefix index 592
+[5] id=611    ▁on
+[6] id=2267   ▁top
+[7] id=576    ▁of
+[8] id=573    ▁the
+[9] id=22402  ▁cabinet
 ```
 
-**Key uncertainty:** whether `cabinet` is one token or two. Also whether `wine` and `bottle` are each one token (expected) or split further.
-
-**Placeholder — update after RunPod run:**
+**Verified results:**
 ```
-clean:   bowl   → local [?], absolute prefix [?]
-corrupt: wine   → local [?], absolute prefix [?]
-         bottle → local [?], absolute prefix [?]
+clean:   bowl   → local 3, absolute prefix 591  (id=14581)
+corrupt: wine   → local 3, absolute prefix 591  (id=10058)
+         bottle → local 4, absolute prefix 592  (id=12989)
 ```
 
 ---
@@ -178,16 +173,22 @@ Given the above, the key design choice is how to handle the **token count mismat
 |----------|--------|------------|
 | KV cache shape | `(18, 1, 788, 1, 256)` each for K and V | ✅ Static |
 | Language region start (absolute) | index 588 | ✅ Static |
-| Object-name absolute index (bowl) | 591 (= 588 + 3) | 🔶 Expected; verify on RunPod |
-| Object-name absolute indices (wine bottle) | 591, 592 (= 588 + 3, 588 + 4) | 🔶 Expected; verify on RunPod |
-| Cache reused across diffusion steps | Yes | ✅ Static |
+| Object-name absolute index (bowl) | 591 (= 588 + 3), token id=14581 | ✅ RunPod verified |
+| Object-name absolute indices (wine bottle) | 591 (id=10058), 592 (id=12989) | ✅ RunPod verified |
+| Cache reused across diffusion steps | Yes (within one `sample_actions` call) | ✅ Static + Codex |
 | Hook point | `pi0.py:sample_actions` after line 237 | ✅ Static |
 | MQA (single K/V head per layer) | Yes, `num_kv_heads=1` | ✅ Static |
 | Right-wrist tokens patchable | No — masked, no effect | ✅ Static |
 
-**One RunPod run of `inspect_kv_cache.py` will fill in the 🔶 entries** and complete this document. No full model load needed — just the tokenizer.
+**Phase 1 complete.** All entries verified — static analysis + RunPod tokenizer run (2026-04-29).
 
 
 # Verification by Codex
 
-One useful nuance: pi05_libero sets discrete_state_input=False in src/openpi/training/config.py:743, so for this LIBERO config the tokenizer should be prompt-only, not Task: ..., State: ...; Action:. That makes the current raw-prompt tokenizer script direction plausible.
+Verified against the local code on 2026-04-29.
+
+The static claims are mostly correct: `gemma_2b` has 18 layers, 1 KV head, and head dim 256 (`src/openpi/models/gemma.py:get_config`); `Pi0Config(pi05=True)` gives 200 language slots (`src/openpi/models/pi0_config.py:__post_init__`); LIBERO supplies three 224x224 image streams, with right wrist masked false for non-FAST π0 (`src/openpi/policies/libero_policy.py:LiberoInputs`); and `pi05_libero` sets `discrete_state_input=False` (`src/openpi/training/config.py`), so prompt-only tokenizer inspection is the right check for this config.
+
+Important caveat: the cache-reuse claim is accurate **within one `Pi0.sample_actions` / policy inference call**, across the diffusion denoising steps (`src/openpi/models/pi0.py:sample_actions`). I do not see evidence that the prefix KV cache is reused across a whole LIBERO episode or across separate replanning calls: `Policy.infer()` calls `sample_actions()` each server request (`src/openpi/policies/policy.py:infer`), the websocket server calls `policy.infer()` per request (`src/openpi/serving/websocket_policy_server.py:_handler`), and the LIBERO client requests a new action chunk when its current plan is exhausted (`examples/libero/main_corrupt_run_expt.py`). Patching should therefore happen after cache construction on each inference call, not once globally per episode.
+
+Still unverified here: exact tokenizer ids/pieces for `bowl`, `wine`, and `bottle`. The local environment lacks `uv`, `jax`, and `sentencepiece`, so I could not run `tmp_kv_cache_sanity_check/inspect_kv_cache.py`. The document correctly marks those token positions as expected/pending RunPod verification.

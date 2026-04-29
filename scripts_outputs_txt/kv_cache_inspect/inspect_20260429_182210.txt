@@ -1,9 +1,0 @@
-=== kv_cache_inspect run: 20260429_182210 ===
-=== Script: tmp_kv_cache_sanity_check/inspect_kv_cache.py ===
-
-[tokenizer] Downloading from https://storage.googleapis.com/big_vision/paligemma_tokenizer.model
-[tokenizer] Downloaded (4264023 bytes)
-Traceback (most recent call last):
-  File "tmp_kv_cache_sanity_check/inspect_kv_cache.py", line 52, in <module>
-    def tokenize_raw(prompt: str) -> tuple[list[int], list[str]]:
-TypeError: 'type' object is not subscriptable
