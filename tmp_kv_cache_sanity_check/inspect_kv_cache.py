@@ -29,34 +29,44 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 # 1. Load the PaliGemma tokenizer
 # --------------------------------------------------------------------------- #
 
-try:
-    from openpi.models.tokenizer import PaligemmaTokenizer
-    tok = PaligemmaTokenizer()
-    USE_OPENPI_TOKENIZER = True
-    print("[tokenizer] Using openpi.models.tokenizer.PaligemmaTokenizer")
-except Exception as e:
-    print(f"[tokenizer] openpi tokenizer unavailable ({e}), falling back to raw sentencepiece")
-    USE_OPENPI_TOKENIZER = False
-    import sentencepiece
-    from openpi.shared.download import maybe_download
-    path = maybe_download("gs://big_vision/paligemma_tokenizer.model", gs={"token": "anon"})
-    sp = sentencepiece.SentencePieceProcessor(model_file=str(path))
+import sentencepiece as _spm
+
+_TOKENIZER_CACHE = '/tmp/paligemma_tokenizer.model'
+
+def _load_sp() -> _spm.SentencePieceProcessor:
+    if not os.path.exists(_TOKENIZER_CACHE):
+        print(f"[tokenizer] Downloading from GCS → {_TOKENIZER_CACHE}")
+        import gcsfs
+        fs = gcsfs.GCSFileSystem(token="anon")
+        os.makedirs(os.path.dirname(_TOKENIZER_CACHE), exist_ok=True)
+        fs.get("big_vision/paligemma_tokenizer.model", _TOKENIZER_CACHE)
+        print(f"[tokenizer] Downloaded ({os.path.getsize(_TOKENIZER_CACHE)} bytes)")
+    else:
+        print(f"[tokenizer] Using cached tokenizer ({os.path.getsize(_TOKENIZER_CACHE)} bytes)")
+    return _spm.SentencePieceProcessor(model_file=_TOKENIZER_CACHE)
+
+sp = _load_sp()
 
 
 def tokenize_raw(prompt: str) -> tuple[list[int], list[str]]:
-    """Return (ids, pieces) for prompt with BOS, using the raw SP model."""
-    if USE_OPENPI_TOKENIZER:
-        # PaligemmaTokenizer.tokenize returns (tokens, mask) numpy arrays, padded to max_token_len.
-        # We call the underlying SP directly via the private attr.
-        sp = tok._tokenizer
-        ids = sp.encode(prompt, add_bos=True)
-    else:
-        ids = sp.encode(prompt, add_bos=True)
-    if USE_OPENPI_TOKENIZER:
-        pieces = [tok._tokenizer.id_to_piece(i) for i in ids]
-    else:
-        pieces = [sp.id_to_piece(i) for i in ids]
+    """Return (ids, pieces) for prompt with BOS."""
+    ids = sp.encode(prompt, add_bos=True)
+    pieces = [sp.id_to_piece(i) for i in ids]
     return ids, pieces
+
+# --- original openpi-tokenizer path (kept for reference; requires jax + full openpi install) ---
+# def tokenize_raw(prompt: str) -> tuple[list[int], list[str]]:
+#     if USE_OPENPI_TOKENIZER:
+#         sp = tok._tokenizer
+#         ids = sp.encode(prompt, add_bos=True)
+#     else:
+#         ids = sp.encode(prompt, add_bos=True)
+#     if USE_OPENPI_TOKENIZER:
+#         pieces = [tok._tokenizer.id_to_piece(i) for i in ids]
+#     else:
+#         pieces = [sp.id_to_piece(i) for i in ids]
+#     return ids, pieces
+# ------------------------------------------------------------------------------------------------
 
 
 # --------------------------------------------------------------------------- #
