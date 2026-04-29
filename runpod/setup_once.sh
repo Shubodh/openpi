@@ -3,6 +3,10 @@
 # After this, only setup_pod.sh is needed on restarts.
 set -e
 
+echo "=== [0/5] Configuring git identity ==="
+git config --global user.name "Shubodh RunPod April"
+git config --global user.email "p.saishubodh@gmail.com"
+
 echo "=== [1/5] Installing system packages ==="
 apt-get update -q && apt-get install -y -q tmux vim libegl1-mesa cmake rsync # libegl1-mesa for MUJOCO_GL=egl; cmake for egl-probe build
 
