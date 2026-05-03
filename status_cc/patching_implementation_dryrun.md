@@ -25,7 +25,7 @@
 5. [Cache Shape and Indexing Arithmetic](#5-cache-shape-and-indexing-arithmetic)
 6. [Token-Count Mismatch Handling](#6-token-count-mismatch-handling)
 7. [Diffusion Step Propagation](#7-diffusion-step-propagation)
-8. [Recovery Score Definition](#8-recovery-score-definition)
+8. [Results Metric](#8-results-metric)
 9. [End-to-End Walk-Through](#9-end-to-end-walk-through-single-patched-trial)
 10. [Script Architecture](#10-script-architecture-proposed)
 11. [Open Decisions Summary](#11-open-decisions-summary)
@@ -37,6 +37,7 @@
    - [14.2 JAX primer: JIT, immutable arrays, and while_loop](#142-jax-primer-jit-immutable-arrays-and-while_loop)
    - [14.3 JAX vs PyTorch: full analysis (reference only)](#143-jax-vs-pytorch-full-analysis-reference-only)
    - [14.4 Phase 2 task pair: bowl vs wine-bottle (deferred)](#144-phase-2-task-pair-bowl-vs-wine-bottle-deferred)
+   - [14.5 Recovery score (deferred — for heatmap analysis)](#145-recovery-score-deferred--for-heatmap-analysis)
 
 
 ---
@@ -57,18 +58,7 @@ Three run types, same as SmolVLA:
 | **Corrupt** | `"put the bowl on the stove"` | built normally | establishes failure floor |
 | **Patched** | `"put the bowl on the stove"` | position 594 overwritten with clean-run value | tests whether destination-language signal is causal |
 
-#### Optional later summary metric — recovery score (per-task, aggregated over trials):
-
-```
-recovery = (patched_success_rate − corrupt_success_rate) / (clean_success_rate − corrupt_success_rate)
-```
-- 0 = patch had no effect
-- 1 = patch fully restores clean behavior
-- Note: unlike SmolVLA (continuous action score), here the metric is binary task success (LIBERO provides `done` flag per episode). Recovery score is computed from success rates aggregated over the N trials per task.
-
-**Important status of this metric:** This recovery formula is a dummy placeholder, not something to spend time optimizing before the first patching result. The main simulator result can simply be clean rollout success, corrupt rollout success, and patched-corrupt rollout success for each intervention setting. A normalized recovery score is only useful later as a compact summary metric, and even then only if the clean/corrupt baselines define a meaningful behavioral gap. In many LIBERO settings both clean and corrupt prompts can be near 100% successful because the task is visually obvious or the corrupt language does not reliably force failure; in that case the denominator is tiny or zero and the recovery score is meaningless.
-
-If a heatmap-style patching analysis is needed later, more thought should go into defining a meaningful recovery score. The simplest practical option may be to save the last frame from each rollout to disk and run an offline VLM judge to label success/failure for the intended task. That would still produce a binary score rather than a continuous one, but it would let recovery-style summaries be computed offline from saved rollouts instead of forcing the online simulator `done` flag to carry all of the interpretation.
+**Primary output:** clean rollout success rate, corrupt rollout success rate, patched rollout success rate — reported directly, no normalisation needed for Phase 1. A recovery score formula exists for later analysis; see §14.5.
 
 ### One script or three invocations?
 
@@ -375,22 +365,14 @@ In the P1 implementation, the patch is inserted between lines 237 and 239 — BE
 
 ---
 
-## 8. Recovery Score Definition
+## 8. Results Metric
 
-```
-recovery = (patched_success_rate − corrupt_success_rate) / (clean_success_rate − corrupt_success_rate)
-```
+**For Phase 1, report the three raw success rates directly:**
+- `clean_success_rate`: fraction of N=50 trials where clean-prompt policy places bowl on the plate
+- `corrupt_success_rate`: fraction of N=50 trials where corrupt-prompt policy (stove prompt) places bowl on the plate
+- `patched_success_rate`: fraction of N=50 trials where patched policy (stove prompt + KV patch at 594) places bowl on the plate
 
-Operationally, for the Phase 1 pair (`plate` task = clean, `stove` task = corrupt):
-- `clean_success_rate`: fraction of N trials where clean-prompt policy places bowl on the plate
-- `corrupt_success_rate`: fraction of N trials where corrupt-prompt policy (stove prompt) places bowl on the plate
-- `patched_success_rate`: fraction of N trials where patched policy (stove prompt + KV patch at 594) places bowl on the plate
-
-N = 50 trials per task (existing setting from `main_corrupt_run_expt.py`).
-
-Unlike SmolVLA where the metric was a continuous action dimension (shoulder_pan mean), here LIBERO provides a binary success signal. Recovery score of 1.0 = patching fully restores clean behavior; 0.0 = patching did nothing.
-
-**Denominator caveat:** If `clean_success_rate ≈ corrupt_success_rate` (model is insensitive to this prompt pair), the recovery score is undefined. Run baselines first to confirm the pair is discriminative before investing in patching runs.
+No normalisation needed at this stage. A recovery score formula for later heatmap-style analysis is in §14.5.
 
 ---
 
@@ -693,13 +675,30 @@ Use `"put the wine bowl on top of the cabinet"` as the clean reference (2-token 
 
 **Revisit O3 for Phase 2:** start with Option A; escalate to B or C if results are ambiguous.
 
-**Recovery score for Phase 2:**
-- `clean_success_rate`: clean-prompt policy completes the bowl task
-- `corrupt_success_rate`: corrupt-prompt policy (wine bottle) completes the bowl task
-- `patched_success_rate`: patched policy (wine bottle prompt + KV patch at 591) completes the bowl task
+**Results metric for Phase 2:** same three raw success rates as Phase 1 (clean / corrupt / patched). See §14.5 for recovery score if normalised summary is needed.
 
-**JAX indexing for Phase 2 Option A:**
+**JAX indexing for Phase 2 Option A (patch target: position 591):**
 ```python
 K_patched = K_corrupt.at[:, :, 591, :, :].set(K_donor[:, :, 591, :, :])
 V_patched = V_corrupt.at[:, :, 591, :, :].set(V_donor[:, :, 591, :, :])
 ```
+
+---
+
+### 14.5 Recovery score (deferred — for heatmap analysis)
+
+**Not needed for Phase 1 or 2 initial runs. Revisit when doing systematic patching across positions or layers.**
+
+The recovery score normalises the patching result against the clean/corrupt gap:
+
+```
+recovery = (patched_success_rate − corrupt_success_rate) / (clean_success_rate − corrupt_success_rate)
+```
+
+- 0 = patch had no effect
+- 1 = patch fully restores clean behavior
+- Unlike SmolVLA (continuous shoulder_pan mean), here LIBERO gives a binary `done` flag, so all three rates are success fractions over N=50 trials.
+
+**Why it's deferred:** The formula is only meaningful if `clean_success_rate − corrupt_success_rate` is substantially nonzero. If both are near 100% (task visually obvious) or both near 0%, the denominator is tiny and the score is noise. Confirm the pair is discriminative from raw rates first.
+
+**For heatmap-style analysis** (patching individual layers, individual positions, K vs V separately): a normalised recovery score is useful as a compact per-cell summary. At that stage, also consider saving the final rollout frame to disk and using an offline VLM judge rather than relying solely on the simulator `done` flag — this allows offline reanalysis without re-running rollouts.
