@@ -368,9 +368,9 @@ In the P1 implementation, the patch is inserted between lines 237 and 239 — BE
 ## 8. Results Metric
 
 **For Phase 1, report the three raw success rates directly:**
-- `clean_success_rate`: fraction of N=50 trials where clean-prompt policy places bowl on the plate
-- `corrupt_success_rate`: fraction of N=50 trials where corrupt-prompt policy (stove prompt) places bowl on the plate
-- `patched_success_rate`: fraction of N=50 trials where patched policy (stove prompt + KV patch at 594) places bowl on the plate
+- `clean_success_rate`: fraction of N=25 trials where clean-prompt policy places bowl on the plate
+- `corrupt_success_rate`: fraction of N=25 trials where corrupt-prompt policy (stove prompt) places bowl on the plate
+- `patched_success_rate`: fraction of N=25 trials where patched policy (stove prompt + KV patch at 594) places bowl on the plate
 
 No normalisation needed at this stage. A recovery score formula for later heatmap-style analysis is in §14.5.
 
@@ -406,7 +406,7 @@ No normalisation needed at this stage. A recovery score formula for later heatma
 
 7. Record success/failure.
 
-8. Repeat for N=50 trials, compute patched_success_rate.
+8. Repeat for N=25 trials, compute patched_success_rate.
 ```
 
 **Sanity check (analog to SmolVLA's sanity_b):** Before the main eval loop, run one inference call where we patch ALL 788 positions (full prefix overwrite with donor cache). The model should see the clean K/V everywhere and produce behavior indistinguishable from the clean run. If the sanity check fails (behavior is still corrupt-like), the patch mechanism is broken.
@@ -447,7 +447,7 @@ O2b is closest to SmolVLA. O2a is cleanest architecturally. **Confirm with human
 | O2 | Patching integration approach | P1 (modify `pi0.py`) vs P3 (monkey-patch) vs O2b (bypass websocket server entirely) | **Resolved: P1 (2026-05-04)** |
 | O3 | Which token patch option to start with | A (single differing position) vs B (multi-position) vs C (length-matched donor) | **Resolved: Option A, pos 594 for Phase 1 (2026-05-04). Revisit for Phase 2 (bowl/wine-bottle) — see §14.4.** |
 | O4 | Donor cache per-step or fixed reference | Per-step (same images, different prompt) vs fixed reference | Per-step (more correct, bidirectional attention) |
-| O5 | Number of trials per task | 50 (existing default) vs fewer for speed | 50 (keep consistent with prior runs) |
+| O5 | Number of trials per task | 50 (default in `main_corrupt_run_expt.py`) vs 25 | **Resolved: 25 (2026-05-04) — consistent with all prior bash scripts** |
 | O6 | Eval scope | Only contrastive pair (bowl/wine-bottle tasks) or full LIBERO-Goal suite | Start with contrastive pair, then broader |
 
 ---
@@ -697,7 +697,7 @@ recovery = (patched_success_rate − corrupt_success_rate) / (clean_success_rate
 
 - 0 = patch had no effect
 - 1 = patch fully restores clean behavior
-- Unlike SmolVLA (continuous shoulder_pan mean), here LIBERO gives a binary `done` flag, so all three rates are success fractions over N=50 trials.
+- Unlike SmolVLA (continuous shoulder_pan mean), here LIBERO gives a binary `done` flag, so all three rates are success fractions over N=25 trials.
 
 **Why it's deferred:** The formula is only meaningful if `clean_success_rate − corrupt_success_rate` is substantially nonzero. If both are near 100% (task visually obvious) or both near 0%, the denominator is tiny and the score is noise. Confirm the pair is discriminative from raw rates first.
 
