@@ -36,6 +36,7 @@ This fork is used for the AXMech mechanistic interpretability project. Experimen
 | `status_cc/misc/libero_suite_choice.md` | LIBERO suite decision rationale |
 | `status_cc/misc/libero_suite_choice_detailed.md` | Full technical reference for all four LIBERO suites |
 | `status_cc/misc/openpi_scripts_primer.md` | Primer on the runpod scripts and workflow |
+| `status_cc/patching_implementation_dryrun.md` | Complete implementation plan for KV-cache patching — architecture, code locations, open decisions (DO NOT implement until human resolves open decisions) |
 
 ---
 
@@ -46,38 +47,20 @@ This fork is used for the AXMech mechanistic interpretability project. Experimen
 | Prompt-ablation check (LIBERO-Object) | ✅ Complete | Language load-bearing (96% clean, 36% corrupt); suite pivot to LIBERO-Goal |
 | KV-cache sanity check | ✅ Complete (2026-04-29) | `kv_cache_findings.md` — shape, token positions, hook point all confirmed |
 | LIBERO-Goal baseline (clean + corrupt prompt) | ✅ Complete (2026-05-03) | Both behave as expected; model is sensitive to language on LIBERO-Goal |
-| **Patching implementation dry-run doc** | ⏳ **Next task** | See task brief below |
-| Patching code implementation | ⏳ Pending | Depends on dry-run doc |
+| **Patching implementation dry-run doc** | ✅ **Complete (2026-05-03)** | `status_cc/patching_implementation_dryrun.md` — see §11 for open decisions |
+| **Patching code implementation** | ⏳ **Next task** | Resolve open decisions O1–O6 in dry-run doc first |
 | Exhaustive sim runs (patching battery) | ⏳ Pending | Depends on patching code |
 
 ---
 
-## Next task: Patching implementation dry-run doc
+## Next task: Patching code implementation
 
-**What:** Write a design document (`status_cc/patching_implementation_dryrun.md`) that is a complete implementation plan for the KV-cache patching code on π₀.₅ + LIBERO-Goal — including references to relevant code locations and key snippets — but stops short of writing the actual patching implementation. This document should be detailed enough that implementing the code afterwards is mechanical.
+**Prerequisites:** Read `status_cc/patching_implementation_dryrun.md` and resolve open decisions O1–O6 with the human (especially O2 — integration approach — before writing any code).
 
-**Why a dry-run doc first:** The patching architecture for π₀.₅ is meaningfully different from the SmolVLA residual-stream patching done in the real-robot experiment. Writing it out first (at multiple levels of abstraction, with code references) forces design decisions to be made explicitly before implementing.
-
-**Design principle — mirror SmolVLA where it makes sense:**
-The SmolVLA real-robot patching code is the reference implementation. The π₀.₅ implementation should mirror its structure to the extent the architectures allow (residual-stream vs. KV-cache patching differ mechanistically, so some divergence is expected). Architectural decisions — like whether to integrate patching directly into openpi's source or to write new standalone scripts alongside the existing `examples/libero/` scripts — should be made by looking at how SmolVLA does it first, then discussed with the human before committing to an approach. Do not decide unilaterally.
-
-**What to read before writing:**
-1. `status_cc/kv_cache_findings.md` — the authoritative reference. Sections 4 (cache reuse), 5 (hook point), 6 (patching options A/B/C), and 7 (summary table) are most load-bearing.
-2. `status_cc/misc/kv_cache_primer.md` — conceptual background.
-3. The SmolVLA patching code in `AXMech/` for comparison (full path: `/home/shubodh/claude_code_workspace/2026_AXMech/AXMech`). Read it to understand the overall script structure, clean/corrupt/patched run orchestration, and where patching hooks were inserted.
-
-**What the doc should cover (at minimum):**
-- High-level architecture: how clean / corrupt / patched runs relate (one script or three invocations?)
-- Hook point and exact code location (`pi0.py:sample_actions` after cache build at line 237)
-- Which token positions to patch (Option A vs B vs C from kv_cache_findings.md §6) and the chosen approach with rationale
-- Cache shape and indexing arithmetic (from kv_cache_findings.md §7 summary table)
-- How to handle token-count mismatch between prompts (e.g., `bowl` = 1 token vs `wine bottle` = 2 tokens)
-- How patching propagates through diffusion steps (cache is read-only per step — patch once, affects all steps)
-- Recovery score definition: `(patched − corrupted) / (clean − corrupted)`
-- What a single successful patching trial looks like end-to-end (pseudocode or prose walkthrough)
-- Open decisions that need the human's input before coding begins
-
-**Output:** `status_cc/patching_implementation_dryrun.md`
+**Key open decisions from the dry-run doc:**
+- O2: Whether to modify `pi0.py` directly (P1) or bypass the server in a standalone script (O2b)
+- O3: Start with Option A (patch position 591 only) — confirmed recommendation
+- O4: Per-step donor cache (same images, clean prompt re-run each inference call)
 
 ---
 
