@@ -126,7 +126,7 @@ For the full runtime path from the LIBERO eval script to `Pi0.sample_actions()`,
 
 The "scary JAX JIT" is a non-issue — see §14.2 for a plain-English explanation. The patching implementation is ~15 lines of ordinary Python.
 
-**Open decision O2:** With execution path resolved, choose between P1 (modify `pi0.py`) vs P3 (monkey-patch) vs O2b (bypass server) — see §10.
+**O2 resolved: P1** — modify `pi0.py` directly (add `clean_observation` param + `_apply_kv_patch` method). See §10 for architecture details.
 
 ---
 
@@ -467,7 +467,7 @@ O2b is closest to SmolVLA. O2a is cleanest architecturally. **Confirm with human
 |----|----------|---------|-----------------|
 | O1 | Baseline and patching script split | Use existing `main_corrupt_run_expt.py` for clean/corrupt baselines; create new `main_patching_expt.py` for patched runs | **Resolved:** one baseline script plus one new patching script |
 | O0 | JAX vs PyTorch execution path | Stay on JAX vs convert to PyTorch | **Resolved: JAX (2026-05-04)** |
-| O2 | Patching integration approach | P1 (modify `pi0.py`) vs P3 (monkey-patch) vs O2b (bypass server) | P1, but ask human |
+| O2 | Patching integration approach | P1 (modify `pi0.py`) vs P3 (monkey-patch) vs O2b (bypass websocket server entirely) | **Resolved: P1 (2026-05-04)** |
 | O3 | Which token patch option to start with | A (pos 591 only) vs B (591–592) vs C (length-matched) | Option A |
 | O4 | Donor cache per-step or fixed reference | Per-step (same images, different prompt) vs fixed reference | Per-step (more correct, bidirectional attention) |
 | O5 | Number of trials per task | 50 (existing default) vs fewer for speed | 50 (keep consistent with prior runs) |
