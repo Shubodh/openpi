@@ -36,6 +36,7 @@
    - [14.1 Runtime call trace: how `sample_actions()` is reached](#141-runtime-call-trace-how-sample_actions-is-reached)
    - [14.2 JAX primer: JIT, immutable arrays, and while_loop](#142-jax-primer-jit-immutable-arrays-and-while_loop)
    - [14.3 JAX vs PyTorch: full analysis (reference only)](#143-jax-vs-pytorch-full-analysis-reference-only)
+   - [14.4 Phase 2 task pair: bowl vs wine-bottle (deferred)](#144-phase-2-task-pair-bowl-vs-wine-bottle-deferred)
 
 
 ---
@@ -46,11 +47,15 @@
 
 Three run types, same as SmolVLA:
 
+**Initial task pair (Phase 1):** `put_the_bowl_on_the_plate` vs `put_the_bowl_on_the_stove`. Same object (`bowl`), different destination (`plate` vs `stove`). Same prompt length — no token-count mismatch. Patch target: destination token (`plate`/`stove`), expected absolute index 594. Start here to get a working implementation and first results.
+
+**Phase 2 (revisit after Phase 1 works):** `put the bowl on top of the cabinet` vs `put the wine bottle on top of the cabinet`. Different object token (`bowl` vs `wine`), token-count mismatch (1 vs 2 tokens). More complex; token positions verified in `kv_cache_findings.md`. See §14.4 for the full Phase 2 run table and token analysis.
+
 | Run | Prompt | KV cache | Purpose |
 |-----|--------|----------|---------|
-| **Clean** | `"put the bowl on top of the cabinet"` | built normally | establishes success ceiling |
-| **Corrupt** | `"put the wine bottle on top of the cabinet"` | built normally | establishes failure floor |
-| **Patched** | `"put the wine bottle on top of the cabinet"` | positions 591–592 overwritten with clean-run values | tests whether language signal is causal |
+| **Clean** | `"put the bowl on the plate"` | built normally | establishes success ceiling |
+| **Corrupt** | `"put the bowl on the stove"` | built normally | establishes failure floor |
+| **Patched** | `"put the bowl on the stove"` | position 594 overwritten with clean-run value | tests whether destination-language signal is causal |
 
 #### Optional later summary metric — recovery score (per-task, aggregated over trials):
 
@@ -271,35 +276,30 @@ This avoids touching `pi0.py` but requires duplicating `sample_actions` — frag
 
 ## 4. Token Positions and Patch Options
 
-From `kv_cache_findings.md` §3 (RunPod-verified):
+**Phase 1 pair** (`put the bowl on the plate` / `put the bowl on the stove`):
 
-| Token | Absolute KV cache index | Token id |
-|-------|------------------------|----------|
-| `bowl` | 591 | 14581 |
-| `wine` (in "wine bottle") | 591 | 10058 |
-| `bottle` | 592 | 12989 |
+Both prompts are the same length (6 words + BOS = 7 tokens). The only differing token is the destination word at local index 6. Language region starts at absolute index 588, so:
 
-Language region starts at absolute index 588. Object-name token is at local position 3 within the prompt (BOS at local 0), → absolute 588 + 3 = 591.
+| Token | Local index | Expected absolute index | Notes |
+|-------|-------------|------------------------|-------|
+| BOS | 0 | 588 | always present |
+| `put` | 1 | 589 | same in both |
+| `the` | 2 | 590 | same in both |
+| `bowl` | 3 | 591 | same in both — object unchanged |
+| `on` | 4 | 592 | same in both |
+| `the` | 5 | 593 | same in both |
+| `plate` / `stove` | 6 | **594** | differing token — patch target |
+
+**⚠ Token positions not yet RunPod-verified for this pair.** Verify with `inspect_kv_cache.py` before writing indexing code (same script used for bowl/wine-bottle in §14.4).
 
 ### Patch options
 
-**Option A (recommended start): patch only position 591.**
-- Overwrite `kv_cache[:, :, 591, :, :]` from donor (bowl) into recipient (wine bottle).
-- The `bowl` K/V replaces the `wine` K/V. The `bottle` K/V at position 592 is untouched.
-- Minimal intervention; easiest to interpret.
+**O3 resolved: Option A — patch only position 594 (2026-05-04).**
+- Overwrite `kv_cache[:, :, 594, :, :]` from donor (`plate` run) into recipient (`stove` run).
+- No token-count mismatch — both prompts have identical length, so position 594 corresponds exactly in both runs.
+- RoPE position at absolute index 594: `cumsum = 392 + 7 = 399`, RoPE position = 398 — identical in both runs since image token count is the same. Clean semantic patch. ✅
 
-**Option B: patch positions 591 and 592.**
-- Overwrite both positions.
-- At position 592 in the donor (clean) cache, the token is `on` (not an object-name token).
-- We'd be transplanting `on` K/V into the `bottle` slot — potentially confusing the model about syntax.
-- More aggressive, harder to interpret.
-
-**Option C: use a length-matched donor prompt.**
-- Run a second clean reference with prompt `"put the wine bowl on top of the cabinet"` (using `wine` as adjective, `bowl` as the object) to produce a 2-token object-name span matching `wine bottle`.
-- Harvest positions 591–592 from this reference.
-- Cleanest semantically, but requires defining and testing the length-matched prompt.
-
-**Open decision O3:** Which option to implement first. Recommendation: start with Option A. If results are ambiguous (recovery score neither near 0 nor near 1), escalate to B or C.
+**Revisit O3 for Phase 2** (bowl vs wine-bottle pair): token-count mismatch re-introduces the Option A/B/C tradeoff. See §14.4 for the full analysis.
 
 ---
 
@@ -326,38 +326,33 @@ Prefix layout:
 | 392–587 | `right_wrist_0_rgb` | ❌ masked out |
 | 588–787 | language prompt (padded to 200) | ✅ (valid tokens only) |
 
-Object-name positions (absolute):
-- `bowl`: index 591 (= 588 + 3)
-- `wine`: index 591 (= 588 + 3)
-- `bottle`: index 592 (= 588 + 4)
+Patch target positions (absolute) — **Phase 1**:
+- `plate` / `stove`: expected index **594** (= 588 + 6) — ⚠ verify on RunPod
+
+For reference, Phase 2 positions (RunPod-verified, see §14.4):
+- `bowl`: 591, `wine`: 591, `bottle`: 592
 
 **MQA note:** `num_kv_heads = 1` means all 8 query heads share a single K and V tensor. The patch operation on the `(18, 1, 788, 1, 256)` tensor is directly the K (or V) for all query heads — no per-head indexing needed.
 
-**JAX indexing for Option A patch:**
+**JAX indexing for Phase 1 Option A patch:**
 ```python
 # K, V each: (18, 1, 788, 1, 256)
-# Patch all 18 layers, batch 0, position 591, all kv_heads (1), all head dims (256)
-K_patched = K_corrupt.at[:, :, 591, :, :].set(K_donor[:, :, 591, :, :])
-V_patched = V_corrupt.at[:, :, 591, :, :].set(V_donor[:, :, 591, :, :])
+# Patch all 18 layers, batch 0, position 594, all kv_heads (1), all head dims (256)
+K_patched = K_corrupt.at[:, :, 594, :, :].set(K_donor[:, :, 594, :, :])
+V_patched = V_corrupt.at[:, :, 594, :, :].set(V_donor[:, :, 594, :, :])
 ```
 
 ---
 
 ## 6. Token-Count Mismatch Handling
 
-The clean prompt has 9 tokens (with BOS); the corrupt prompt has 10 tokens (with BOS). This means the full prefix lengths differ by 1 token — positions 592–787 shift by 1 in absolute terms between clean and corrupt prompts.
+**Phase 1 pair: no mismatch.** Both `"put the bowl on the plate"` and `"put the bowl on the stove"` are 7 tokens (with BOS). Every absolute position is identical between clean and corrupt runs. The patch at position 594 is a direct like-for-like swap with no alignment concerns.
 
-**Critical implication:** The absolute positions of ALL tokens *after* the object name differ between clean and corrupt runs:
-- Clean: `on` at position 592, `top` at 593, etc.
-- Corrupt: `bottle` at 592, `on` at 593, etc.
+**RoPE position consistency:** Language token at local index 6 (absolute 594) gets `cumsum = 392 + 7 = 399`, RoPE position = 398 — identical in both runs. Only the token identity (`plate` vs `stove`) differs. ✅
 
-For Option A (patch only position 591): only the object-name position is involved, so the 1-token shift doesn't affect the patch. The donor K/V at position 591 contains `bowl` context; the recipient K/V at position 591 contains `wine` context. These positions correspond in both runs.
+**Padding:** Both prompts are padded to `max_token_len=200`. Positions 595–787 are padding, masked out, and unaffected.
 
-**RoPE position consistency for Option A (key correctness property):** Positions are computed as `jnp.cumsum(prefix_mask, axis=1) - 1`. With identical images (196 valid + 196 valid + 196 masked + language tokens), both runs have 392 valid image tokens before the language region. The right-wrist tokens (392–587) are `prefix_mask=False`, contributing 0 to cumsum. Language token at local index 3 (absolute 591) gets `cumsum = 392 + 4 = 396`, RoPE position `= 395` — identical in both clean and corrupt runs. So the donor and recipient K/V at index 591 share the same RoPE position; only the token identity (bowl vs wine) differs. This makes Option A a clean semantic patch. ✅
-
-For Options B/C: the shift matters and requires careful re-derivation of which absolute indices to patch.
-
-**Padding:** Both prompts are padded to `max_token_len=200`. Actual token counts are 9 and 10; positions 597–787 (clean) and 598–787 (corrupt) are padding tokens. Padding tokens are not attended to (masked out by `tokenized_prompt_mask`). Overwriting their K/V would have no effect.
+**Phase 2 mismatch (bowl vs wine-bottle) — deferred to §14.4.** The clean prompt has 9 tokens and corrupt has 10; all positions after the object name shift by 1. The full mismatch analysis and RoPE consistency proof for that pair are in §14.4.
 
 ---
 
@@ -386,39 +381,39 @@ In the P1 implementation, the patch is inserted between lines 237 and 239 — BE
 recovery = (patched_success_rate − corrupt_success_rate) / (clean_success_rate − corrupt_success_rate)
 ```
 
-Operationally, for a contrastive task pair (bowl task = clean, wine bottle task = corrupt):
-- `clean_success_rate`: fraction of N trials where clean-prompt policy completes the bowl task
-- `corrupt_success_rate`: fraction of N trials where corrupt-prompt policy (wine bottle prompt) completes the bowl task
-- `patched_success_rate`: fraction of N trials where patched policy (corrupt prompt + KV patch) completes the bowl task
+Operationally, for the Phase 1 pair (`plate` task = clean, `stove` task = corrupt):
+- `clean_success_rate`: fraction of N trials where clean-prompt policy places bowl on the plate
+- `corrupt_success_rate`: fraction of N trials where corrupt-prompt policy (stove prompt) places bowl on the plate
+- `patched_success_rate`: fraction of N trials where patched policy (stove prompt + KV patch at 594) places bowl on the plate
 
 N = 50 trials per task (existing setting from `main_corrupt_run_expt.py`).
 
 Unlike SmolVLA where the metric was a continuous action dimension (shoulder_pan mean), here LIBERO provides a binary success signal. Recovery score of 1.0 = patching fully restores clean behavior; 0.0 = patching did nothing.
 
-**Denominator caveat:** If `clean_success_rate ≈ corrupt_success_rate` (model is insensitive to this prompt pair), the recovery score is undefined. The baseline results already verified that the bowl/wine-bottle pair is discriminative on LIBERO-Goal — clean should be substantially higher than corrupt.
+**Denominator caveat:** If `clean_success_rate ≈ corrupt_success_rate` (model is insensitive to this prompt pair), the recovery score is undefined. Run baselines first to confirm the pair is discriminative before investing in patching runs.
 
 ---
 
 ## 9. End-to-End Walk-Through (Single Patched Trial)
 
 ```
-1. LIBERO env resets to initial state for bowl task.
+1. LIBERO env resets to initial state for the `put_the_bowl_on_the_plate` task.
 
 2. Control loop begins:
    a. Env returns observation (images + state).
    b. Client sends observation to policy server (or calls infer() directly).
 
-3. Server receives infer() call with corrupt obs (wine bottle prompt).
+3. Server receives infer() call with corrupt obs (`"put the bowl on the stove"` prompt).
 
 4. Inside Policy.infer() → Pi0.sample_actions(rng, corrupt_observation, clean_observation=clean_obs):
    a. Preprocess corrupt_observation.
-   b. embed_prefix(corrupt_observation) → prefix_tokens (wine bottle prompt).
+   b. embed_prefix(corrupt_observation) → prefix_tokens (stove prompt).
    c. PaliGemma.llm([prefix_tokens, None], ...) → corrupt_kv_cache.
-   d. _apply_kv_patch(corrupt_kv_cache, clean_observation, patch_positions=(591,)):
-      - embed_prefix(clean_observation) → prefix_tokens (bowl prompt).
+   d. _apply_kv_patch(corrupt_kv_cache, clean_observation, patch_positions=(594,)):
+      - embed_prefix(clean_observation) → prefix_tokens (plate prompt).
       - PaliGemma.llm([clean_prefix_tokens, None], ...) → donor_kv_cache.
-      - K_patched = K_corrupt.at[:, :, 591, :, :].set(K_donor[:, :, 591, :, :])
-      - V_patched = V_corrupt.at[:, :, 591, :, :].set(V_donor[:, :, 591, :, :])
+      - K_patched = K_corrupt.at[:, :, 594, :, :].set(K_donor[:, :, 594, :, :])
+      - V_patched = V_corrupt.at[:, :, 594, :, :].set(V_donor[:, :, 594, :, :])
       - return (K_patched, V_patched)
    e. while_loop(cond, step, (noise, 1.0)) — 10 diffusion steps, each reading patched kv_cache.
    f. Return action chunk (50 timesteps × 7 dims).
@@ -468,7 +463,7 @@ O2b is closest to SmolVLA. O2a is cleanest architecturally. **Confirm with human
 | O1 | Baseline and patching script split | Use existing `main_corrupt_run_expt.py` for clean/corrupt baselines; create new `main_patching_expt.py` for patched runs | **Resolved:** one baseline script plus one new patching script |
 | O0 | JAX vs PyTorch execution path | Stay on JAX vs convert to PyTorch | **Resolved: JAX (2026-05-04)** |
 | O2 | Patching integration approach | P1 (modify `pi0.py`) vs P3 (monkey-patch) vs O2b (bypass websocket server entirely) | **Resolved: P1 (2026-05-04)** |
-| O3 | Which token patch option to start with | A (pos 591 only) vs B (591–592) vs C (length-matched) | Option A |
+| O3 | Which token patch option to start with | A (single differing position) vs B (multi-position) vs C (length-matched donor) | **Resolved: Option A, pos 594 for Phase 1 (2026-05-04). Revisit for Phase 2 (bowl/wine-bottle) — see §14.4.** |
 | O4 | Donor cache per-step or fixed reference | Per-step (same images, different prompt) vs fixed reference | Per-step (more correct, bidirectional attention) |
 | O5 | Number of trials per task | 50 (existing default) vs fewer for speed | 50 (keep consistent with prior runs) |
 | O6 | Eval scope | Only contrastive pair (bowl/wine-bottle tasks) or full LIBERO-Goal suite | Start with contrastive pair, then broader |
@@ -659,3 +654,52 @@ for layer_idx in range(18):
 | Patching | `.at[...].set(...)` — 2 lines | Direct tensor mutation — familiar from SmolVLA |
 | Compile friction | One silent recompile on first patched call | Must disable `max-autotune` for dev |
 | Baseline consistency | All prior baselines are JAX | Requires re-run |
+
+---
+
+### 14.4 Phase 2 task pair: bowl vs wine-bottle (deferred)
+
+**Status: deferred — implement after Phase 1 (plate/stove) is working.**
+
+**Task pair:**
+| Run | Prompt | Purpose |
+|-----|--------|---------|
+| **Clean** | `"put the bowl on top of the cabinet"` | establishes success ceiling |
+| **Corrupt** | `"put the wine bottle on top of the cabinet"` | establishes failure floor |
+| **Patched** | `"put the wine bottle on top of the cabinet"` + KV patch | tests whether object-name signal is causal |
+
+**Token positions (RunPod-verified, 2026-04-29):**
+
+| Token | Absolute KV cache index | Token id |
+|-------|------------------------|----------|
+| `bowl` | 591 | 14581 |
+| `wine` (in "wine bottle") | 591 | 10058 |
+| `bottle` | 592 | 12989 |
+
+Language region starts at absolute index 588. Object-name token at local 3 → absolute 591.
+
+**Token-count mismatch:** clean prompt = 9 tokens (with BOS), corrupt = 10 tokens. Positions 592–787 shift by 1 between runs. Full analysis below.
+
+**Option A (recommended start for Phase 2): patch only position 591.**
+Overwrite `kv_cache[:, :, 591, :, :]` — `bowl` K/V replaces `wine` K/V. The `bottle` K/V at 592 is untouched. Minimal intervention; easiest to interpret.
+
+**RoPE position consistency for Option A:** Language token at local 3 (absolute 591) gets `cumsum = 392 + 4 = 396`, RoPE position = 395 — identical in both clean and corrupt runs (same image token count). Only the token identity differs. Clean semantic patch. ✅
+
+**Option B: patch positions 591 and 592.**
+At position 592 in the donor (clean) cache, the token is `on` — transplanting `on` K/V into the `bottle` slot. More aggressive, harder to interpret.
+
+**Option C: use a length-matched donor prompt.**
+Use `"put the wine bowl on top of the cabinet"` as the clean reference (2-token object span) to produce a matched donor for positions 591–592. Cleanest semantically, requires an additional reference run.
+
+**Revisit O3 for Phase 2:** start with Option A; escalate to B or C if results are ambiguous.
+
+**Recovery score for Phase 2:**
+- `clean_success_rate`: clean-prompt policy completes the bowl task
+- `corrupt_success_rate`: corrupt-prompt policy (wine bottle) completes the bowl task
+- `patched_success_rate`: patched policy (wine bottle prompt + KV patch at 591) completes the bowl task
+
+**JAX indexing for Phase 2 Option A:**
+```python
+K_patched = K_corrupt.at[:, :, 591, :, :].set(K_donor[:, :, 591, :, :])
+V_patched = V_corrupt.at[:, :, 591, :, :].set(V_donor[:, :, 591, :, :])
+```
