@@ -192,3 +192,44 @@ The static claims are mostly correct: `gemma_2b` has 18 layers, 1 KV head, and h
 Important caveat: the cache-reuse claim is accurate **within one `Pi0.sample_actions` / policy inference call**, across the diffusion denoising steps (`src/openpi/models/pi0.py:sample_actions`). I do not see evidence that the prefix KV cache is reused across a whole LIBERO episode or across separate replanning calls: `Policy.infer()` calls `sample_actions()` each server request (`src/openpi/policies/policy.py:infer`), the websocket server calls `policy.infer()` per request (`src/openpi/serving/websocket_policy_server.py:_handler`), and the LIBERO client requests a new action chunk when its current plan is exhausted (`examples/libero/main_corrupt_run_expt.py`). Patching should therefore happen after cache construction on each inference call, not once globally per episode.
 
 Still unverified here: exact tokenizer ids/pieces for `bowl`, `wine`, and `bottle`. The local environment lacks `uv`, `jax`, and `sentencepiece`, so I could not run `tmp_kv_cache_sanity_check/inspect_kv_cache.py`. The document correctly marks those token positions as expected/pending RunPod verification.
+
+
+# Verification 2 - by Claude Code (2026-05-03)
+
+## On Codex's cache-reuse caveat
+
+Codex is correct. Tracing the call chain:
+
+```
+LIBERO client: client.infer(obs)   [every replan_steps=5 env steps]
+  → WebsocketClientPolicy → server _handler
+  → Policy.infer(obs)              [src/openpi/policies/policy.py:68]
+  → Pi0.sample_actions(rng, obs)   [src/openpi/models/pi0.py:217]
+      → builds KV cache (line 237)
+      → reuses across ~10 diffusion steps (while_loop)
+      → returns action chunk
+  → cache discarded; next infer() call starts fresh
+```
+
+For LIBERO-Goal (`max_steps=280`, `replan_steps=5`): up to **~58 `infer()` calls per episode**, each building and discarding a fresh KV cache.
+
+**Does this affect the patching plan?** No — the hook in Section 5 (after line 237, inside `sample_actions`) already fires on every `infer()` call. The patch applies on each call automatically. Codex's caveat is accurate but doesn't change the hook point.
+
+## New finding: language-region K/V is image-dependent
+
+This is a subtlety Codex did not flag. The K/V at a language token position (e.g., position 591 = `bowl`) is **not** just a function of that token's embedding. Each token's hidden state is computed via self-attention over all preceding prefix positions (0–590), which includes 588 image tokens from the current observation. Concretely:
+
+```
+h_591 = TransformerLayer(attend over positions 0..590)
+K_591 = W_K @ h_591   ← depends on current-step images
+V_591 = W_V @ h_591   ← depends on current-step images
+```
+
+This means a donor cache harvested from a clean forward pass at timestep `t` has language-region K/V shaped by the images at `t`. If we reuse that donor for every subsequent timestep (pre-computed donor), we are transplanting K/V that "saw" different images into a corrupt-run cache whose image tokens are from the actual current timestep.
+
+**Implication for donor strategy:**
+
+- **Pre-computed donor** (run clean once at episode start, reuse): fast, but language-region K/V is contaminated with stale image context. How bad this is depends on how much the image attends to the language positions during the prefix forward pass — likely small but nonzero.
+- **Per-step donor** (re-run clean forward pass each `infer()` call, same images): clean transplant — donor and corrupt runs use the same images, so only the prompt text differs. Costs 2× compute per step (~2× inference time per replanning call).
+
+**Recommendation:** Start with per-step donor (same images, clean prompt) to keep the intervention clean. If latency becomes a constraint, evaluate whether pre-computed donor introduces measurable noise. This is open decision O4 in `patching_implementation_dryrun.md`.
