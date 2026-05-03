@@ -16,7 +16,6 @@
    - [One script or three invocations?](#one-script-or-three-invocations)
 2. [Hook Point — Exact Code Location](#2-hook-point--exact-code-location)
 3. [Implementation Strategy: JAX vs PyTorch, and How to Patch](#3-implementation-strategy-jax-vs-pytorch-and-how-to-patch)
-   - [3.0 JAX vs PyTorch — which execution path are we on?](#30-jax-vs-pytorch--which-execution-path-are-we-on)
    - [Why SmolVLA's hook approach doesn't apply directly to JAX](#why-smolvlas-pytorch-hook-approach-doesnt-apply-directly-to-jax)
    - [The JAX way: functional array update](#the-jax-way-functional-array-update)
    - [Where does the donor KV cache come from?](#where-does-the-donor-kv-cache-come-from)
@@ -34,7 +33,7 @@
 13. [Big-Picture Questions Came Up by the Human](#13-big-picture-questions-came-up-by-the-human)
    - [Does KV-cache patching even make sense as opposed to residual stream?](#does-kv-cache-patching-even-make-sense-as-opposed-to-residual-stream)
 14. [Supplementary](#14-supplementary)
-   - [14.1 Runtime call trace: how `sample_actions()` is reached](#runtime-call-trace-how-sample_actions-is-reached)
+   - [14.1 Runtime call trace: how `sample_actions()` is reached](#141-runtime-call-trace-how-sample_actions-is-reached)
    - [14.2 JAX primer: JIT, immutable arrays, and while_loop](#142-jax-primer-jit-immutable-arrays-and-while_loop)
    - [14.3 JAX vs PyTorch: full analysis (reference only)](#143-jax-vs-pytorch-full-analysis-reference-only)
 
