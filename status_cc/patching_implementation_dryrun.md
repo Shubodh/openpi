@@ -38,6 +38,7 @@
    - [14.3 JAX vs PyTorch: full analysis (reference only)](#143-jax-vs-pytorch-full-analysis-reference-only)
    - [14.4 Phase 2 task pair: bowl vs wine-bottle (deferred)](#144-phase-2-task-pair-bowl-vs-wine-bottle-deferred)
    - [14.5 Recovery score (deferred — for heatmap analysis)](#145-recovery-score-deferred--for-heatmap-analysis)
+   - [14.6 Per-step donor cache (deferred — for image-dependent patching)](#146-per-step-donor-cache-deferred--for-image-dependent-patching)
 
 
 ---
@@ -159,28 +160,24 @@ So `kv_cache = (K, V)` where K and V each have shape `(layers, batch, seq_len, k
 
 ### Where does the donor KV cache come from?
 
-**Key constraint:** π₀.₅ uses bidirectional (non-causal) attention in the prefix. Verified from source: `embed_prefix` sets `ar_mask = [False] * n` for all image and language tokens (`pi0.py:125–133`). `make_attn_mask` (`pi0.py:41–44`) implements: `cumsum = jnp.cumsum(mask_ar, axis=1); attn_mask = cumsum[:, None, :] <= cumsum[:, :, None]`. With all-False `mask_ar`, cumsum is all zeros, so `0 <= 0` is always True — every valid token attends to every other valid token. Consequently, language token K/V values at positions 591–592 depend on the image tokens. We cannot harvest the donor cache from a reference frame with different images.
+**Why language K/V depends on image content:** The KV cache is rebuilt at every `sample_actions` call from the current observation. Each language token's K/V is shaped by the scene's visual content — at minimum because image tokens precede language tokens in the prefix and are attended to (this holds even with purely causal attention). π₀.₅ additionally uses fully bidirectional (non-causal) attention in the prefix: `embed_prefix` sets `ar_mask = [False] * n` for all tokens (`pi0.py:125–133`), so `make_attn_mask` produces an all-True mask and every token attends to every other. This reinforces the image dependency further (image tokens also attend to language tokens, making the interaction richer). See `status_cc/kv_cache_findings.md` §4 and the primer in §14.2 for the original discussion of these terms. The practical consequence: a donor cache harvested from a different timestep has language K/V that reflects the scene at *that* timestep, not the current one.
 
-**Solution:** For each patched inference call, run an additional clean-prompt prefix forward pass using the *current* observation's images:
-
-**New update (2026-05-03):** See `status_cc/kv_cache_findings.md` for the fuller discussion of pre-computed donor vs per-step donor. In short, a pre-computed donor is easier and faster because the patched rollout only runs the corrupt/patched path at runtime, loading a clean KV cache harvested earlier. But that clean KV cache saw old images / old scene state. A per-step donor is more involved because each patched inference call internally builds both a clean donor cache and a corrupt recipient cache from the same current images, then patches the recipient before action decoding. This is slower and likely adds more implementation code, but it is the cleaner causal intervention because donor and recipient differ only in language, not in visual context.
+**O4 resolved: pre-computed donor (2026-05-04).** Harvest the donor KV cache once before the rollout starts (using the initial observation + clean prompt), then reuse the same tensor for every inference call throughout the episode. The scene objects (plate, stove) don't move — only the robot arm does — so the language K/V for the destination token is stable enough that a t=0 donor is a valid stand-in for all subsequent timesteps. This is simpler and requires no extra forward pass during rollout.
 
 ```python
-# Pseudocode inside patching logic, executed at each sample_actions call:
-
-# Build donor KV cache: same current images, clean prompt
-obs_clean = replace_prompt(observation, clean_tokenized_prompt)
-prefix_tokens_c, prefix_mask_c, prefix_ar_mask_c = self.embed_prefix(obs_clean)
-prefix_attn_mask_c = make_attn_mask(prefix_mask_c, prefix_ar_mask_c)
-positions_c = jnp.cumsum(prefix_mask_c, axis=1) - 1
-_, donor_kv_cache = self.PaliGemma.llm(
-    [prefix_tokens_c, None], mask=prefix_attn_mask_c, positions=positions_c
+# In main_patching_expt.py, before the rollout loop:
+clean_obs = make_obs_dict(initial_env_obs, clean_prompt)
+clean_obs_jax = {k: jnp.asarray(v)[np.newaxis] for k, v in clean_obs.items()}
+clean_observation = Observation.from_dict(clean_obs_jax)
+# Run one clean prefix pass to get the donor cache:
+_, donor_kv_cache = model.PaliGemma.llm(
+    [clean_prefix_tokens, None], mask=clean_prefix_attn_mask, positions=clean_positions
 )
-
-# Now patch corrupt kv_cache with donor values (as above)
+# donor_kv_cache is now a fixed (K, V) tuple — pass it into sample_actions for every call
+policy._sample_kwargs["donor_kv_cache"] = donor_kv_cache
 ```
 
-**Cost:** This doubles the prefix forward pass cost per action chunk request. The prefix pass is cheap (no diffusion steps), so this should be acceptable. Confirm timing on RunPod.
+For the per-step donor approach (rebuilds donor each call with current images — needed if image-dependent patching matters), see §14.6.
 
 ### Proposed implementation approach
 
@@ -196,26 +193,19 @@ def sample_actions(
     *,
     num_steps=10,
     noise=None,
-    clean_observation=None,   # NEW: if set, triggers KV patching
-    patch_positions=(591,),   # NEW: absolute KV cache positions to overwrite
+    donor_kv_cache=None,       # NEW: pre-computed clean KV cache; if set, triggers patching
+    patch_positions=(594,),    # NEW: absolute KV cache positions to overwrite
 ):
     ...
     _, kv_cache = self.PaliGemma.llm([prefix_tokens, None], ...)
 
-    if clean_observation is not None:
-        kv_cache = self._apply_kv_patch(kv_cache, clean_observation, patch_positions)
+    if donor_kv_cache is not None:
+        kv_cache = self._apply_kv_patch(kv_cache, donor_kv_cache, patch_positions)
 
     x_0, _ = jax.lax.while_loop(cond, step, (noise, 1.0))
     return x_0
 
-def _apply_kv_patch(self, corrupt_kv_cache, clean_observation, patch_positions):
-    """Build donor KV cache from clean_observation, overwrite patch_positions."""
-    clean_prefix_tokens, clean_prefix_mask, clean_prefix_ar_mask = self.embed_prefix(clean_observation)
-    clean_prefix_attn_mask = make_attn_mask(clean_prefix_mask, clean_prefix_ar_mask)
-    clean_positions = jnp.cumsum(clean_prefix_mask, axis=1) - 1
-    _, donor_kv_cache = self.PaliGemma.llm(
-        [clean_prefix_tokens, None], mask=clean_prefix_attn_mask, positions=clean_positions
-    )
+def _apply_kv_patch(self, corrupt_kv_cache, donor_kv_cache, patch_positions):
     K_d, V_d = donor_kv_cache
     K, V = corrupt_kv_cache
     for pos in patch_positions:
@@ -224,22 +214,21 @@ def _apply_kv_patch(self, corrupt_kv_cache, clean_observation, patch_positions):
     return (K, V)
 ```
 
-`clean_observation` is passed via `sample_kwargs` when constructing the `Policy` object... except that `clean_observation` changes per inference call (different images each step). This means it can't be a static `sample_kwargs` value.
-
-**Revised P1 — per-call injection:** Pass `clean_observation` dynamically by updating `sample_kwargs` before each `infer()` call. `Policy.infer()` at `policy.py:82` does `sample_kwargs = dict(self._sample_kwargs)` on every call, so mutating `self._sample_kwargs` before each call is the right hook:
+`donor_kv_cache` is a fixed JAX array tuple harvested once before the rollout. Pass it as a static `sample_kwargs` entry — no per-call mutation needed:
 
 ```python
-# In main_patching_expt.py, inside the action-chunk request loop:
-clean_obs_dict = make_obs_dict(env_obs, clean_prompt)   # same image, clean prompt
-# Pre-process to match what Policy.infer() does internally (add batch dim, jnp.asarray):
-clean_obs_jax = {k: jnp.asarray(v)[np.newaxis] for k, v in clean_obs_dict.items()}
-clean_observation = Observation.from_dict(clean_obs_jax)
-# Inject for this call
-policy._sample_kwargs["clean_observation"] = clean_observation
-action = policy.infer(corrupt_obs_dict)
+# In main_patching_expt.py, before the rollout loop:
+# (build clean prefix tokens from initial_obs + clean_prompt, then:)
+_, donor_kv_cache = model.PaliGemma.llm(
+    [clean_prefix_tokens, None], mask=clean_prefix_attn_mask, positions=clean_positions
+)
+policy._sample_kwargs["donor_kv_cache"] = donor_kv_cache
+# Now every policy.infer() call will use the same donor cache — no per-call injection needed
 ```
 
-**JAX JIT note:** `module_jit` wraps `sample_actions` with `jax.jit`. Adding `clean_observation` as a new dynamic kwarg will trigger a one-time recompilation on the first patched call (JAX sees a different pytree structure than the baseline calls). Subsequent calls with the same shapes use the cached compilation. This recompile is a one-off cost, not a per-call overhead.
+**JAX JIT note:** `module_jit` wraps `sample_actions` with `jax.jit`. Adding `donor_kv_cache` as a new kwarg triggers a one-time recompilation on the first patched call. Subsequent calls use the cached compilation. Since `donor_kv_cache` is a fixed array (same shape every call), there is no further recompile after the first.
+
+For the per-step donor variant (rebuilds donor each call with current images), see §14.6.
 
 **Approach P3 (alternative): monkey-patch `sample_actions` in new script, no pi0.py changes**
 
@@ -446,7 +435,7 @@ O2b is closest to SmolVLA. O2a is cleanest architecturally. **Confirm with human
 | O0 | JAX vs PyTorch execution path | Stay on JAX vs convert to PyTorch | **Resolved: JAX (2026-05-04)** |
 | O2 | Patching integration approach | P1 (modify `pi0.py`) vs P3 (monkey-patch) vs O2b (bypass websocket server entirely) | **Resolved: P1 (2026-05-04)** |
 | O3 | Which token patch option to start with | A (single differing position) vs B (multi-position) vs C (length-matched donor) | **Resolved: Option A, pos 594 for Phase 1 (2026-05-04). Revisit for Phase 2 (bowl/wine-bottle) — see §14.4.** |
-| O4 | Donor cache per-step or fixed reference | Per-step (same images, different prompt) vs fixed reference | **Resolved: per-step (2026-05-04) — bidirectional prefix attention means language K/V depends on images; see §3 "Where does the donor KV cache come from?"** |
+| O4 | Donor cache per-step or fixed reference | Per-step (rebuild donor each call) vs pre-computed (harvest once before rollout) | **Resolved: pre-computed (2026-05-04) — scene objects are static; see §3 "Where does the donor KV cache come from?" and §14.6 for per-step reference** |
 | O5 | Number of trials per task | 50 (default in `main_corrupt_run_expt.py`) vs 25 | **Resolved: 25 (2026-05-04) — consistent with all prior bash scripts** |
 | O6 | Eval scope | Only contrastive pair or full LIBERO-Goal suite | **Resolved: contrastive pair only for Phase 1 (plate/stove), broaden after (2026-05-04)** |
 
@@ -702,3 +691,44 @@ recovery = (patched_success_rate − corrupt_success_rate) / (clean_success_rate
 **Why it's deferred:** The formula is only meaningful if `clean_success_rate − corrupt_success_rate` is substantially nonzero. If both are near 100% (task visually obvious) or both near 0%, the denominator is tiny and the score is noise. Confirm the pair is discriminative from raw rates first.
 
 **For heatmap-style analysis** (patching individual layers, individual positions, K vs V separately): a normalised recovery score is useful as a compact per-cell summary. At that stage, also consider saving the final rollout frame to disk and using an offline VLM judge rather than relying solely on the simulator `done` flag — this allows offline reanalysis without re-running rollouts.
+
+---
+
+### 14.6 Per-step donor cache (deferred — for image-dependent patching)
+
+**Not needed for Phase 1. Revisit if scene dynamics matter (moving objects, manipulation mid-reach, or when language K/V image-dependency is suspected to affect results).**
+
+The per-step approach rebuilds the donor KV cache on every `sample_actions` call using the *current* observation's images and the clean prompt. This ensures donor and recipient differ only in language, not in visual context — the cleanest possible causal intervention.
+
+**Original P1 pseudocode for per-step donor** (inside `_apply_kv_patch`, called each inference):
+
+```python
+def _apply_kv_patch(self, corrupt_kv_cache, clean_observation, patch_positions):
+    """Per-step: build donor from clean_observation (current images + clean prompt)."""
+    clean_prefix_tokens, clean_prefix_mask, clean_prefix_ar_mask = self.embed_prefix(clean_observation)
+    clean_prefix_attn_mask = make_attn_mask(clean_prefix_mask, clean_prefix_ar_mask)
+    clean_positions = jnp.cumsum(clean_prefix_mask, axis=1) - 1
+    _, donor_kv_cache = self.PaliGemma.llm(
+        [clean_prefix_tokens, None], mask=clean_prefix_attn_mask, positions=clean_positions
+    )
+    K_d, V_d = donor_kv_cache
+    K, V = corrupt_kv_cache
+    for pos in patch_positions:
+        K = K.at[:, :, pos, :, :].set(K_d[:, :, pos, :, :])
+        V = V.at[:, :, pos, :, :].set(V_d[:, :, pos, :, :])
+    return (K, V)
+```
+
+**Injection mechanism for per-step:** `clean_observation` changes each call (current images + clean prompt), so it cannot be a static `sample_kwargs` entry. Instead, mutate `policy._sample_kwargs["clean_observation"]` before each `infer()` call — `Policy.infer()` rebuilds `sample_kwargs = dict(self._sample_kwargs)` on every call (`policy.py:82`), so the mutation is picked up:
+
+```python
+# In main_patching_expt.py, inside the action-chunk request loop:
+clean_obs_dict = make_obs_dict(env_obs, clean_prompt)
+clean_obs_jax = {k: jnp.asarray(v)[np.newaxis] for k, v in clean_obs_dict.items()}
+policy._sample_kwargs["clean_observation"] = Observation.from_dict(clean_obs_jax)
+action_chunk = client.infer(corrupt_obs_dict)["actions"]
+```
+
+**Cost:** doubles the prefix forward pass per action chunk request (one corrupt + one clean). The prefix pass is fast relative to diffusion steps, so overhead should be acceptable — confirm on RunPod.
+
+**Why language K/V is image-dependent** (recap from §3): π₀.₅ uses bidirectional prefix attention — every token (including language) attends to every other valid token. Even under causal attention, language tokens at positions 588+ attend to all preceding image tokens (0–587). Either way, the language K/V at any position encodes information from the current visual context. See `status_cc/kv_cache_findings.md` §4 for the original discussion.
