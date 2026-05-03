@@ -58,7 +58,8 @@ This fork is used for the AXMech mechanistic interpretability project. Experimen
 **Prerequisites:** Read `status_cc/patching_implementation_dryrun.md` and resolve open decisions O1–O6 with the human (especially O2 — integration approach — before writing any code).
 
 **Key open decisions from the dry-run doc:**
-- O2: Whether to modify `pi0.py` directly (P1) or bypass the server in a standalone script (O2b)
+- O0: **Resolved: JAX** (2026-05-04) — staying on the default JAX execution path
+- O2: Whether to modify `pi0.py` directly (P1) or bypass server (O2b) — JAX path, ask human
 - O3: Start with Option A (patch position 591 only) — confirmed recommendation
 - O4: Per-step donor cache (same images, clean prompt re-run each inference call)
 
