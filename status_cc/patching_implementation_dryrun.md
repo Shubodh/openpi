@@ -189,7 +189,7 @@ _, donor_kv_cache = self.PaliGemma.llm(
 
 ### Proposed implementation approach
 
-**Approach P1 (recommended): minimal modification to `pi0.py`**
+**Approach P1 (resolved 2026-05-04): minimal modification to `pi0.py`**
 
 Add two optional parameters to `Pi0.sample_actions`:
 
@@ -265,7 +265,7 @@ model.sample_actions = types.MethodType(patched_sample_actions, model)
 
 This avoids touching `pi0.py` but requires duplicating `sample_actions` — fragile if upstream changes.
 
-**Open decision O2:** P1 (minimal pi0.py modification) vs P3 (standalone monkey-patch). Leaning toward P1 for maintainability, but it requires touching core code. Discuss with human before coding.
+**O2 resolved: P1 (2026-05-04).** P3 is kept above for reference — it avoids touching `pi0.py` but requires duplicating `sample_actions`, which is fragile if upstream changes.
 
 ---
 
