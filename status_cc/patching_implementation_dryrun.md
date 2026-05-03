@@ -448,7 +448,7 @@ O2b is closest to SmolVLA. O2a is cleanest architecturally. **Confirm with human
 | O3 | Which token patch option to start with | A (single differing position) vs B (multi-position) vs C (length-matched donor) | **Resolved: Option A, pos 594 for Phase 1 (2026-05-04). Revisit for Phase 2 (bowl/wine-bottle) — see §14.4.** |
 | O4 | Donor cache per-step or fixed reference | Per-step (same images, different prompt) vs fixed reference | Per-step (more correct, bidirectional attention) |
 | O5 | Number of trials per task | 50 (default in `main_corrupt_run_expt.py`) vs 25 | **Resolved: 25 (2026-05-04) — consistent with all prior bash scripts** |
-| O6 | Eval scope | Only contrastive pair (bowl/wine-bottle tasks) or full LIBERO-Goal suite | Start with contrastive pair, then broader |
+| O6 | Eval scope | Only contrastive pair or full LIBERO-Goal suite | **Resolved: contrastive pair only for Phase 1 (plate/stove), broaden after (2026-05-04)** |
 
 ---
 
