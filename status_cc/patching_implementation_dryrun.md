@@ -1,6 +1,6 @@
 # Patching Implementation Dry-Run Doc
 
-**Status:** Draft — for human review before coding begins.
+**Status:** All open decisions resolved (2026-05-04) — ready for implementation.
 
 **Scope:** Complete implementation plan for KV-cache patching on π₀.₅ + LIBERO-Goal. Covers architecture, code locations, indexing arithmetic, and all open decisions that need resolution before a line of implementation code is written.
 

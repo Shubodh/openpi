@@ -36,7 +36,8 @@ This fork is used for the AXMech mechanistic interpretability project. Experimen
 | `status_cc/misc/libero_suite_choice.md` | LIBERO suite decision rationale |
 | `status_cc/misc/libero_suite_choice_detailed.md` | Full technical reference for all four LIBERO suites |
 | `status_cc/misc/openpi_scripts_primer.md` | Primer on the runpod scripts and workflow |
-| `status_cc/patching_implementation_dryrun.md` | Complete implementation plan for KV-cache patching — architecture, code locations, open decisions (DO NOT implement until human resolves open decisions) |
+| `status_cc/patching_implementation_dryrun.md` | Complete implementation plan for KV-cache patching — architecture, code locations, all open decisions resolved |
+| `status_cc/patching_implementation.md` | Live implementation tracker — checklist, notes, and results (populate as work proceeds) |
 
 ---
 
@@ -47,21 +48,24 @@ This fork is used for the AXMech mechanistic interpretability project. Experimen
 | Prompt-ablation check (LIBERO-Object) | ✅ Complete | Language load-bearing (96% clean, 36% corrupt); suite pivot to LIBERO-Goal |
 | KV-cache sanity check | ✅ Complete (2026-04-29) | `kv_cache_findings.md` — shape, token positions, hook point all confirmed |
 | LIBERO-Goal baseline (clean + corrupt prompt) | ✅ Complete (2026-05-03) | Both behave as expected; model is sensitive to language on LIBERO-Goal |
-| **Patching implementation dry-run doc** | ✅ **Complete (2026-05-03)** | `status_cc/patching_implementation_dryrun.md` — see §11 for open decisions |
-| **Patching code implementation** | ⏳ **Next task** | Resolve open decisions O1–O6 in dry-run doc first |
+| **Patching implementation dry-run doc** | ✅ **Complete (2026-05-04)** | `status_cc/patching_implementation_dryrun.md` — all O0–O6 resolved |
+| **Patching code implementation** | ⏳ **Next task** | See §10 in dry-run doc for script architecture; implementation ready to begin |
 | Exhaustive sim runs (patching battery) | ⏳ Pending | Depends on patching code |
 
 ---
 
 ## Next task: Patching code implementation
 
-**Prerequisites:** Read `status_cc/patching_implementation_dryrun.md` and resolve open decisions O1–O6 with the human (especially O2 — integration approach — before writing any code).
+All open decisions resolved. Read `status_cc/patching_implementation_dryrun.md` §10 for script architecture, then implement.
 
-**Key open decisions from the dry-run doc:**
+**All decisions (O0–O6) from the dry-run doc:**
 - O0: **Resolved: JAX** (2026-05-04) — staying on the default JAX execution path
-- O2: Whether to modify `pi0.py` directly (P1) or bypass server (O2b) — JAX path, ask human
-- O3: Start with Option A (patch position 591 only) — confirmed recommendation
-- O4: Per-step donor cache (same images, clean prompt re-run each inference call)
+- O1: **Resolved:** keep `main_corrupt_run_expt.py` for baselines; create new `main_patching_expt.py`
+- O2: **Resolved: P1** (2026-05-04) — modify `pi0.py` directly (add `donor_kv_cache` param + `_apply_kv_patch`)
+- O3: **Resolved: Option A, pos 594** (2026-05-04) — patch only the differing destination token for Phase 1
+- O4: **Resolved: pre-computed donor** (2026-05-04) — harvest donor KV cache once from initial obs before rollout
+- O5: **Resolved: N=25 trials** (2026-05-04)
+- O6: **Resolved: contrastive pair only for Phase 1** (2026-05-04) — broaden to full suite after
 
 ---
 

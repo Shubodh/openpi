@@ -100,7 +100,7 @@ The relevant file is `src/openpi/models/tokenizer.py`. There are two tokenizer c
 
 ### 4.1 What it is
 
-A SentencePiece tokenizer downloaded from `gs://big_vision/paligemma_tokenizer.model`. It is the same tokenizer Google ships with PaliGemma; openpi just wraps it. It handles BOS, but no EOS by default for the prompt. Vocabulary size is the standard PaliGemma vocab (the last 128 tokens are reserved as special, per the FAST tokenizer's `_fast_skip_tokens = 128` comment at line 62).
+A SentencePiece tokenizer downloaded from `gs://big_vision/paligemma_tokenizer.model`. It is the same tokenizer Google ships with PaliGemma; openpi just wraps it. It handles BOS, but no EOS by default for the prompt. Vocabulary size is the standard PaliGemma vocab (the last 128 tokens are reserved as special, per the FAST tokenizer's `_fast_skip_tokens = 128` comment at line 62; the FAST tokenizer code happens to contain a useful note about reserved tokens in the same PaliGemma vocabulary, but FAST itself is not part of this LIBERO π₀.₅ prompt path).
 
 ### 4.2 What it produces
 

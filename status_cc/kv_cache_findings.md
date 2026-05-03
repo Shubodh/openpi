@@ -32,6 +32,8 @@ Memory: `18 × 1 × 788 × 1 × 256 × 2 bytes (bfloat16) ≈ 7.2 MB` for K, sam
 
 **Note:** `num_kv_heads = 1` means π₀.₅ uses Multi-Query Attention (MQA) — all 8 query heads share a single K/V head. This simplifies patching: there is only one K and one V tensor per layer per position, not 8.
 
+Normally, in standard multi-head attention (MHA), each attention head has its own Q, K, and V projections. If a model has 8 heads, the cache would usually store 8 separate K/V vectors per token per layer, and a patch would need to decide whether to overwrite all heads or a subset. In MQA, the model still has 8 separate query heads asking different attention questions, but they all look up information against the same shared K/V head. For us, that is convenient: the object-token cache slot is a single shared K/V representation per layer, so the first patching experiment can overwrite one clearly defined slice instead of handling head-by-head choices.
+
 ---
 
 ## 2. Prefix Sequence Layout — ✅ Statically confirmed
@@ -232,4 +234,60 @@ This means a donor cache harvested from a clean forward pass at timestep `t` has
 - **Pre-computed donor** (run clean once at episode start, reuse): fast, but language-region K/V is contaminated with stale image context. How bad this is depends on how much the image attends to the language positions during the prefix forward pass — likely small but nonzero.
 - **Per-step donor** (re-run clean forward pass each `infer()` call, same images): clean transplant — donor and corrupt runs use the same images, so only the prompt text differs. Costs 2× compute per step (~2× inference time per replanning call).
 
-**Recommendation:** Start with per-step donor (same images, clean prompt) to keep the intervention clean. If latency becomes a constraint, evaluate whether pre-computed donor introduces measurable noise. This is open decision O4 in `patching_implementation_dryrun.md`.
+Operationally, per-step donor means that on every policy inference request, we start from the same current observation images and construct two prompt variants. First, run the prefix pass with the clean prompt (e.g., `put the bowl on top of the cabinet`) only far enough to harvest the donor KV cache at the object-token position. Second, run the normal corrupt-prompt path (e.g., `put the wine bottle on top of the cabinet`) to build the recipient KV cache for the same images. Third, overwrite the recipient cache slice at the target position/layers with the donor slice, then continue the corrupt run's suffix/action decoding using this patched cache. The rollout environment only receives the patched corrupt-run action chunk; the clean donor pass is an internal source of same-image language K/V values, not a separate environment step.
+
+**Old Recommendation:** Start with per-step donor (same images, clean prompt) to keep the intervention clean. If latency becomes a constraint, evaluate whether pre-computed donor introduces measurable noise. This is open decision O4 in `patching_implementation_dryrun.md`.
+
+### Reevaluating the "Old recommendation" and adding some clarity
+
+**Pre-computed donor** means:
+
+```text
+Episode/script A:
+  run clean prompt once
+  harvest clean donor KV
+  store donor KV somewhere
+
+Episode/script B:
+  run corrupt prompt rollout
+  at each patch point, load/reuse stored clean KV
+  patch corrupt cache with that stored donor
+```
+
+So at runtime for the patched rollout, you are only doing the corrupt/patched policy path. The clean donor came from an earlier run.
+
+**Per-step donor** means:
+
+```text
+At each inference call during the patched rollout:
+  use current images + clean prompt to build donor KV
+  use same current images + corrupt prompt to build recipient KV
+  patch recipient with donor
+  decode action from patched recipient
+```
+
+So per-step donor does both clean and corrupt prefix computation during the patched rollout. The environment still only executes one action chunk, but internally the model does an extra clean-prefix forward pass for the same observation.
+
+The tradeoff is:
+
+```text
+Pre-computed donor:
+  easier, faster
+  but donor KV saw old images / old scene state
+  rough implementation size: ~50-100 new lines if done as a simple save/load patch path
+
+Per-step donor:
+  more involved, slower
+  but donor and recipient differ only in language, not in images
+  rough implementation size: ~100-200 new lines because the inference path must build both donor and recipient caches from the same observation
+```
+
+For a quick PoC, pre-computed donor is tempting. For a paper-quality causal claim, per-step donor is cleaner because it controls for image-conditioned language K/V.
+
+---
+
+## New Recommendation (2026-05-05)
+
+**Use pre-computed donor for the first implementation.** Rationale: faster to build, fewer moving parts, and gets first results quickly. The image-conditioned K/V contamination is a real effect but likely small — worth measuring empirically rather than pre-emptively engineering around.
+
+**Post-PoC analysis:** The pre-computed vs. per-step donor comparison is itself a valuable experiment once the PoC lands. Concretely: run both approaches on the same LIBERO-Goal task pair and compare recovery scores. If they diverge significantly, it quantifies how much the image context contaminates the language-region K/V — which is itself an interesting finding about the architecture. If they agree, pre-computed donor is vindicated as the simpler default.

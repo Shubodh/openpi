@@ -1,3 +1,5 @@
+# Status note (2026-05-03): This task is complete; see `status_cc/kv_cache_findings.md` for the authoritative results. The older status text below is historical.
+
 # KV-Cache Sanity Check — π₀.₅ on LIBERO
 
 **Status:** ⏳ To run. ~30-min engineering task. Gates Step 4 patching implementation.
