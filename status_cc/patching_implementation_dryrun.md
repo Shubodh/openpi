@@ -446,7 +446,7 @@ O2b is closest to SmolVLA. O2a is cleanest architecturally. **Confirm with human
 | O0 | JAX vs PyTorch execution path | Stay on JAX vs convert to PyTorch | **Resolved: JAX (2026-05-04)** |
 | O2 | Patching integration approach | P1 (modify `pi0.py`) vs P3 (monkey-patch) vs O2b (bypass websocket server entirely) | **Resolved: P1 (2026-05-04)** |
 | O3 | Which token patch option to start with | A (single differing position) vs B (multi-position) vs C (length-matched donor) | **Resolved: Option A, pos 594 for Phase 1 (2026-05-04). Revisit for Phase 2 (bowl/wine-bottle) — see §14.4.** |
-| O4 | Donor cache per-step or fixed reference | Per-step (same images, different prompt) vs fixed reference | Per-step (more correct, bidirectional attention) |
+| O4 | Donor cache per-step or fixed reference | Per-step (same images, different prompt) vs fixed reference | **Resolved: per-step (2026-05-04) — bidirectional prefix attention means language K/V depends on images; see §3 "Where does the donor KV cache come from?"** |
 | O5 | Number of trials per task | 50 (default in `main_corrupt_run_expt.py`) vs 25 | **Resolved: 25 (2026-05-04) — consistent with all prior bash scripts** |
 | O6 | Eval scope | Only contrastive pair or full LIBERO-Goal suite | **Resolved: contrastive pair only for Phase 1 (plate/stove), broaden after (2026-05-04)** |
 
