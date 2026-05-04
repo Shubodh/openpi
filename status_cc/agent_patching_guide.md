@@ -15,6 +15,23 @@ Work through the steps in order. Do not skip ahead. Commit after each step. Upda
 
 **You are on branch `patching_phase1_agentic`.** All code changes go here. Do not touch `kv-cache-patching`.
 
+### Success thresholds (reference these throughout)
+
+| Condition | Threshold | Action |
+|-----------|-----------|--------|
+| C3 sanity check passes | **≥ 3/5 episodes** (60%) | Write `1_SANITY_CHECK_SUCCESS.txt`; proceed to Step 2 |
+| C3 sanity check fails | < 3/5 | Debug before proceeding — do NOT run N=25 D3 on a broken mechanism |
+| D3 patching meaningful | **> 2/10 episodes** (20%) with N=10, or **> 5/25** (20%) with N=25 | Write `2_PATCHING_MEANINGFUL_RESULT.txt` |
+| D3 patching weak but non-zero | 1–2/10 | Report it; continue binary search to find stronger patch set |
+| D3 patching absent | 0/10 | Widen patch set (Step 3) or move to per-step donor (Step 4) |
+| All approaches fail | 0 everywhere including Step 4 | Write `0_FAILURE_REPORT.txt`; stop |
+
+**Context for these numbers:**
+- Clean baseline D1 = 25/25 (100%) — ceiling
+- Corrupt baseline D2 = 0/25 (0%) — floor
+- Any D3 > 0% is signal; > 20% is "meaningful" (clearly above noise)
+- C3 sanity at 60% threshold (not 100%) because the pre-computed donor has minor image-context contamination across episodes
+
 ---
 
 ## Environment Setup
