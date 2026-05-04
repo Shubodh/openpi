@@ -42,16 +42,16 @@ echo "=== [5/4] Installing LIBERO simulation deps into server venv (for main_pat
 # LIBERO environments. Install the simulation deps here so both work in one process.
 # uv sync repairs the server venv Python symlink (broken on pod stop/restart).
 uv sync
-# Use explicit venv pip path — 'pip' after activate can still resolve to system pip.
-VENV_PIP=/workspace/openpi/.venv/bin/pip
+# Use 'uv pip install' — uv-created venvs have no pip binary in bin/.
+# Run from /workspace/openpi so uv targets the project venv (.venv).
 # Install non-robosuite deps (robosuite is copied below — see note)
-$VENV_PIP install \
+uv pip install \
   "mujoco>=3.2" imageio imageio-ffmpeg numpy "opencv-python>=4.6" scipy tqdm pyyaml \
   pyopengl etils tyro
-$VENV_PIP install -e /workspace/openpi/packages/openpi-client
+uv pip install -e /workspace/openpi/packages/openpi-client
 # Install LIBERO with its deps (gets bddl and other LIBERO-specific packages).
 # This will pull in robosuite 1.5.x, which we immediately overwrite below.
-$VENV_PIP install -e /workspace/openpi/third_party/libero
+uv pip install -e /workspace/openpi/third_party/libero
 # Copy robosuite from the LIBERO client venv — pip's version is incompatible with LIBERO
 # (resolves to 1.5.x even when pinned to ==1.4.1; git tag v1.4.1 also wrong).
 SERVER_SITE=$(/workspace/openpi/.venv/bin/python -c "import site; print(site.getsitepackages()[0])")
