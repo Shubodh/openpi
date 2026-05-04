@@ -49,11 +49,16 @@ uv pip install \
   "mujoco>=3.2" imageio imageio-ffmpeg numpy "opencv-python>=4.6" scipy tqdm pyyaml \
   pyopengl etils tyro
 uv pip install -e /workspace/openpi/packages/openpi-client
-# Install LIBERO with its deps (gets bddl and other LIBERO-specific packages).
-# This will pull in robosuite 1.5.x, which we immediately overwrite below.
+# Install LIBERO editable + its requirements.txt (setup.py alone misses bddl, easydict, gym, etc.)
+# requirements.txt lines have leading spaces — use ^\s* not ^.
+# Exclude: robosuite (copied below), training-only packages, and numpy (restored after).
 uv pip install -e /workspace/openpi/third_party/libero
-# Copy robosuite from the LIBERO client venv — pip's version is incompatible with LIBERO
-# (resolves to 1.5.x even when pinned to ==1.4.1; git tag v1.4.1 also wrong).
+grep -viE "^\s*(robosuite|torch|wandb|transformers|thop|robomimic|numpy)" \
+  /workspace/openpi/third_party/libero/requirements.txt | uv pip install -r /dev/stdin
+# Restore numpy: LIBERO requirements downgrade to 1.22.4 which breaks JAX (needs np.dtypes, >=1.25).
+uv pip install "numpy>=1.22.4,<2.0.0"
+# Copy robosuite from LIBERO client venv — pip resolves to incompatible 1.5.x even with ==1.4.1 pin.
+# Must rm -rf first: cp -r into existing dir nests instead of replacing.
 SERVER_SITE=$(/workspace/openpi/.venv/bin/python -c "import site; print(site.getsitepackages()[0])")
 rm -rf "${SERVER_SITE}/robosuite"
 cp -r /workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite \

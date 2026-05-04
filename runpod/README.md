@@ -152,3 +152,70 @@ Shell-level exports (`MUJOCO_GL`, `PYTHONPATH`, `OPENPI_DATA_HOME`) are inherite
 **LIBERO simulation deps in the server venv:** `setup_pod.sh` (and `setup_once.sh`) install mujoco, imageio, etc. into the server venv, then copy robosuite directly from the LIBERO client venv. Torch is not included — not needed for env stepping.
 
 **Why copy robosuite instead of pip-installing it?** `pip install robosuite==1.4.1` resolves to version 1.5.x (incompatible module layout — missing `single_arm_env`), even with the exact pin. Installing from the git tag `v1.4.1` has the same problem. The only reliable source of the correct robosuite is the LIBERO client venv, which already has exactly the right version. The setup scripts do `rm -rf` then `cp -r` (not just `cp -r`, which would nest the directory inside the existing one rather than replacing it).
+
+---
+
+## Appendix: Server venv setup for patching script — lessons learned (2026-05-04)
+
+This documents what was learned getting `main_patching_expt.py` to run in the server venv. The setup scripts reflect the final working approach, but this log explains why.
+
+### The problem
+
+`main_patching_expt.py` needs JAX (server venv, Python 3.11) AND LIBERO simulation (originally Python 3.8 client venv). These can't share a Python version — openpi requires ≥3.11, LIBERO's pip-locked deps target 3.8.
+
+Solution: install LIBERO simulation deps into the server venv, carefully.
+
+### Pitfalls encountered
+
+**1. `pip install` vs `uv pip install`**
+The server venv is created by uv and has no `pip` binary in `.venv/bin/`. Plain `pip` after `source activate` resolves to the system pip (`/usr/local/...`), which is invisible to the server venv. Always use `uv pip install` for the server venv. After this, the `which pip` check is unreliable — use `uv pip install` unconditionally.
+
+**2. `pip install robosuite==1.4.1` installs 1.5.x**
+Despite the exact pin, PyPI's robosuite 1.4.1 resolves to a 1.5.x build with a different module layout (no `single_arm_env`). The git tag `v1.4.1` also doesn't match. The only fix: copy directly from the LIBERO client venv, which has the correct version installed. Must `rm -rf` the destination first — `cp -r src dst` when `dst` exists nests `src` inside `dst` rather than replacing it.
+
+**3. `uv pip install -e third_party/libero` misses most LIBERO deps**
+Editable install only picks up what's declared in `setup.py` install_requires. LIBERO's `requirements.txt` has additional packages (`bddl`, `easydict`, `gym`, `hydra-core`, etc.) not in setup.py. Must also install from `requirements.txt`.
+
+**4. `requirements.txt` lines have leading spaces — grep `^pkg` patterns fail**
+The file looks like ` robosuite` and ` transformers==4.21.1` with a leading space. The pattern `^robosuite` never matches. Use `^\s*robosuite` or the `^\s*(pkg1|pkg2|...)` form.
+
+**5. `transformers==4.21.1` drags in `tokenizers==0.12.1` which requires Rust**
+Both are training-only. Exclude `transformers` (and by extension tokenizers) from the requirements install.
+
+**6. LIBERO's numpy pin (1.22.4) breaks JAX**
+Installing from requirements.txt downgrades numpy from 1.26.x → 1.22.4. JAX 0.5.3 requires `np.dtypes` (added in numpy 1.25). After the requirements.txt install, restore numpy:
+```bash
+uv pip install "numpy>=1.22.4,<2.0.0"
+```
+
+### The working manual setup sequence (as of 2026-05-04)
+
+Run with the server venv implicit (from `/workspace/openpi`):
+
+```bash
+cd /workspace/openpi
+uv sync
+uv pip install "mujoco>=3.2" imageio imageio-ffmpeg "opencv-python>=4.6" scipy tqdm pyyaml pyopengl etils tyro
+uv pip install -e /workspace/openpi/packages/openpi-client
+uv pip install -e /workspace/openpi/third_party/libero
+
+# Install LIBERO requirements (excluding training-only and incompatible packages)
+grep -viE "^\s*(robosuite|torch|wandb|transformers|thop|robomimic|numpy)" \
+  /workspace/openpi/third_party/libero/requirements.txt | uv pip install -r /dev/stdin
+
+# Restore numpy (LIBERO pin downgrades it, breaking JAX)
+uv pip install "numpy>=1.22.4,<2.0.0"
+
+# Copy robosuite from LIBERO client venv (pip version is wrong)
+SERVER_SITE=$(/workspace/openpi/.venv/bin/python -c "import site; print(site.getsitepackages()[0])")
+rm -rf "${SERVER_SITE}/robosuite"
+cp -r /workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite "${SERVER_SITE}/robosuite"
+```
+
+Then run the patching script:
+```bash
+source /workspace/openpi/runpod/patching_env.sh
+bash /workspace/openpi/runpod/run_patching_phase1.sh
+```
+
+**Status as of 2026-05-04:** numpy downgrade fixed, robosuite working. Script has not yet completed a full run — further import errors possible. Update this section as new blockers are resolved.
