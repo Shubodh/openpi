@@ -6,9 +6,6 @@
 # AI agents (Claude Code, Codex) are NOT reinstalled here — run setup_agents.sh separately if needed.
 set -e
 
-echo "=== [0/4] Configuring git identity ==="
-git config --global user.name "Shubodh RunPod April"
-git config --global user.email "p.saishubodh@gmail.com"
 
 echo "=== [1/4] Installing system packages ==="
 apt-get update -q && apt-get install -y -q tmux vim libegl1-mesa cmake rsync  # libegl1-mesa for MUJOCO_GL=egl; cmake for egl-probe build
@@ -23,6 +20,12 @@ echo 'export OPENPI_DATA_HOME=/workspace/openpi_assets' >> ~/.bashrc
 
 echo "=== [4/4] Ensuring LIBERO venv deps are installed ==="
 cd /workspace/openpi
+
+
+echo "=== [0/4] Configuring git identity ==="
+git config --global user.name "Shubodh RunPod April"
+git config --global user.email "p.saishubodh@gmail.com"
+
 # Python 3.8 binary is on container disk — wiped on pod stop — so venv symlink breaks every restart.
 # Recreate the venv (packages in site-packages persist on /workspace, but uv venv resets them).
 uv venv --python 3.8 --clear examples/libero/.venv
