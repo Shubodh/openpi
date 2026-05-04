@@ -17,7 +17,8 @@ Bash scripts for pod lifecycle management on RunPod. Full guide → [`docs/runpo
 | `run_kv_cache_inspect.sh` | After `source libero_env.sh`, to verify KV-cache tokenizer output (no model weights needed) | Tokenizes the two contrastive LIBERO-Goal prompts, prints token IDs + absolute prefix indices; logs tee'd to `scripts_outputs_txt/kv_cache_inspect/` |
 | `run_patching_phase1_verify.sh` | After `source libero_env.sh`, before any patching runs | Tokenizes Phase 1 prompt pair (plate/stove), confirms `plate` and `stove` are both at absolute index 594; no GPU needed |
 | `run_patching_phase1_baselines.sh` | After `source libero_env.sh` **with server running**, to establish Phase 1 baselines | Clean + corrupt runs on the plate/stove task (25 trials each); logs tee'd to `scripts_outputs_txt/patching_phase1/` |
-| `run_patching_phase1.sh` | After `source libero_env.sh`, **NO server needed** — model loads in-process via `uv run` (server venv, needs LIBERO deps installed by `setup_pod.sh`) | Sanity check (N=5, all-position patch) then main patched run (N=25, pos 594); logs tee'd to `scripts_outputs_txt/patching_phase1/` |
+| `patching_env.sh` | **Source** before `run_patching_phase1.sh` | Activates server venv (Python 3.11 + JAX), sets MUJOCO_GL + PYTHONPATH + OPENPI_DATA_HOME |
+| `run_patching_phase1.sh` | After `source patching_env.sh`, **NO server needed** — model loads in-process | Sanity check (N=5, all-position patch) then main patched run (N=25, pos 594); logs tee'd to `scripts_outputs_txt/patching_phase1/` |
 
 ## Typical flow
 
@@ -80,7 +81,7 @@ bash /workspace/openpi/runpod/run_patching_phase1_baselines.sh
 # Record D1 (clean) and D2 (corrupt) success rates in status_cc/patching_implementation.md §7.1.
 
 # Step 3 — patched run (NO server needed; stop or ignore the server from step 2):
-source /workspace/openpi/runpod/libero_env.sh
+source /workspace/openpi/runpod/patching_env.sh   # server venv, not libero_env.sh
 bash /workspace/openpi/runpod/run_patching_phase1.sh
 # Sanity check runs first (N=5, all-position patch) — verify it succeeds before the main run.
 # Record C3 (sanity) and D3 (patched pos 594) in status_cc/patching_implementation.md §7.1.

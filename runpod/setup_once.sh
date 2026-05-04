@@ -44,7 +44,7 @@ deactivate 2>/dev/null || true
 uv sync
 source /workspace/openpi/.venv/bin/activate
 pip install \
-  "mujoco>=3.2" "robosuite>=1.4" imageio imageio-ffmpeg numpy "opencv-python>=4.6" scipy tqdm pyyaml \
+  "mujoco>=3.2" "robosuite==1.4.1" imageio imageio-ffmpeg numpy "opencv-python>=4.6" scipy tqdm pyyaml \
   pyopengl etils tyro
 pip install -e /workspace/openpi/third_party/libero --no-deps
 pip install -e /workspace/openpi/packages/openpi-client

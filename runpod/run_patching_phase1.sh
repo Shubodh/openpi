@@ -1,14 +1,14 @@
 #!/bin/bash
 # run_patching_phase1.sh — sanity check + patched run for Phase 1 KV-cache patching
 #
-# Prerequisite: source libero_env.sh (sets MUJOCO_GL=egl and PYTHONPATH; venv activation is
-# overridden by uv run which uses the server venv with JAX + LIBERO simulation deps).
+# Prerequisite: source patching_env.sh (activates SERVER venv with JAX, sets MUJOCO_GL + PYTHONPATH).
+# Do NOT use libero_env.sh here — it activates the Python 3.8 LIBERO venv which has no JAX.
 # *** NO POLICY SERVER NEEDED — model is loaded in-process. ***
 # Do NOT start start_libero.sh before this script; the server is irrelevant here.
 #
 # What this does (in order):
 #   [C3] Sanity check  — corrupt prompt + donor patch at ALL 788 positions, N=5.
-#        Expected: success rate should approach the clean baseline (~70%+).
+#        Expected: success rate should approach the clean baseline (~100% for this task).
 #        If sanity check fails (still ~0%), the patch mechanism is broken — stop here.
 #
 #   [D3] Patched run   — corrupt prompt + donor patch at position 594 only, N=25.
@@ -39,7 +39,7 @@ echo ""
 
 echo "=== [C3] Sanity check: patch ALL 788 positions, N=5 ==="
 echo "=== Expected: success rate close to clean baseline (corrupt prompt, but full donor KV) ==="
-printf "n\n" | uv run python examples/libero/main_patching_expt.py \
+printf "n\n" | python examples/libero/main_patching_expt.py \
   --args.task-suite-name libero_goal \
   --args.task-name-filter "put the bowl on the plate" \
   --args.clean-prompt "put the bowl on the plate" \
@@ -56,7 +56,7 @@ echo "=== If near clean baseline — mechanism works. Proceeding to main run. ==
 echo ""
 
 echo "=== [D3] Patched run: patch position 594 only (plate/stove token), N=25 ==="
-printf "n\n" | uv run python examples/libero/main_patching_expt.py \
+printf "n\n" | python examples/libero/main_patching_expt.py \
   --args.task-suite-name libero_goal \
   --args.task-name-filter "put the bowl on the plate" \
   --args.clean-prompt "put the bowl on the plate" \
