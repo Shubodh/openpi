@@ -1,0 +1,8 @@
+Meaningful patching result on 2026-05-04.
+Step: Step 5 D3 image-prefix probe
+Patch positions: image prefix positions 0-587 from a per-step clean donor
+Success rate: 10/10 (clean baseline: 25/25, corrupt baseline: 0/25)
+Log: scripts_outputs_txt/patching_phase1/patched/agentic/run_20260504_183412_step5_imageprefix_n10_clean.txt
+Interpretation: after bidirectional prefix mixing, patching image-token K/V alone is sufficient to recover clean behavior, so corrupt-language effects in image-prefix cache entries are causally important for the plate-vs-stove behavior.
+Important caveat: this is meaningful but not minimal; continue narrowing inside positions 0-587 to find a smaller sufficient subset.
+See status_cc/patching_implementation.md §8.1 for full results table.

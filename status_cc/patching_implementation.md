@@ -526,6 +526,7 @@ LIBERO-Goal initial states vary in object placement. For the sanity check, this 
 | Step 4 C3 sanity | `"put the bowl on the stove"` | language positions 588-787 from per-step donor | 5 | **0%** (0/5) | `run_20260504_175753_step4_perstep_c3_clean.txt`; donor rebuilt from current obs each inference, still no recovery |
 | Step 4 debug C3 sanity | `"put the bowl on the stove"` | full prefix positions 0-787 from per-step donor | 5 | **100%** (5/5) | `run_20260504_181140_step4_debug_perstep_fullprefix_c3_clean.txt`; full-prefix current-observation patch exactly recovers clean behavior |
 | Step 5 control | `"put the bowl on the stove"` | full prefix positions 0-787 from per-step donor | 10 | **100%** (10/10) | `run_20260504_182602_step5_fullprefix_n10_clean.txt`; full-prefix recovery stable at N=10 |
+| Step 5 D3 image prefix | `"put the bowl on the stove"` | image prefix positions 0-587 from per-step donor | 10 | **100%** (10/10) | `run_20260504_183412_step5_imageprefix_n10_clean.txt`; image-token K/V is sufficient for recovery |
 | Patched (D3, pos 594, K+V) | `"put the bowl on the stove"` | pos 594 from donor | 25 | — | |
 
 ### 8.2 Implementation notes
@@ -540,6 +541,7 @@ LIBERO-Goal initial states vary in object placement. For the sanity check, this 
 | 2026-05-04 | Step 4 C3 (`run_20260504_175753_step4_perstep_c3_clean.txt`): per-step donor with current images and language positions 588-787 also failed 0/5 (`pos594 K=3.375000`, `V=5.312500`; pos688 `K=1.179688`). D3 was not run because the sanity mechanism did not pass. |
 | 2026-05-04 | Step 4 debug C3 (`run_20260504_181140_step4_debug_perstep_fullprefix_c3_clean.txt`): per-step full-prefix patch positions 0-787 passed 5/5. This validates `_apply_kv_patch` and shows language-only failure was due to leaving corrupt-prompt effects in non-language prefix positions, not a broken patch path. |
 | 2026-05-04 | Step 5 control (`run_20260504_182602_step5_fullprefix_n10_clean.txt`): per-step full-prefix patch positions 0-787 passed 10/10, confirming the positive control is stable enough to use as the upper bound for localization. |
+| 2026-05-04 | Step 5 D3 image-prefix probe (`run_20260504_183412_step5_imageprefix_n10_clean.txt`): patching only image-prefix positions 0-587 from a per-step clean donor passed 10/10. This clears the >2/10 meaningful threshold and shows the clean-vs-corrupt destination signal is available through image-token K/V after bidirectional prefix mixing. |
 
 ### 8.3 Current conclusion and next steps
 
