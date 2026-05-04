@@ -138,6 +138,16 @@ def make_element(env_obs: dict, prompt: str, resize_size: int) -> dict:
     }
 
 
+def _positions_tag(patch_positions: tuple[int, ...]) -> str:
+    if not patch_positions:
+        return "none"
+    if patch_positions == tuple(range(patch_positions[0], patch_positions[-1] + 1)):
+        return f"{patch_positions[0]}-{patch_positions[-1]}"
+    if len(patch_positions) > 20:
+        return f"{len(patch_positions)}pos_{patch_positions[0]}-{patch_positions[-1]}"
+    return "-".join(str(pos) for pos in patch_positions)
+
+
 def eval_libero(args: Args) -> None:
     np.random.seed(args.seed)
     _patch_torch_load_for_libero_init_states()
@@ -151,7 +161,7 @@ def eval_libero(args: Args) -> None:
     logging.info("Patch positions: %s", patch_positions)
 
     # Build output directory name encoding the patch config
-    pos_tag = "all" if args.sanity_check else args.patch_positions.replace(",", "-")
+    pos_tag = "all" if args.sanity_check else _positions_tag(patch_positions)
     out_dir = pathlib.Path(args.video_out_path) / ("sanity_posall" if args.sanity_check else f"pos{pos_tag}")
     out_dir.mkdir(parents=True, exist_ok=True)
 

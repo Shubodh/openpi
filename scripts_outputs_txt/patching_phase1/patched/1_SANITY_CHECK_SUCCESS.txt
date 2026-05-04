@@ -1,0 +1,6 @@
+Sanity check passed on 2026-05-04.
+Step: Step 4 debug, per-step full-prefix donor
+Success rate: 5/5
+Log: scripts_outputs_txt/patching_phase1/patched/agentic/run_20260504_181140_step4_debug_perstep_fullprefix_c3_clean.txt
+What fixed it: rebuilt the clean donor from the current observation each inference and patched the full prefix positions 0-787, including image-token K/V that had been influenced by corrupt language under bidirectional prefix attention.
+See status_cc/patching_implementation.md §8.1 for full results table.
