@@ -1,0 +1,46 @@
+=== patching_phase1 run: 20260504_153739 ===
+=== Task: put_the_bowl_on_the_plate (LIBERO-Goal) ===
+=== Model loaded IN-PROCESS — no policy server needed ===
+=== [C3] Sanity check: patch ALL 788 positions, N=5 ===
+=== Expected: success rate close to clean baseline (corrupt prompt, but full donor KV) ===
+[ep 001] FAILURE | total 0/1 (0.0%)
+[ep 002] FAILURE | total 0/2 (0.0%)
+[ep 003] FAILURE | total 0/3 (0.0%)
+[ep 004] FAILURE | total 0/4 (0.0%)
+[ep 005] FAILURE | total 0/5 (0.0%)
+=== TASK DONE | success rate: 0/5 (0.0%) ===
+=== FINAL | total success rate: 0/5 (0.0%) ===
+=== [C3] Sanity check complete. Check success rate above before continuing. ===
+=== If near 0% — patch mechanism is broken. Stop and debug. ===
+=== If near clean baseline — mechanism works. Proceeding to main run. ===
+=== [D3] Patched run: patch position 594 only (plate/stove token), N=25 ===
+[ep 001] FAILURE | total 0/1 (0.0%)
+[ep 002] FAILURE | total 0/2 (0.0%)
+[ep 003] FAILURE | total 0/3 (0.0%)
+[ep 004] FAILURE | total 0/4 (0.0%)
+[ep 005] FAILURE | total 0/5 (0.0%)
+[ep 006] FAILURE | total 0/6 (0.0%)
+[ep 007] FAILURE | total 0/7 (0.0%)
+[ep 008] FAILURE | total 0/8 (0.0%)
+[ep 009] FAILURE | total 0/9 (0.0%)
+[ep 010] FAILURE | total 0/10 (0.0%)
+[ep 011] FAILURE | total 0/11 (0.0%)
+[ep 012] FAILURE | total 0/12 (0.0%)
+[ep 013] FAILURE | total 0/13 (0.0%)
+[ep 014] FAILURE | total 0/14 (0.0%)
+[ep 015] FAILURE | total 0/15 (0.0%)
+[ep 016] FAILURE | total 0/16 (0.0%)
+[ep 017] FAILURE | total 0/17 (0.0%)
+[ep 018] FAILURE | total 0/18 (0.0%)
+[ep 019] FAILURE | total 0/19 (0.0%)
+[ep 020] FAILURE | total 0/20 (0.0%)
+[ep 021] FAILURE | total 0/21 (0.0%)
+[ep 022] FAILURE | total 0/22 (0.0%)
+[ep 023] FAILURE | total 0/23 (0.0%)
+[ep 024] FAILURE | total 0/24 (0.0%)
+[ep 025] FAILURE | total 0/25 (0.0%)
+=== TASK DONE | success rate: 0/25 (0.0%) ===
+=== FINAL | total success rate: 0/25 (0.0%) ===
+=== All runs complete ===
+=== Record results in status_cc/patching_implementation.md §7.1 ===
+=== Key question: does patched success rate recover toward clean baseline? ===
