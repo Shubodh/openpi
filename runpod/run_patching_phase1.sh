@@ -40,7 +40,7 @@ echo "=== [C3] Sanity check: patch ALL 788 positions, N=5 ==="
 echo "=== Expected: success rate close to clean baseline (corrupt prompt, but full donor KV) ==="
 printf "n\n" | python examples/libero/main_patching_expt.py \
   --args.task-suite-name libero_goal \
-  --args.task-name-filter "put_the_bowl_on_the_plate" \
+  --args.task-name-filter "put the bowl on the plate" \
   --args.clean-prompt "put the bowl on the plate" \
   --args.corrupt-prompt "put the bowl on the stove" \
   --args.sanity-check \
@@ -57,7 +57,7 @@ echo ""
 echo "=== [D3] Patched run: patch position 594 only (plate/stove token), N=25 ==="
 printf "n\n" | python examples/libero/main_patching_expt.py \
   --args.task-suite-name libero_goal \
-  --args.task-name-filter "put_the_bowl_on_the_plate" \
+  --args.task-name-filter "put the bowl on the plate" \
   --args.clean-prompt "put the bowl on the plate" \
   --args.corrupt-prompt "put the bowl on the stove" \
   --args.patch-positions "594" \

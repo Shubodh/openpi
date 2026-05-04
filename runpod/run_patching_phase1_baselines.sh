@@ -34,7 +34,7 @@ echo ""
 echo "=== [D1] Clean run: 'put the bowl on the plate' prompt, N=25 ==="
 printf "n\n" | python examples/libero/main_corrupt_run_expt.py \
   --args.task-suite-name libero_goal \
-  --args.task-name-filter "put_the_bowl_on_the_plate" \
+  --args.task-name-filter "put the bowl on the plate" \
   --args.num-trials-per-task 25 \
   --args.save-all-videos \
   --args.video-out-path data/libero/videos/patching_phase1/baselines/clean
@@ -43,7 +43,7 @@ echo ""
 echo "=== [D2] Corrupt run: 'put the bowl on the stove' prompt, N=25 ==="
 printf "n\n" | python examples/libero/main_corrupt_run_expt.py \
   --args.task-suite-name libero_goal \
-  --args.task-name-filter "put_the_bowl_on_the_plate" \
+  --args.task-name-filter "put the bowl on the plate" \
   --args.corrupt-prompt "put the bowl on the stove" \
   --args.num-trials-per-task 25 \
   --args.save-all-videos \
