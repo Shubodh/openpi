@@ -34,6 +34,7 @@ from libero.libero import get_libero_path
 from libero.libero.envs import OffScreenRenderEnv
 import numpy as np
 from openpi_client import image_tools
+import torch
 import tqdm
 import tyro
 
@@ -44,6 +45,24 @@ from openpi.training import config as _config
 
 LIBERO_DUMMY_ACTION = [0.0] * 6 + [-1.0]
 LIBERO_ENV_RESOLUTION = 256
+
+
+def _patch_torch_load_for_libero_init_states() -> None:
+    """Allow LIBERO's trusted init-state pickles to load under PyTorch 2.6+.
+
+    PyTorch 2.6 changed `torch.load` to default to `weights_only=True`.
+    LIBERO's `get_task_init_states()` calls `torch.load(path)` on local
+    dataset files that contain numpy objects, so the new default rejects them.
+    The normal websocket baseline path uses the Python 3.8 client venv with
+    torch 1.11 and does not need this compatibility shim.
+    """
+    original_load = torch.load
+
+    def load_with_legacy_default(*args, **kwargs):
+        kwargs.setdefault("weights_only", False)
+        return original_load(*args, **kwargs)
+
+    torch.load = load_with_legacy_default
 
 
 @dataclasses.dataclass
@@ -122,6 +141,7 @@ def harvest_donor_kv_cache(policy: _policy.Policy, env_obs: dict, clean_prompt: 
 
 def eval_libero(args: Args) -> None:
     np.random.seed(args.seed)
+    _patch_torch_load_for_libero_init_states()
 
     # Parse patch positions
     if args.sanity_check:
