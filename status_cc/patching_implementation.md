@@ -574,3 +574,59 @@ LIBERO-Goal initial states vary in object placement. For the sanity check, this 
 | Binary search over `0-787` | contiguous halves, then recurse | Find the smallest sufficient region once a nontrivial subset gives >2/10. |
 
 Once a nontrivial subset recovers **>2/10** at N=10, rerun that subset at N=25 and write `scripts_outputs_txt/patching_phase1/patched/2_PATCHING_MEANINGFUL_RESULT.txt` only if it exceeds the meaningful threshold.
+
+### 8.4 RunPod restart handoff snapshot
+
+**Last updated:** 2026-05-04, after commit `cba11b7` on branch `patching_phase1_agentic`.
+
+**Git state at handoff:** clean working tree; branch is ahead of `origin/patching_phase1_agentic` by 3 local commits:
+
+| Commit | Summary |
+|--------|---------|
+| `cba11b7` | docs: clarify language-token KV patching had no recovery |
+| `39123d3` | docs: clarify language remains behaviorally load-bearing |
+| `0b5de16` | agentic step5: image positions 294-440 recover 1 of 10 |
+
+**Current experimental state:**
+
+| Patch set | Result | Meaning |
+|-----------|--------|---------|
+| Per-step full prefix `0-787` | 10/10 | Positive control stable; patching path works. |
+| Per-step language only `588-787` | 0/5 | Language-token K/V patching alone has no behavioral recovery. |
+| Per-step image prefix `0-587` | 10/10 | Meaningful result found; image-token K/V is sufficient for recovery. |
+| Per-step image half `0-293` | 0/10 | First half of image tokens is insufficient. |
+| Per-step image half `294-587` | 8/10 | Main sufficient region is in the second half of image tokens. |
+| Per-step image quarter `294-440` | 1/10 | Lower half of `294-587` is below meaningful threshold. |
+
+**Interpretation to preserve after restart:** Language is behaviorally load-bearing because clean/corrupt baselines are 25/25 vs. 0/25. However, after π₀.₅'s bidirectional prefix pass, patching only language-token K/V does not recover behavior. The actionable clean-vs-corrupt signal is mixed into image-token K/V, especially in positions `294-587`.
+
+**Next run after restart:** test the remaining quarter of the successful image half, positions `441-587`, with the per-step donor script at N=10. If it clears >2/10, recurse inside `441-587`; if it fails, the 8/10 recovery from `294-587` likely depends on combining both quarters.
+
+Suggested command skeleton:
+
+```bash
+cd /workspace/openpi
+source /workspace/openpi/runpod/patching_env.sh
+POSITIONS=$(python -c "print(','.join(map(str, range(441, 588))))")
+TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+FULL="scripts_outputs_txt/patching_phase1/patched/agentic/run_${TIMESTAMP}_step5_img441-587_n10_full.txt"
+CLEAN="scripts_outputs_txt/patching_phase1/patched/agentic/run_${TIMESTAMP}_step5_img441-587_n10_clean.txt"
+mkdir -p scripts_outputs_txt/patching_phase1/patched/agentic
+mkdir -p data/libero/videos/patching_phase1/patched/agentic/step5_img441-587_n10
+
+{
+python examples/libero/main_patching_expt_per_step_donor.py \
+  --args.task-suite-name libero_goal \
+  --args.task-name-filter "put the bowl on the plate" \
+  --args.clean-prompt "put the bowl on the plate" \
+  --args.corrupt-prompt "put the bowl on the stove" \
+  --args.patch-positions "$POSITIONS" \
+  --args.num-trials-per-task 10 \
+  --args.save-all-videos \
+  --args.video-out-path data/libero/videos/patching_phase1/patched/agentic/step5_img441-587_n10
+} 2>&1 \
+  | tee "$FULL" \
+  | tr '\r' '\n' | sed -u $'s/\x1b\\[[0-9;]*[A-Za-z]//g' \
+  | grep -E --line-buffered '^(===|\[ep |\[DEBUG|INFO:root:|ERROR:root:)' \
+  | tee "$CLEAN"
+```
