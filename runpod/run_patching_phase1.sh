@@ -73,7 +73,7 @@ printf "n\n" | python examples/libero/main_patching_expt.py \
 
 echo ""
 echo "=== All runs complete ==="
-echo "=== Record results in status_cc/patching_implementation.md §7.1 ==="
+echo "=== Record results in status_cc/patching_implementation.md §8.1 ==="
 echo "=== Key question: does patched success rate recover toward clean baseline? ==="
 } 2>&1 \
   | tee "$FULL_FILE" \

@@ -78,18 +78,18 @@ bash /workspace/openpi/runpod/start_libero.sh
 # [pane 0] wait for "listening on :8000", then in pane 1:
 source /workspace/openpi/runpod/libero_env.sh
 bash /workspace/openpi/runpod/run_patching_phase1_baselines.sh
-# Record D1 (clean) and D2 (corrupt) success rates in status_cc/patching_implementation.md §7.1.
+# Record D1 (clean) and D2 (corrupt) success rates in status_cc/patching_implementation.md §8.1.
 
 # Step 3 — patched run (NO server needed; stop or ignore the server from step 2):
 source /workspace/openpi/runpod/patching_env.sh   # server venv, not libero_env.sh
 bash /workspace/openpi/runpod/run_patching_phase1.sh
 # Sanity check runs first (N=5, all-position patch) — verify it succeeds before the main run.
-# Record C3 (sanity) and D3 (patched pos 594) in status_cc/patching_implementation.md §7.1.
+# Record C3 (sanity) and D3 (patched pos 594) in status_cc/patching_implementation.md §8.1.
 ```
 
 Logs → `scripts_outputs_txt/patching_phase1/verify/verify_*.txt`, `baselines/baselines_*.txt`, `patched/clean_log/run_*_clean.txt`, and `patched/full_log/run_*_full.txt`.
 
-**Reading the results:** The key question is whether `patched_success_rate` recovers toward `clean_success_rate`. Update `status_cc/patching_implementation.md §7.1` with all four rows (C3 sanity + D1 clean + D2 corrupt + D3 patched).
+**Reading the results:** The key question is whether `patched_success_rate` recovers toward `clean_success_rate`. Update `status_cc/patching_implementation.md §8.1` with all four rows (C3 sanity + D1 clean + D2 corrupt + D3 patched).
 
 ### KV-cache tokenizer inspection (no model weights needed)
 

@@ -16,7 +16,8 @@ This document is the working reference for the actual implementation. It is more
 4. [`main_patching_expt.py` Structure](#4-main_patching_exptpy-structure)
 5. [Implementation Checklist](#5-implementation-checklist)
 6. [RunPod Verification Steps](#6-runpod-verification-steps)
-7. [Results](#7-results)
+7. [Expected Outcomes and Interpretation Guide](#7-expected-outcomes-and-interpretation-guide)
+8. [Results](#8-results)
 
 ---
 
@@ -469,11 +470,52 @@ Run N=5 sanity episodes — a few successes is enough to confirm the mechanism w
 
 ---
 
-## 7. Results
+## 7. Expected Outcomes and Interpretation Guide
+
+This section defines what a "good" result looks like for each run condition and how to interpret deviations. **Read this before running and before recording results.**
+
+### 7.1 What the two runs test
+
+`run_patching_phase1.sh` runs two conditions back to back:
+
+| Code | Run | Prompt sent to model | KV cache | What it tests |
+|------|-----|----------------------|----------|---------------|
+| C3 | Sanity check | `"put the bowl on the stove"` (corrupt) | ALL 788 positions replaced by clean donor | Does the patching mechanism work at all? |
+| D3 | Main patched run | `"put the bowl on the stove"` (corrupt) | Only position 594 replaced by clean donor | Is pos 594 the primary causal position for task specification? |
+
+### 7.2 Expected success rates
+
+| Code | Expected success rate | Rationale |
+|------|-----------------------|-----------|
+| D1 (clean baseline) | ~100% | Already confirmed: 25/25 |
+| D2 (corrupt baseline) | ~0% | Already confirmed: 0/25 |
+| C3 (sanity check, all 788 pos patched) | **~100%** (≥80% acceptable) | Entire prefix KV cache is the clean donor — model has no access to "stove" signal during suffix generation. Should match D1. May be slightly below 100% because donor images come from episode 0 and are reused across all 5 episodes (minor scene variation). If C3 < 50%, the patch mechanism is broken — stop and debug before trusting D3. |
+| D3 (patched pos 594 only) | **>0%, ideally ≥70%** | Only the destination token position is patched. If pos 594 is the sole causal position for task specification, D3 should approach D1 (~100%). Partial recovery (e.g. 30–70%) means other positions also carry destination signal. 0% means pos 594 is not causal — expand to more positions or revisit hypothesis. |
+
+### 7.3 Interpretation matrix
+
+| C3 | D3 | Interpretation | Action |
+|----|----|----------------|--------|
+| ~100% | ~100% | Pos 594 is the sole causal position. Strong hypothesis confirmation. | Record results; proceed to Phase 2 (sweep over more tasks/pairs). |
+| ~100% | 30–80% | Pos 594 partially causal; other positions share the signal. | Broaden patch to include a window around 594 (e.g. 593–595 or all language tokens 588–787). |
+| ~100% | ~0% | Pos 594 is not causal. Patching mechanism works (proven by C3) but wrong position targeted. | Check tokenization; inspect attention patterns at other positions. |
+| ~0% | any | Patch mechanism broken regardless of D3. | Debug `_apply_kv_patch` and `build_donor_kv_cache`; check donor obs pipeline. |
+
+### 7.4 Why C3 may not reach exactly 100%
+
+The donor KV cache is harvested once from `initial_states[0]` and reused across all C3 episodes (N=5). This means:
+- Image token positions (0–587): from episode 0's scene images, not the current episode's scene
+- Language token positions (588–787): from "put the bowl on the plate" — correct for all episodes
+
+LIBERO-Goal initial states vary in object placement. For the sanity check, this means the model sees the "wrong" images for episodes 1–4. Language dominates task specification in π₀.₅, so degradation should be small (≥80% expected), but exact 100% is unlikely. For D3 only position 594 is patched — image tokens are untouched — so this image-reuse issue does not affect D3.
+
+---
+
+## 8. Results
 
 *(Fill in as runs complete.)*
 
-### 7.1 Phase 1 — `put_the_bowl_on_the_plate` task (LIBERO-Goal)
+### 8.1 Phase 1 — `put_the_bowl_on_the_plate` task (LIBERO-Goal)
 
 | Run type | Prompt | KV cache | N | Success rate | Notes |
 |----------|--------|----------|---|-------------|-------|
@@ -482,7 +524,7 @@ Run N=5 sanity episodes — a few successes is enough to confirm the mechanism w
 | Sanity check (C3) | `"put the bowl on the stove"` | full donor (all 788 pos) | 5 | — | should ≈ 100% |
 | Patched (D3, pos 594, K+V) | `"put the bowl on the stove"` | pos 594 from donor | 25 | — | |
 
-### 7.2 Implementation notes
+### 8.2 Implementation notes
 
 *(Surprises, deviations from plan, debugging notes — fill as work proceeds.)*
 

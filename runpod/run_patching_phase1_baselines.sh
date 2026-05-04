@@ -51,7 +51,7 @@ printf "n\n" | python examples/libero/main_corrupt_run_expt.py \
 
 echo ""
 echo "=== Both baselines complete ==="
-echo "=== Record clean and corrupt success rates in status_cc/patching_implementation.md §7.1 ==="
+echo "=== Record clean and corrupt success rates in status_cc/patching_implementation.md §8.1 ==="
 } 2>&1 | tee "$OUT_FILE"
 
 echo ""
