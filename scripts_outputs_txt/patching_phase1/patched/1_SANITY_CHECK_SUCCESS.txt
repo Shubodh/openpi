@@ -4,6 +4,7 @@ Success rate: 5/5
 Log: scripts_outputs_txt/patching_phase1/patched/agentic/run_20260504_181140_step4_debug_perstep_fullprefix_c3_clean.txt
 What fixed it: rebuilt the clean donor from the current observation each inference and patched the full prefix positions 0-787, including image-token K/V that had been influenced by corrupt language under bidirectional prefix attention.
 Meaning: `_apply_kv_patch` and the `_sample_kwargs` plumbing are working; the clean donor KV cache can fully recover clean behavior when the whole current-observation prefix cache is transplanted.
+What did not work before and why this works now: t=0 full-prefix donor patching failed because it overwrote current image K/V with stale initial-scene image K/V; language-only patching failed because bidirectional prefix attention lets corrupt language affect image-token K/V too. The successful run rebuilds the donor from the current observation every inference and patches the full prefix, preserving current visual context while removing all corrupt-prompt prefix state.
 Not yet claimed: this is not a localized D3 causal result, because full-prefix patching replaces image and language K/V together.
 Next: use `examples/libero/main_patching_expt_per_step_donor.py` to localize the sufficient subset, starting with N=10 probes over full prefix 0-787, image prefix 0-587, and image prefix plus a small window around pos594. Write `2_PATCHING_MEANINGFUL_RESULT.txt` only after a nontrivial subset exceeds the D3 threshold.
 See status_cc/patching_implementation.md §8.1 for full results table.
