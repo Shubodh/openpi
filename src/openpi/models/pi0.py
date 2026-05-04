@@ -213,6 +213,29 @@ class Pi0(_model.BaseModel):
 
         return jnp.mean(jnp.square(v_t - u_t), axis=-1)
 
+    def build_donor_kv_cache(self, observation: _model.Observation) -> _gemma.KVCache:
+        """Run a prefix-only forward pass and return the KV cache for use as a patching donor."""
+        observation = _model.preprocess_observation(None, observation, train=False)
+        prefix_tokens, prefix_mask, prefix_ar_mask = self.embed_prefix(observation)
+        prefix_attn_mask = make_attn_mask(prefix_mask, prefix_ar_mask)
+        positions = jnp.cumsum(prefix_mask, axis=1) - 1
+        _, kv_cache = self.PaliGemma.llm([prefix_tokens, None], mask=prefix_attn_mask, positions=positions)
+        return kv_cache
+
+    def _apply_kv_patch(
+        self,
+        corrupt_kv_cache: _gemma.KVCache,
+        donor_kv_cache: _gemma.KVCache,
+        patch_positions: tuple[int, ...],
+    ) -> _gemma.KVCache:
+        """Replace specified prefix positions in corrupt cache with donor cache values."""
+        K_d, V_d = donor_kv_cache
+        K, V = corrupt_kv_cache
+        for pos in patch_positions:
+            K = K.at[:, :, pos, :, :].set(K_d[:, :, pos, :, :])
+            V = V.at[:, :, pos, :, :].set(V_d[:, :, pos, :, :])
+        return (K, V)
+
     @override
     def sample_actions(
         self,
@@ -221,6 +244,8 @@ class Pi0(_model.BaseModel):
         *,
         num_steps: int | at.Int[at.Array, ""] = 10,
         noise: at.Float[at.Array, "b ah ad"] | None = None,
+        donor_kv_cache: _gemma.KVCache | None = None,
+        patch_positions: tuple[int, ...] = (594,),
     ) -> _model.Actions:
         observation = _model.preprocess_observation(None, observation, train=False)
         # note that we use the convention more common in diffusion literature, where t=1 is noise and t=0 is the target
@@ -235,6 +260,9 @@ class Pi0(_model.BaseModel):
         prefix_attn_mask = make_attn_mask(prefix_mask, prefix_ar_mask)
         positions = jnp.cumsum(prefix_mask, axis=1) - 1
         _, kv_cache = self.PaliGemma.llm([prefix_tokens, None], mask=prefix_attn_mask, positions=positions)
+
+        if donor_kv_cache is not None:
+            kv_cache = self._apply_kv_patch(kv_cache, donor_kv_cache, patch_positions)
 
         def step(carry):
             x_t, time = carry

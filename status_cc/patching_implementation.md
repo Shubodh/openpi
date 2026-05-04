@@ -368,22 +368,49 @@ data/libero/videos/patched_pos594_kv/
 
 ### Phase A — `pi0.py` changes
 
-- [ ] **A1.** Add `donor_kv_cache=None` and `patch_positions=(594,)` to `sample_actions` signature (after `noise=None`)
-- [ ] **A2.** Add patch logic block between lines 237 and 239 (see §3.2)
-- [ ] **A3.** Add `_apply_kv_patch` method (see §3.3)
-- [ ] **A4.** Add `build_donor_kv_cache` method (see §3.4)
-- [ ] **A5.** Verify: the type annotation for `donor_kv_cache` uses `_gemma.KVCache | None` — confirm `_gemma` is imported in `pi0.py` (it is: `import openpi.models.gemma as _gemma`, line 12)
+- [x] **A1.** Add `donor_kv_cache=None` and `patch_positions=(594,)` to `sample_actions` signature (after `noise=None`)
+- [x] **A2.** Add patch logic block between lines 237 and 239 (see §3.2)
+- [x] **A3.** Add `_apply_kv_patch` method (see §3.3)
+- [x] **A4.** Add `build_donor_kv_cache` method (see §3.4)
+- [x] **A5.** `_gemma` already imported (`import openpi.models.gemma as _gemma`, pi0.py:12) ✅
 
 ### Phase B — `main_patching_expt.py`
 
-- [ ] **B1.** Copy `main_corrupt_run_expt.py` to `main_patching_expt.py`
-- [ ] **B2.** Add new `Args` fields (§4.1); change `num_trials_per_task` default to 25
-- [ ] **B3.** Replace `WebsocketClientPolicy` with in-process `create_trained_policy` (§4.2)
-- [ ] **B4.** Implement `harvest_donor_kv_cache` (§4.3)
-- [ ] **B5.** Add pre-episode-loop donor harvest and `_sample_kwargs` injection (§4.4)
-- [ ] **B6.** Replace `client.infer(element)` with `policy.infer(element)` in rollout loop
-- [ ] **B7.** Update output directory naming to encode patch config
-- [ ] **B8.** Remove server-related args (`host`, `port`) and imports
+- [x] **B1.** Script created at `examples/libero/main_patching_expt.py`
+- [x] **B2.** `Args` has new fields; `num_trials_per_task` defaults to 25
+- [x] **B3.** Uses `create_trained_policy` in-process (no websocket server)
+- [x] **B4.** `harvest_donor_kv_cache()` implemented — applies `policy._input_transform`, builds `Observation`, calls `model.build_donor_kv_cache`
+- [x] **B5.** Donor harvest + `_sample_kwargs` injection happens once per task before episode loop
+- [x] **B6.** Rollout calls `policy.infer(element)` directly
+- [x] **B7.** Output dir encodes patch positions: `patched_pos594_kv/`
+- [x] **B8.** No `host`/`port` args; no websocket client imports
+
+### Phase Review AB — code review before RunPod
+
+Review the two implementation files against the plan and source facts before moving to RunPod. Items below are the findings from the 2026-05-04 review.
+
+**`pi0.py` — verified correct:**
+- [x] **RAB1.** `build_donor_kv_cache` body is a verbatim copy of the prefix-build block in `sample_actions` (`embed_prefix` → `make_attn_mask` → `cumsum` → `llm([prefix_tokens, None], ...)`). No drift. ✅
+- [x] **RAB2.** `build_donor_kv_cache` calls `preprocess_observation(None, obs, train=False)` before `embed_prefix` — same order as `sample_actions`. ✅
+- [x] **RAB3.** `_apply_kv_patch` indexing `[:, :, pos, :, :]` is correct for `(18, 1, 788, 1, 256)`: patches all 18 layers at position `pos` simultaneously. ✅
+- [x] **RAB4.** Patch call sits between `kv_cache` assignment (line 262) and `def step` (line 267), before `while_loop` at line 306. Closure captures patched value. ✅
+- [x] **RAB5.** `donor_kv_cache=None` default means zero change to the existing code path when not patching. ✅
+- [x] **RAB6.** `for pos in patch_positions` loop in `_apply_kv_patch` uses a Python-level tuple — JAX unrolls it at trace time. JIT-compatible. ✅
+- [x] **RAB7.** `patch_positions` as a kwarg to the jitted `sample_actions`: it is a Python tuple of ints (not a JAX array), captured as a concrete value at trace time. First patched call recompiles once; subsequent calls with identical tuple reuse the kernel. ✅
+
+**`main_patching_expt.py` — verified correct:**
+- [x] **RAB8.** `harvest_donor_kv_cache` applies `policy._input_transform` (tokenization, normalization, key remapping) before building `Observation` — same pipeline as `Policy.infer()`. ✅
+- [x] **RAB9.** Donor is harvested after `num_steps_wait` DUMMY_ACTION steps so physics are settled and images reflect a realistic scene. ✅
+- [x] **RAB10.** Donor harvest uses `env.reset()` + `env.set_init_state(initial_states[0])` in an isolated block; each episode re-resets the env, so donor harvest does not contaminate episode initial states. ✅
+- [x] **RAB11.** `policy.infer(element)` called directly in-process — no websocket server needed. `donor_kv_cache` and `patch_positions` reach `sample_actions` via `policy._sample_kwargs`. ✅
+- [x] **RAB12.** `done = False` initialised before the episode loop; used correctly for video suffix and success counting even on exception-caused breaks. ✅
+
+**Known deviations from §4.1 spec — accepted for Phase 1:**
+- [ ] **RAB13.** `patch_k` / `patch_v` flags (K-only or V-only patching) are NOT implemented — `_apply_kv_patch` always patches both K and V. Accepted: K+V is the right default for Phase 1. Add selective K/V flags when doing the heatmap sweep.
+- [ ] **RAB14.** `build_donor_kv_cache` is called without `module_jit` — runs eagerly (slow once, ~seconds, not minutes). Accepted: it is a one-time pre-rollout call per task. If this proves too slow on RunPod, wrap with `nnx_utils.module_jit`.
+
+**Pre-existing inherited issues (not blocking):**
+- [ ] **RAB15.** Final `total_successes / total_episodes` log crashes with ZeroDivisionError if `task_name_filter` matches no task. Not a risk for Phase 1 (filter is set correctly), but add a guard if broadening to full suite.
 
 ### Phase C — RunPod verification (before trusting results)
 

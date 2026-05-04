@@ -15,6 +15,9 @@ Bash scripts for pod lifecycle management on RunPod. Full guide → [`docs/runpo
 | `run_object_suite_corrupt_check.sh` | After `source libero_env.sh`, to run the LIBERO-object prompt-ablation experiment | Clean run + corrupt run on milk task (25 trials each); logs tee'd to `scripts_outputs_txt/` |
 | `run_goal_suite_corrupt_check.sh` | After `source libero_env.sh`, to run the LIBERO-goal prompt-ablation experiment | Clean run + corrupt run on bowl/cabinet task (25 trials each); logs tee'd to `scripts_outputs_txt/` |
 | `run_kv_cache_inspect.sh` | After `source libero_env.sh`, to verify KV-cache tokenizer output (no model weights needed) | Tokenizes the two contrastive LIBERO-Goal prompts, prints token IDs + absolute prefix indices; logs tee'd to `scripts_outputs_txt/kv_cache_inspect/` |
+| `run_patching_phase1_verify.sh` | After `source libero_env.sh`, before any patching runs | Tokenizes Phase 1 prompt pair (plate/stove), confirms `plate` and `stove` are both at absolute index 594; no GPU needed |
+| `run_patching_phase1_baselines.sh` | After `source libero_env.sh` **with server running**, to establish Phase 1 baselines | Clean + corrupt runs on the plate/stove task (25 trials each); logs tee'd to `scripts_outputs_txt/patching_phase1/` |
+| `run_patching_phase1.sh` | After `source libero_env.sh`, **NO server needed** — model loads in-process | Sanity check (N=5, all-position patch) then main patched run (N=25, pos 594); logs tee'd to `scripts_outputs_txt/patching_phase1/` |
 
 ## Typical flow
 
@@ -55,6 +58,37 @@ bash /workspace/openpi/runpod/run_object_suite_corrupt_check.sh
 
 Logs → `scripts_outputs_txt/goal_suite_check_*.txt` / `corrupt_check_*.txt`.
 Results should be recorded in `status_cc/corrupt_run_experiment.md`.
+
+### KV-cache patching — Phase 1 (plate vs stove)
+
+**Important:** `run_patching_phase1.sh` loads the model in-process — do NOT start the policy server before running it. The baseline scripts still need the server.
+
+**Recommended order:**
+
+```bash
+# Step 1 — verify token positions (fast, no GPU, no server):
+source /workspace/openpi/runpod/libero_env.sh
+bash /workspace/openpi/runpod/run_patching_phase1_verify.sh
+# Check log: 'plate' and 'stove' should both appear at absolute index 594.
+# If not, update --args.patch-positions in run_patching_phase1.sh before continuing.
+
+# Step 2 — baselines (needs server in pane 0):
+bash /workspace/openpi/runpod/start_libero.sh
+# [pane 0] wait for "listening on :8000", then in pane 1:
+source /workspace/openpi/runpod/libero_env.sh
+bash /workspace/openpi/runpod/run_patching_phase1_baselines.sh
+# Record D1 (clean) and D2 (corrupt) success rates in status_cc/patching_implementation.md §7.1.
+
+# Step 3 — patched run (NO server needed; stop or ignore the server from step 2):
+source /workspace/openpi/runpod/libero_env.sh
+bash /workspace/openpi/runpod/run_patching_phase1.sh
+# Sanity check runs first (N=5, all-position patch) — verify it succeeds before the main run.
+# Record C3 (sanity) and D3 (patched pos 594) in status_cc/patching_implementation.md §7.1.
+```
+
+Logs → `scripts_outputs_txt/patching_phase1/verify/verify_*.txt`, `baselines/baselines_*.txt`, `patched/run_*.txt`.
+
+**Reading the results:** The key question is whether `patched_success_rate` recovers toward `clean_success_rate`. Update `status_cc/patching_implementation.md §7.1` with all four rows (C3 sanity + D1 clean + D2 corrupt + D3 patched).
 
 ### KV-cache tokenizer inspection (no model weights needed)
 
