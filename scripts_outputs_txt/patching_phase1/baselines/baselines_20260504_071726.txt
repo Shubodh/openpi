@@ -1,0 +1,295 @@
+=== patching_phase1_baselines run: 20260504_071726 ===
+=== Task: put_the_bowl_on_the_plate (LIBERO-Goal) ===
+
+=== [D1] Clean run: 'put the bowl on the plate' prompt, N=25 ===
+[robosuite WARNING] No private macro file found! (macros.py:53)
+[robosuite WARNING] It is recommended to use a private macro file (macros.py:54)
+[robosuite WARNING] To setup, run: python /workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite/scripts/setup_macros.py (macros.py:55)
+Gym has been unmaintained since 2022 and does not support NumPy 2.0 amongst other critical functionality.
+Please upgrade to Gymnasium, the maintained drop-in replacement of Gym, or contact the authors of your software and request that they upgrade.
+See the migration guide at https://gymnasium.farama.org/introduction/migration_guide/ for additional information.
+INFO:root:Task suite: libero_goal
+INFO:root:Waiting for server at ws://0.0.0.0:8000...
+[info] using task orders [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+  0%|          | 0/10 [00:00<?, ?it/s]/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/numba/np/arraymath.py:3845: DeprecationWarning: `np.MachAr` is deprecated (NumPy 1.22).
+  @overload(np.MachAr)
+ 10%|█         | 1/10 [00:04<00:41,  4.56s/it] 20%|██        | 2/10 [00:05<00:20,  2.54s/it] 30%|███       | 3/10 [00:06<00:13,  1.89s/it] 40%|████      | 4/10 [00:08<00:09,  1.63s/it] 50%|█████     | 5/10 [00:09<00:07,  1.44s/it] 60%|██████    | 6/10 [00:10<00:05,  1.28s/it] 70%|███████   | 7/10 [00:11<00:03,  1.21s/it] 80%|████████  | 8/10 [00:12<00:02,  1.17s/it] 90%|█████████ | 9/10 [00:13<00:01,  1.11s/it]100%|██████████| 10/10 [00:14<00:00,  1.14s/it]100%|██████████| 10/10 [00:14<00:00,  1.44s/it]
+[Warning]: datasets path /workspace/openpi/third_party/libero/libero/libero/../datasets does not exist!
+[Warning]: datasets path /workspace/openpi/third_party/libero/libero/libero/../datasets does not exist!
+[Warning]: datasets path /workspace/openpi/third_party/libero/libero/libero/../datasets does not exist!
+[Warning]: datasets path /workspace/openpi/third_party/libero/libero/libero/../datasets does not exist!
+[Warning]: datasets path /workspace/openpi/third_party/libero/libero/libero/../datasets does not exist!
+[Warning]: datasets path /workspace/openpi/third_party/libero/libero/libero/../datasets does not exist!
+[Warning]: datasets path /workspace/openpi/third_party/libero/libero/libero/../datasets does not exist!
+[Warning]: datasets path /workspace/openpi/third_party/libero/libero/libero/../datasets does not exist!
+[Warning]: datasets path /workspace/openpi/third_party/libero/libero/libero/../datasets does not exist!
+[Warning]: datasets path /workspace/openpi/third_party/libero/libero/libero/../datasets does not exist!
+[Warning]: datasets path /workspace/openpi/third_party/libero/libero/libero/../datasets does not exist!
+[Warning]: datasets path /workspace/openpi/third_party/libero/libero/libero/../datasets does not exist!
+[Warning]: datasets path /workspace/openpi/third_party/libero/libero/libero/../datasets does not exist!
+[Warning]: datasets path /workspace/openpi/third_party/libero/libero/libero/../datasets does not exist!
+[Warning]: datasets path /workspace/openpi/third_party/libero/libero/libero/../datasets does not exist!
+[Warning]: datasets path /workspace/openpi/third_party/libero/libero/libero/../datasets does not exist!
+[Warning]: datasets path /workspace/openpi/third_party/libero/libero/libero/../datasets does not exist!
+[Warning]: datasets path /workspace/openpi/third_party/libero/libero/libero/../datasets does not exist!
+[Warning]: datasets path /workspace/openpi/third_party/libero/libero/libero/../datasets does not exist!
+[Warning]: datasets path /workspace/openpi/third_party/libero/libero/libero/../datasets does not exist!
+Traceback (most recent call last):
+  File "examples/libero/main_corrupt_run_expt.py", line 238, in <module>
+    tyro.cli(eval_libero)
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/tyro/_cli.py", line 191, in cli
+    return run_with_args_from_cli()
+  File "examples/libero/main_corrupt_run_expt.py", line 204, in eval_libero
+    logging.info(f"Total success rate: {float(total_successes) / float(total_episodes)}")
+ZeroDivisionError: float division by zero
+Exception ignored in: <function MjRenderContext.__del__ at 0x71728fe94f70>
+Traceback (most recent call last):
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite/utils/binding_utils.py", line 199, in __del__
+    self.gl_ctx.free()
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite/renderers/context/egl_context.py", line 150, in free
+    EGL.eglDestroyContext(EGL_DISPLAY, self._context)
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/OpenGL/error.py", line 230, in glCheckError
+    raise self._errorClass(
+OpenGL.raw.EGL._errors.EGLError: INFO:OpenGL.platform.ctypesloader:Failed to load library ( 'libGLU.so.0' ): libGLU.so.0: cannot open shared object file: No such file or directory
+EGLError(
+	err = EGL_NOT_INITIALIZED,
+	baseOperation = eglDestroyContext,
+	cArguments = (
+		<OpenGL._opaque.EGLDisplay_pointer object at 0x7172823131c0>,
+		<OpenGL._opaque.EGLContext_pointer object at 0x7172823134c0>,
+	),
+	result = 0
+)
+Exception ignored in: <function EGLGLContext.__del__ at 0x71728fe94dc0>
+Traceback (most recent call last):
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite/renderers/context/egl_context.py", line 155, in __del__
+    self.free()
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite/renderers/context/egl_context.py", line 150, in free
+    EGL.eglDestroyContext(EGL_DISPLAY, self._context)
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/OpenGL/error.py", line 230, in glCheckError
+    raise self._errorClass(
+OpenGL.raw.EGL._errors.EGLError: EGLError(
+	err = EGL_NOT_INITIALIZED,
+	baseOperation = eglDestroyContext,
+	cArguments = (
+		<OpenGL._opaque.EGLDisplay_pointer object at 0x7172823131c0>,
+		<OpenGL._opaque.EGLContext_pointer object at 0x7172823134c0>,
+	),
+	result = 0
+)
+Exception ignored in: <function MjRenderContext.__del__ at 0x71728fe94f70>
+Traceback (most recent call last):
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite/utils/binding_utils.py", line 199, in __del__
+    self.gl_ctx.free()
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite/renderers/context/egl_context.py", line 150, in free
+    EGL.eglDestroyContext(EGL_DISPLAY, self._context)
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/OpenGL/error.py", line 230, in glCheckError
+    raise self._errorClass(
+OpenGL.raw.EGL._errors.EGLError: EGLError(
+	err = EGL_NOT_INITIALIZED,
+	baseOperation = eglDestroyContext,
+	cArguments = (
+		<OpenGL._opaque.EGLDisplay_pointer object at 0x7172823131c0>,
+		<OpenGL._opaque.EGLContext_pointer object at 0x71726bb7ff40>,
+	),
+	result = 0
+)
+Exception ignored in: <function EGLGLContext.__del__ at 0x71728fe94dc0>
+Traceback (most recent call last):
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite/renderers/context/egl_context.py", line 155, in __del__
+    self.free()
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite/renderers/context/egl_context.py", line 150, in free
+    EGL.eglDestroyContext(EGL_DISPLAY, self._context)
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/OpenGL/error.py", line 230, in glCheckError
+    raise self._errorClass(
+OpenGL.raw.EGL._errors.EGLError: EGLError(
+	err = EGL_NOT_INITIALIZED,
+	baseOperation = eglDestroyContext,
+	cArguments = (
+		<OpenGL._opaque.EGLDisplay_pointer object at 0x7172823131c0>,
+		<OpenGL._opaque.EGLContext_pointer object at 0x71726bb7ff40>,
+	),
+	result = 0
+)
+Exception ignored in: <function MjRenderContext.__del__ at 0x71728fe94f70>
+Traceback (most recent call last):
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite/utils/binding_utils.py", line 199, in __del__
+    self.gl_ctx.free()
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite/renderers/context/egl_context.py", line 150, in free
+    EGL.eglDestroyContext(EGL_DISPLAY, self._context)
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/OpenGL/error.py", line 230, in glCheckError
+    raise self._errorClass(
+OpenGL.raw.EGL._errors.EGLError: EGLError(
+	err = EGL_NOT_INITIALIZED,
+	baseOperation = eglDestroyContext,
+	cArguments = (
+		<OpenGL._opaque.EGLDisplay_pointer object at 0x7172823131c0>,
+		<OpenGL._opaque.EGLContext_pointer object at 0x717268d949c0>,
+	),
+	result = 0
+)
+Exception ignored in: <function EGLGLContext.__del__ at 0x71728fe94dc0>
+Traceback (most recent call last):
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite/renderers/context/egl_context.py", line 155, in __del__
+    self.free()
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite/renderers/context/egl_context.py", line 150, in free
+    EGL.eglDestroyContext(EGL_DISPLAY, self._context)
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/OpenGL/error.py", line 230, in glCheckError
+    raise self._errorClass(
+OpenGL.raw.EGL._errors.EGLError: EGLError(
+	err = EGL_NOT_INITIALIZED,
+	baseOperation = eglDestroyContext,
+	cArguments = (
+		<OpenGL._opaque.EGLDisplay_pointer object at 0x7172823131c0>,
+		<OpenGL._opaque.EGLContext_pointer object at 0x717268d949c0>,
+	),
+	result = 0
+)
+Exception ignored in: <function MjRenderContext.__del__ at 0x71728fe94f70>
+Traceback (most recent call last):
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite/utils/binding_utils.py", line 199, in __del__
+    self.gl_ctx.free()
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite/renderers/context/egl_context.py", line 150, in free
+    EGL.eglDestroyContext(EGL_DISPLAY, self._context)
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/OpenGL/error.py", line 230, in glCheckError
+    raise self._errorClass(
+OpenGL.raw.EGL._errors.EGLError: EGLError(
+	err = EGL_NOT_INITIALIZED,
+	baseOperation = eglDestroyContext,
+	cArguments = (
+		<OpenGL._opaque.EGLDisplay_pointer object at 0x7172823131c0>,
+		<OpenGL._opaque.EGLContext_pointer object at 0x717268dd8a40>,
+	),
+	result = 0
+)
+Exception ignored in: <function EGLGLContext.__del__ at 0x71728fe94dc0>
+Traceback (most recent call last):
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite/renderers/context/egl_context.py", line 155, in __del__
+    self.free()
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite/renderers/context/egl_context.py", line 150, in free
+    EGL.eglDestroyContext(EGL_DISPLAY, self._context)
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/OpenGL/error.py", line 230, in glCheckError
+    raise self._errorClass(
+OpenGL.raw.EGL._errors.EGLError: EGLError(
+	err = EGL_NOT_INITIALIZED,
+	baseOperation = eglDestroyContext,
+	cArguments = (
+		<OpenGL._opaque.EGLDisplay_pointer object at 0x7172823131c0>,
+		<OpenGL._opaque.EGLContext_pointer object at 0x717268dd8a40>,
+	),
+	result = 0
+)
+Exception ignored in: <function MjRenderContext.__del__ at 0x71728fe94f70>
+Traceback (most recent call last):
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite/utils/binding_utils.py", line 199, in __del__
+    self.gl_ctx.free()
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite/renderers/context/egl_context.py", line 150, in free
+    EGL.eglDestroyContext(EGL_DISPLAY, self._context)
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/OpenGL/error.py", line 230, in glCheckError
+    raise self._errorClass(
+OpenGL.raw.EGL._errors.EGLError: EGLError(
+	err = EGL_NOT_INITIALIZED,
+	baseOperation = eglDestroyContext,
+	cArguments = (
+		<OpenGL._opaque.EGLDisplay_pointer object at 0x7172823131c0>,
+		<OpenGL._opaque.EGLContext_pointer object at 0x7172667503c0>,
+	),
+	result = 0
+)
+Exception ignored in: <function EGLGLContext.__del__ at 0x71728fe94dc0>
+Traceback (most recent call last):
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite/renderers/context/egl_context.py", line 155, in __del__
+    self.free()
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite/renderers/context/egl_context.py", line 150, in free
+    EGL.eglDestroyContext(EGL_DISPLAY, self._context)
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/OpenGL/error.py", line 230, in glCheckError
+    raise self._errorClass(
+OpenGL.raw.EGL._errors.EGLError: EGLError(
+	err = EGL_NOT_INITIALIZED,
+	baseOperation = eglDestroyContext,
+	cArguments = (
+		<OpenGL._opaque.EGLDisplay_pointer object at 0x7172823131c0>,
+		<OpenGL._opaque.EGLContext_pointer object at 0x7172667503c0>,
+	),
+	result = 0
+)
+Exception ignored in: <function MjRenderContext.__del__ at 0x71728fe94f70>
+Traceback (most recent call last):
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite/utils/binding_utils.py", line 199, in __del__
+    self.gl_ctx.free()
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite/renderers/context/egl_context.py", line 150, in free
+    EGL.eglDestroyContext(EGL_DISPLAY, self._context)
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/OpenGL/error.py", line 230, in glCheckError
+    raise self._errorClass(
+OpenGL.raw.EGL._errors.EGLError: EGLError(
+	err = EGL_NOT_INITIALIZED,
+	baseOperation = eglDestroyContext,
+	cArguments = (
+		<OpenGL._opaque.EGLDisplay_pointer object at 0x7172823131c0>,
+		<OpenGL._opaque.EGLContext_pointer object at 0x717266750240>,
+	),
+	result = 0
+)
+Exception ignored in: <function EGLGLContext.__del__ at 0x71728fe94dc0>
+Traceback (most recent call last):
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite/renderers/context/egl_context.py", line 155, in __del__
+    self.free()
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite/renderers/context/egl_context.py", line 150, in free
+    EGL.eglDestroyContext(EGL_DISPLAY, self._context)
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/OpenGL/error.py", line 230, in glCheckError
+    raise self._errorClass(
+OpenGL.raw.EGL._errors.EGLError: EGLError(
+	err = EGL_NOT_INITIALIZED,
+	baseOperation = eglDestroyContext,
+	cArguments = (
+		<OpenGL._opaque.EGLDisplay_pointer object at 0x7172823131c0>,
+		<OpenGL._opaque.EGLContext_pointer object at 0x717266750240>,
+	),
+	result = 0
+)
+Exception ignored in: <function MjRenderContext.__del__ at 0x71728fe94f70>
+Traceback (most recent call last):
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite/utils/binding_utils.py", line 199, in __del__
+    self.gl_ctx.free()
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite/renderers/context/egl_context.py", line 150, in free
+    EGL.eglDestroyContext(EGL_DISPLAY, self._context)
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/OpenGL/error.py", line 230, in glCheckError
+    raise self._errorClass(
+OpenGL.raw.EGL._errors.EGLError: EGLError(
+	err = EGL_NOT_INITIALIZED,
+	baseOperation = eglDestroyContext,
+	cArguments = (
+		<OpenGL._opaque.EGLDisplay_pointer object at 0x7172823131c0>,
+		<OpenGL._opaque.EGLContext_pointer object at 0x7172666bf8c0>,
+	),
+	result = 0
+)
+Exception ignored in: <function EGLGLContext.__del__ at 0x71728fe94dc0>
+Traceback (most recent call last):
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite/renderers/context/egl_context.py", line 155, in __del__
+    self.free()
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite/renderers/context/egl_context.py", line 150, in free
+    EGL.eglDestroyContext(EGL_DISPLAY, self._context)
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/OpenGL/error.py", line 230, in glCheckError
+    raise self._errorClass(
+OpenGL.raw.EGL._errors.EGLError: EGLError(
+	err = EGL_NOT_INITIALIZED,
+	baseOperation = eglDestroyContext,
+	cArguments = (
+		<OpenGL._opaque.EGLDisplay_pointer object at 0x7172823131c0>,
+		<OpenGL._opaque.EGLContext_pointer object at 0x7172666bf8c0>,
+	),
+	result = 0
+)
+Exception ignored in: <function MjRenderContext.__del__ at 0x71728fe94f70>
+Traceback (most recent call last):
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite/utils/binding_utils.py", line 199, in __del__
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite/renderers/context/egl_context.py", line 149, in free
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/OpenGL/error.py", line 230, in glCheckError
+OpenGL.raw.EGL._errors.EGLError: <exception str() failed>
+Exception ignored in: <function EGLGLContext.__del__ at 0x71728fe94dc0>
+Traceback (most recent call last):
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite/renderers/context/egl_context.py", line 155, in __del__
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite/renderers/context/egl_context.py", line 149, in free
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/OpenGL/error.py", line 230, in glCheckError
+OpenGL.raw.EGL._errors.EGLError: <exception str() failed>
