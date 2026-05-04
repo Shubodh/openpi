@@ -529,6 +529,7 @@ LIBERO-Goal initial states vary in object placement. For the sanity check, this 
 | Step 5 D3 image prefix | `"put the bowl on the stove"` | image prefix positions 0-587 from per-step donor | 10 | **100%** (10/10) | `run_20260504_183412_step5_imageprefix_n10_clean.txt`; image-token K/V is sufficient for recovery |
 | Step 5 image half A | `"put the bowl on the stove"` | image prefix positions 0-293 from per-step donor | 10 | **0%** (0/10) | `run_20260504_184132_step5_img0-293_n10_clean.txt`; first half of image tokens is insufficient |
 | Step 5 image half B | `"put the bowl on the stove"` | image prefix positions 294-587 from per-step donor | 10 | **80%** (8/10) | `run_20260504_185204_step5_img294-587_n10_clean.txt`; second half contains most of the sufficient signal |
+| Step 5 image quarter B1 | `"put the bowl on the stove"` | image prefix positions 294-440 from per-step donor | 10 | **10%** (1/10) | `run_20260504_185938_step5_img294-440_n10_clean.txt`; lower half of 294-587 is below meaningful threshold |
 | Patched (D3, pos 594, K+V) | `"put the bowl on the stove"` | pos 594 from donor | 25 | — | |
 
 ### 8.2 Implementation notes
@@ -546,6 +547,7 @@ LIBERO-Goal initial states vary in object placement. For the sanity check, this 
 | 2026-05-04 | Step 5 D3 image-prefix probe (`run_20260504_183412_step5_imageprefix_n10_clean.txt`): patching only image-prefix positions 0-587 from a per-step clean donor passed 10/10. This clears the >2/10 meaningful threshold and shows the clean-vs-corrupt destination signal is available through image-token K/V after bidirectional prefix mixing. |
 | 2026-05-04 | Step 5 image half A (`run_20260504_184132_step5_img0-293_n10_clean.txt`): positions 0-293 failed 0/10, so the sufficient image-prefix signal is not in the first half alone; test 294-587 next. |
 | 2026-05-04 | Step 5 image half B (`run_20260504_185204_step5_img294-587_n10_clean.txt`): positions 294-587 recovered 8/10. This is above the meaningful threshold and localizes most of the recoverable signal to the second half of image tokens; recurse within 294-587. |
+| 2026-05-04 | Step 5 image quarter B1 (`run_20260504_185938_step5_img294-440_n10_clean.txt`): positions 294-440 recovered only 1/10, below the meaningful threshold. Next probe should test positions 441-587. |
 
 ### 8.3 Current conclusion and next steps
 
