@@ -37,6 +37,17 @@ uv pip install -e third_party/libero
 # Extra openpi deps not pulled in by the libero requirements (needed for analysis scripts):
 uv pip install sentencepiece "fsspec[gcs]" filelock tqdm-loggable
 
+echo "=== [5/4] Installing LIBERO simulation deps into server venv (for main_patching_expt.py) ==="
+# main_patching_expt.py loads the JAX model in-process, so it must run in the server venv
+# (Python 3.11 + JAX). LIBERO simulation deps are added here so the server venv can also
+# step the environment. Torch is intentionally excluded — not needed for env stepping.
+deactivate 2>/dev/null || true  # leave LIBERO venv; uv pip now targets root .venv (server venv)
+uv pip install \
+  "mujoco>=3.2" "robosuite>=1.4" imageio imageio-ffmpeg numpy "opencv-python>=4.6" scipy tqdm pyyaml \
+  pyopengl etils tyro
+uv pip install -e third_party/libero --no-deps
+uv pip install -e packages/openpi-client
+
 echo ""
 echo "=== setup_pod.sh complete ==="
 echo "Next: run 'bash /workspace/openpi/runpod/start_libero.sh'"

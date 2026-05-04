@@ -420,11 +420,9 @@ Review the two implementation files against the plan and source facts before mov
 
 ### Phase D — Phase 1 runs
 
-- [ ] **D1.** Clean baseline: `put the bowl on the plate`, N=25 — record success rate
-- [ ] **D2.** Corrupt baseline: `put the bowl on the stove` (stove prompt, plate task), N=25 — record success rate
+- [x] **D1.** Clean baseline: `put the bowl on the plate`, N=25 — **100%** (25/25) ✅
+- [x] **D2.** Corrupt baseline: `put the bowl on the stove` (stove prompt, plate task), N=25 — **0%** (0/25) ✅
 - [ ] **D3.** Patched run: stove prompt + KV patch at pos 594, N=25 — record success rate
-
-*(Note: D1 and D2 may already exist from `main_corrupt_run_expt.py` runs if the task was previously evaluated on LIBERO-Goal. Check existing results before re-running.)*
 
 ---
 
@@ -479,10 +477,10 @@ Run N=5 sanity episodes — a few successes is enough to confirm the mechanism w
 
 | Run type | Prompt | KV cache | N | Success rate | Notes |
 |----------|--------|----------|---|-------------|-------|
-| Clean baseline | `"put the bowl on the plate"` | normal | 25 | — | |
-| Corrupt baseline | `"put the bowl on the stove"` | normal | 25 | — | |
-| Sanity check | `"put the bowl on the stove"` | full donor (all 788 pos) | 5 | — | should ≈ clean |
-| Patched (pos 594, K+V) | `"put the bowl on the stove"` | pos 594 from donor | 25 | — | |
+| Clean baseline (D1) | `"put the bowl on the plate"` | normal | 25 | **100%** (25/25) | `baselines_20260504_072520.txt` |
+| Corrupt baseline (D2) | `"put the bowl on the stove"` | normal | 25 | **0%** (0/25) | `baselines_20260504_072520.txt` |
+| Sanity check (C3) | `"put the bowl on the stove"` | full donor (all 788 pos) | 5 | — | should ≈ 100% |
+| Patched (D3, pos 594, K+V) | `"put the bowl on the stove"` | pos 594 from donor | 25 | — | |
 
 ### 7.2 Implementation notes
 
@@ -490,4 +488,4 @@ Run N=5 sanity episodes — a few successes is enough to confirm the mechanism w
 
 | Date | Note |
 |------|------|
-| | |
+| 2026-05-04 | D1/D2 baselines: perfect 100%/0% separation on plate/stove pair. Clean ceiling is 100% (not ~96% as in the Apr 29 cabinet/wine-bottle run). Any D3 success above 0% is meaningful signal. |

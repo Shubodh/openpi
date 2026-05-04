@@ -17,7 +17,7 @@ Bash scripts for pod lifecycle management on RunPod. Full guide → [`docs/runpo
 | `run_kv_cache_inspect.sh` | After `source libero_env.sh`, to verify KV-cache tokenizer output (no model weights needed) | Tokenizes the two contrastive LIBERO-Goal prompts, prints token IDs + absolute prefix indices; logs tee'd to `scripts_outputs_txt/kv_cache_inspect/` |
 | `run_patching_phase1_verify.sh` | After `source libero_env.sh`, before any patching runs | Tokenizes Phase 1 prompt pair (plate/stove), confirms `plate` and `stove` are both at absolute index 594; no GPU needed |
 | `run_patching_phase1_baselines.sh` | After `source libero_env.sh` **with server running**, to establish Phase 1 baselines | Clean + corrupt runs on the plate/stove task (25 trials each); logs tee'd to `scripts_outputs_txt/patching_phase1/` |
-| `run_patching_phase1.sh` | After `source libero_env.sh`, **NO server needed** — model loads in-process | Sanity check (N=5, all-position patch) then main patched run (N=25, pos 594); logs tee'd to `scripts_outputs_txt/patching_phase1/` |
+| `run_patching_phase1.sh` | After `source libero_env.sh`, **NO server needed** — model loads in-process via `uv run` (server venv, needs LIBERO deps installed by `setup_pod.sh`) | Sanity check (N=5, all-position patch) then main patched run (N=25, pos 594); logs tee'd to `scripts_outputs_txt/patching_phase1/` |
 
 ## Typical flow
 
@@ -122,3 +122,30 @@ scp -r -P <PORT> -i ~/.ssh/id_ed25519 \
 ```
 
 Full details (video filenames, separating mixed-suite videos) → [`docs/runpod_setup.md`](../docs/runpod_setup.md).
+
+---
+
+## Appendix: Two venvs and how `uv run` picks one
+
+There are two virtual environments in this repo — not one venv and a system Python:
+
+| | Location | Python | Contains |
+|---|---|---|---|
+| **Server venv** | `/workspace/openpi/.venv` | 3.11 | JAX, openpi, flax, orbax |
+| **LIBERO client venv** | `/workspace/openpi/examples/libero/.venv` | 3.8 | LIBERO, robosuite, torch, openpi-client |
+
+**`uv run python` ignores the activated venv.** It looks for the project's `pyproject.toml` at `/workspace/openpi/` and always uses the associated venv (`.venv` at the repo root — the server venv, Python 3.11). This is true even if `source libero_env.sh` has been run and the LIBERO venv is currently active.
+
+**Plain `python` follows the shell's `$PATH`.** After `source libero_env.sh`, `python` points to the Python 3.8 LIBERO venv.
+
+**Why this matters for `run_patching_phase1.sh`:**
+
+```bash
+source libero_env.sh       # activates LIBERO venv; also sets MUJOCO_GL=egl and PYTHONPATH
+python ...                 # ← Python 3.8, LIBERO venv — no JAX, would fail
+uv run python ...          # ← Python 3.11, server venv — has JAX + LIBERO sim deps
+```
+
+Shell-level exports (`MUJOCO_GL`, `PYTHONPATH`, `OPENPI_DATA_HOME`) are inherited by `uv run python` since they live in the shell environment, not in a venv. That is why `source libero_env.sh` is still required before running `run_patching_phase1.sh` even though the venv it activates is overridden by `uv run`.
+
+**LIBERO simulation deps in the server venv:** `setup_pod.sh` (and `setup_once.sh`) install robosuite, mujoco, imageio, etc. into the server venv without torch (torch is not needed for env stepping — only for training). This is what allows `main_patching_expt.py` to do both in-process model inference (JAX) and LIBERO environment simulation in a single process.
