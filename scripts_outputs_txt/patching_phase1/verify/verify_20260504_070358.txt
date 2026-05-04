@@ -1,0 +1,37 @@
+=== patching_phase1_verify run: 20260504_070358 ===
+=== Tokenizing Phase 1 contrastive pair for KV-cache index verification ===
+
+[tokenizer] Downloading from https://storage.googleapis.com/big_vision/paligemma_tokenizer.model ...
+[tokenizer] Downloaded (4264023 bytes)
+
+============================================================
+PHASE 1 TOKEN POSITIONS
+============================================================
+  Language region starts at absolute index: 588
+
+  Prompt (clean): 'put the bowl on the plate'
+  Token count (with BOS): 7
+    [ 0] id=      2  abs=588  '<bos>'
+    [ 1] id=   1065  abs=589  'put'
+    [ 2] id=    573  abs=590  '▁the'
+    [ 3] id=  14581  abs=591  '▁bowl'
+    [ 4] id=    611  abs=592  '▁on'
+    [ 5] id=    573  abs=593  '▁the'
+    [ 6] id=   8811  abs=594  '▁plate'
+
+  Prompt (corrupt): 'put the bowl on the stove'
+  Token count (with BOS): 7
+    [ 0] id=      2  abs=588  '<bos>'
+    [ 1] id=   1065  abs=589  'put'
+    [ 2] id=    573  abs=590  '▁the'
+    [ 3] id=  14581  abs=591  '▁bowl'
+    [ 4] id=    611  abs=592  '▁on'
+    [ 5] id=    573  abs=593  '▁the'
+    [ 6] id=  37932  abs=594  '▁stove'
+
+============================================================
+EXPECTED: 'plate' and 'stove' both at absolute index 594
+  If either differs, update patch_positions in run_patching_phase1.sh
+============================================================
+
+=== Done. Record verified index in status_cc/patching_implementation.md §1.4 ===
