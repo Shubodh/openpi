@@ -39,12 +39,16 @@ uv pip install sentencepiece "fsspec[gcs]" filelock tqdm-loggable
 echo "=== Installing LIBERO simulation deps into server venv (for main_patching_expt.py) ==="
 # main_patching_expt.py loads the JAX model in-process and must run in the server venv
 # (Python 3.11 + JAX). LIBERO simulation deps are added here without torch (not needed).
-deactivate 2>/dev/null || true  # leave LIBERO venv; uv pip now targets root .venv (server venv)
-uv pip install \
+# uv sync creates the server venv (.venv) from pyproject.toml; then activate it explicitly.
+deactivate 2>/dev/null || true
+uv sync
+source /workspace/openpi/.venv/bin/activate
+pip install \
   "mujoco>=3.2" "robosuite>=1.4" imageio imageio-ffmpeg numpy "opencv-python>=4.6" scipy tqdm pyyaml \
   pyopengl etils tyro
-uv pip install -e third_party/libero --no-deps
-uv pip install -e packages/openpi-client
+pip install -e /workspace/openpi/third_party/libero --no-deps
+pip install -e /workspace/openpi/packages/openpi-client
+deactivate
 
 echo ""
 echo "=== setup_once.sh complete ==="
