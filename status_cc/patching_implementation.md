@@ -538,3 +538,23 @@ LIBERO-Goal initial states vary in object placement. For the sanity check, this 
 | 2026-05-04 | Step 1 C3 (`run_20260504_173138_step1_c3_clean.txt`): patching only language positions 588-787 from the precomputed t=0 donor still failed 0/5. Since prefix attention is bidirectional, stale-donor/image-conditioned language K/V remains a likely issue; proceeding to per-step donor. |
 | 2026-05-04 | Step 4 C3 (`run_20260504_175753_step4_perstep_c3_clean.txt`): per-step donor with current images and language positions 588-787 also failed 0/5 (`pos594 K=3.375000`, `V=5.312500`; pos688 `K=1.179688`). D3 was not run because the sanity mechanism did not pass. |
 | 2026-05-04 | Step 4 debug C3 (`run_20260504_181140_step4_debug_perstep_fullprefix_c3_clean.txt`): per-step full-prefix patch positions 0-787 passed 5/5. This validates `_apply_kv_patch` and shows language-only failure was due to leaving corrupt-prompt effects in non-language prefix positions, not a broken patch path. |
+
+### 8.3 Current conclusion and next steps
+
+**What we achieved:** The patching mechanism has a working positive control. With a per-step donor built from the current observation and clean prompt, replacing the full prefix KV cache (`0-787`) in the corrupt run recovers clean behavior at **5/5 episodes**. This meets the C3 sanity threshold and is recorded in `scripts_outputs_txt/patching_phase1/patched/1_SANITY_CHECK_SUCCESS.txt`.
+
+**What it means:** `_apply_kv_patch` is functionally correct, `policy._sample_kwargs["donor_kv_cache"]` is reaching `sample_actions()`, and the clean donor KV cache can drive the corrupt-prompt rollout to the clean target. The earlier 0/5 results are therefore not evidence of a broken patch implementation. They show that patching only language slots (`588-787`) is insufficient in π₀.₅ because prefix attention is bidirectional: corrupt language affects image-token K/V as well, and those non-language cache entries remain corrupt unless patched.
+
+**What it does not mean:** Full-prefix patching is a positive control, not yet a localized causal result. It proves the intervention can recover behavior, but it does not identify the minimal positions carrying the plate-vs-stove signal. Do not write `2_PATCHING_MEANINGFUL_RESULT.txt` from this run alone.
+
+**Next:** Localize the sufficient patch set using the per-step donor script, starting from full-prefix success rather than language-only failure. Recommended N=10 probes:
+
+| Probe | Patch positions | Question |
+|-------|-----------------|----------|
+| Full prefix repeat | `0-787` | Confirm full-prefix recovery is stable at N=10. |
+| Image prefix only | `0-587` | Test whether corrupt-language effects in image-token K/V are sufficient to drive recovery. |
+| Language prefix only | `588-787` | Already failed 0/5; rerun only if comparing same N/control conditions. |
+| Image + target language window | `0-587` plus a small window around `594` | Test whether clean image-token K/V plus local destination token K/V is enough. |
+| Binary search over `0-787` | contiguous halves, then recurse | Find the smallest sufficient region once a nontrivial subset gives >2/10. |
+
+Once a nontrivial subset recovers **>2/10** at N=10, rerun that subset at N=25 and write `scripts_outputs_txt/patching_phase1/patched/2_PATCHING_MEANINGFUL_RESULT.txt` only if it exceeds the meaningful threshold.
