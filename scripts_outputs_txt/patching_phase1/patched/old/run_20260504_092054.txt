@@ -1,0 +1,21 @@
+=== patching_phase1 run: 20260504_092054 ===
+=== Task: put_the_bowl_on_the_plate (LIBERO-Goal) ===
+=== Model loaded IN-PROCESS — no policy server needed ===
+
+=== [C3] Sanity check: patch ALL 788 positions, N=5 ===
+=== Expected: success rate close to clean baseline (corrupt prompt, but full donor KV) ===
+Traceback (most recent call last):
+  File "/workspace/openpi/examples/libero/main_patching_expt.py", line 30, in <module>
+    import jax
+  File "/workspace/openpi/.venv/lib/python3.11/site-packages/jax/__init__.py", line 37, in <module>
+    import jax.core as _core
+  File "/workspace/openpi/.venv/lib/python3.11/site-packages/jax/core.py", line 18, in <module>
+    from jax._src.core import (
+  File "/workspace/openpi/.venv/lib/python3.11/site-packages/jax/_src/core.py", line 37, in <module>
+    from jax._src import dtypes
+  File "/workspace/openpi/.venv/lib/python3.11/site-packages/jax/_src/dtypes.py", line 534, in <module>
+    if hasattr(np.dtypes, 'StringDType'):
+               ^^^^^^^^^
+  File "/workspace/openpi/.venv/lib/python3.11/site-packages/numpy/__init__.py", line 315, in __getattr__
+    raise AttributeError("module {!r} has no attribute "
+AttributeError: module 'numpy' has no attribute 'dtypes'. Did you mean: 'dtype'?

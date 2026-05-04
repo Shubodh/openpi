@@ -1,0 +1,19 @@
+=== patching_phase1 run: 20260504_081732 ===
+=== Task: put_the_bowl_on_the_plate (LIBERO-Goal) ===
+=== Model loaded IN-PROCESS — no policy server needed ===
+
+=== [C3] Sanity check: patch ALL 788 positions, N=5 ===
+=== Expected: success rate close to clean baseline (corrupt prompt, but full donor KV) ===
+[robosuite WARNING] No private macro file found! (macros.py:57)
+[robosuite WARNING] It is recommended to use a private macro file (macros.py:58)
+[robosuite WARNING] To setup, run: python /workspace/openpi/.venv/lib/python3.11/site-packages/robosuite/scripts/setup_macros.py (macros.py:59)
+[robosuite WARNING] Could not import robosuite_models. Some robots may not be available. If you want to use these robots, please install robosuite_models from source (https://github.com/ARISE-Initiative/robosuite_models) or through pip install. (__init__.py:30)
+[robosuite WARNING] Could not load the mink-based whole-body IK. Make sure you install related import properly, otherwise you will not be able to use the default IK controller setting for GR1 robot. (__init__.py:40)
+Traceback (most recent call last):
+  File "/workspace/openpi/examples/libero/main_patching_expt.py", line 34, in <module>
+    from libero.libero.envs import OffScreenRenderEnv
+  File "/workspace/openpi/third_party/libero/libero/libero/envs/__init__.py", line 1, in <module>
+    from .bddl_base_domain import TASK_MAPPING
+  File "/workspace/openpi/third_party/libero/libero/libero/envs/bddl_base_domain.py", line 6, in <module>
+    from robosuite.environments.manipulation.single_arm_env import SingleArmEnv
+ModuleNotFoundError: No module named 'robosuite.environments.manipulation.single_arm_env'

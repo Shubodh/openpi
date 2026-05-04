@@ -1,0 +1,10 @@
+=== patching_phase1 run: 20260504_074500 ===
+=== Task: put_the_bowl_on_the_plate (LIBERO-Goal) ===
+=== Model loaded IN-PROCESS — no policy server needed ===
+
+=== [C3] Sanity check: patch ALL 788 positions, N=5 ===
+=== Expected: success rate close to clean baseline (corrupt prompt, but full donor KV) ===
+Traceback (most recent call last):
+  File "examples/libero/main_patching_expt.py", line 30, in <module>
+    import jax
+ModuleNotFoundError: No module named 'jax'

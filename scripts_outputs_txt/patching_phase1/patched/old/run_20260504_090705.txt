@@ -1,0 +1,17 @@
+=== patching_phase1 run: 20260504_090705 ===
+=== Task: put_the_bowl_on_the_plate (LIBERO-Goal) ===
+=== Model loaded IN-PROCESS — no policy server needed ===
+
+=== [C3] Sanity check: patch ALL 788 positions, N=5 ===
+=== Expected: success rate close to clean baseline (corrupt prompt, but full donor KV) ===
+[robosuite WARNING] No private macro file found! (macros.py:53)
+[robosuite WARNING] It is recommended to use a private macro file (macros.py:54)
+[robosuite WARNING] To setup, run: python /workspace/openpi/.venv/lib/python3.11/site-packages/robosuite/scripts/setup_macros.py (macros.py:55)
+Traceback (most recent call last):
+  File "/workspace/openpi/examples/libero/main_patching_expt.py", line 34, in <module>
+    from libero.libero.envs import OffScreenRenderEnv
+  File "/workspace/openpi/third_party/libero/libero/libero/envs/__init__.py", line 7, in <module>
+    from .venv import SubprocVectorEnv, DummyVectorEnv
+  File "/workspace/openpi/third_party/libero/libero/libero/envs/venv.py", line 3, in <module>
+    import gym
+ModuleNotFoundError: No module named 'gym'
