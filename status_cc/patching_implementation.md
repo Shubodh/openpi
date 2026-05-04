@@ -525,6 +525,7 @@ LIBERO-Goal initial states vary in object placement. For the sanity check, this 
 | Step 1 C3 sanity | `"put the bowl on the stove"` | language positions 588-787 from precomputed donor | 5 | **0%** (0/5) | `run_20260504_173138_step1_c3_clean.txt`; language-only precomputed donor did not recover behavior |
 | Step 4 C3 sanity | `"put the bowl on the stove"` | language positions 588-787 from per-step donor | 5 | **0%** (0/5) | `run_20260504_175753_step4_perstep_c3_clean.txt`; donor rebuilt from current obs each inference, still no recovery |
 | Step 4 debug C3 sanity | `"put the bowl on the stove"` | full prefix positions 0-787 from per-step donor | 5 | **100%** (5/5) | `run_20260504_181140_step4_debug_perstep_fullprefix_c3_clean.txt`; full-prefix current-observation patch exactly recovers clean behavior |
+| Step 5 control | `"put the bowl on the stove"` | full prefix positions 0-787 from per-step donor | 10 | **100%** (10/10) | `run_20260504_182602_step5_fullprefix_n10_clean.txt`; full-prefix recovery stable at N=10 |
 | Patched (D3, pos 594, K+V) | `"put the bowl on the stove"` | pos 594 from donor | 25 | — | |
 
 ### 8.2 Implementation notes
@@ -538,6 +539,7 @@ LIBERO-Goal initial states vary in object placement. For the sanity check, this 
 | 2026-05-04 | Step 1 C3 (`run_20260504_173138_step1_c3_clean.txt`): patching only language positions 588-787 from the precomputed t=0 donor still failed 0/5. Since prefix attention is bidirectional, stale-donor/image-conditioned language K/V remains a likely issue; proceeding to per-step donor. |
 | 2026-05-04 | Step 4 C3 (`run_20260504_175753_step4_perstep_c3_clean.txt`): per-step donor with current images and language positions 588-787 also failed 0/5 (`pos594 K=3.375000`, `V=5.312500`; pos688 `K=1.179688`). D3 was not run because the sanity mechanism did not pass. |
 | 2026-05-04 | Step 4 debug C3 (`run_20260504_181140_step4_debug_perstep_fullprefix_c3_clean.txt`): per-step full-prefix patch positions 0-787 passed 5/5. This validates `_apply_kv_patch` and shows language-only failure was due to leaving corrupt-prompt effects in non-language prefix positions, not a broken patch path. |
+| 2026-05-04 | Step 5 control (`run_20260504_182602_step5_fullprefix_n10_clean.txt`): per-step full-prefix patch positions 0-787 passed 10/10, confirming the positive control is stable enough to use as the upper bound for localization. |
 
 ### 8.3 Current conclusion and next steps
 
