@@ -15,7 +15,7 @@ Usage (Phase 1, contrastive pair):
         --patch_positions "594" \
         --checkpoint_dir /workspace/openpi_assets/openpi-assets/checkpoints/pi05_libero
 
-Sanity check (patch all positions — should recover clean behavior):
+Sanity check (patch language positions — should recover clean behavior):
     ... --sanity_check
 """
 
@@ -88,7 +88,7 @@ class Args:
     clean_prompt: str = "put the bowl on the plate"   # donor source — clean task language
     corrupt_prompt: str = "put the bowl on the stove"  # sent to model each step
     patch_positions: str = "594"   # comma-separated absolute KV cache indices to overwrite
-    sanity_check: bool = False     # if True, patches ALL 788 positions (full donor override)
+    sanity_check: bool = False     # if True, patches language positions 588-787
 
     #################################################################################################################
     # Task filtering
@@ -145,8 +145,8 @@ def eval_libero(args: Args) -> None:
 
     # Parse patch positions
     if args.sanity_check:
-        patch_positions = tuple(range(788))
-        logging.info("SANITY CHECK MODE: patching all 788 prefix positions")
+        patch_positions = tuple(range(588, 788))
+        logging.info("SANITY CHECK MODE: patching language prefix positions 588-787")
     else:
         patch_positions = tuple(int(p.strip()) for p in args.patch_positions.split(","))
     logging.info("Patch positions: %s", patch_positions)
@@ -201,6 +201,29 @@ def eval_libero(args: Args) -> None:
             initial_obs, _, _, _ = env.step(LIBERO_DUMMY_ACTION)
 
         donor_kv_cache = harvest_donor_kv_cache(policy, initial_obs, args.clean_prompt, args.resize_size)
+
+        # Step 0 debug: verify that the donor prompt changes the targeted KV state.
+        corrupt_obs_dict = {
+            "observation/image": _preprocess_img(initial_obs["agentview_image"], args.resize_size),
+            "observation/wrist_image": _preprocess_img(initial_obs["robot0_eye_in_hand_image"], args.resize_size),
+            "observation/state": _make_state(initial_obs),
+            "prompt": args.corrupt_prompt,
+        }
+        corrupt_inputs = policy._input_transform(jax.tree.map(lambda x: x, corrupt_obs_dict))
+        corrupt_inputs_jax = jax.tree.map(lambda x: jnp.asarray(x)[np.newaxis, ...], corrupt_inputs)
+        corrupt_observation = _model.Observation.from_dict(corrupt_inputs_jax)
+        corrupt_kv = policy._model.build_donor_kv_cache(corrupt_observation)
+
+        K_d, V_d = donor_kv_cache
+        K_c, V_c = corrupt_kv
+        diff_K = float(jnp.max(jnp.abs(K_d[:, :, 594, :, :] - K_c[:, :, 594, :, :])))
+        diff_V = float(jnp.max(jnp.abs(V_d[:, :, 594, :, :] - V_c[:, :, 594, :, :])))
+        tqdm.tqdm.write(f"[DEBUG pos594] donor vs corrupt L-inf: K={diff_K:.6f}, V={diff_V:.6f}")
+
+        mid = 688
+        diff_K_mid = float(jnp.max(jnp.abs(K_d[:, :, mid, :, :] - K_c[:, :, mid, :, :])))
+        tqdm.tqdm.write(f"[DEBUG pos{mid}] donor vs corrupt L-inf: K={diff_K_mid:.6f}")
+
         policy._sample_kwargs["donor_kv_cache"] = donor_kv_cache
         policy._sample_kwargs["patch_positions"] = patch_positions
 
