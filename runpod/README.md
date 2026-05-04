@@ -18,7 +18,7 @@ Bash scripts for pod lifecycle management on RunPod. Full guide → [`docs/runpo
 | `run_patching_phase1_verify.sh` | After `source libero_env.sh`, before any patching runs | Tokenizes Phase 1 prompt pair (plate/stove), confirms `plate` and `stove` are both at absolute index 594; no GPU needed |
 | `run_patching_phase1_baselines.sh` | After `source libero_env.sh` **with server running**, to establish Phase 1 baselines | Clean + corrupt runs on the plate/stove task (25 trials each); logs tee'd to `scripts_outputs_txt/patching_phase1/` |
 | `patching_env.sh` | **Source** before `run_patching_phase1.sh` | Activates server venv (Python 3.11 + JAX), sets MUJOCO_GL + PYTHONPATH + OPENPI_DATA_HOME |
-| `run_patching_phase1.sh` | After `source patching_env.sh`, **NO server needed** — model loads in-process | Sanity check (N=5, all-position patch) then main patched run (N=25, pos 594); logs tee'd to `scripts_outputs_txt/patching_phase1/` |
+| `run_patching_phase1.sh` | After `source patching_env.sh`, **NO server needed** — model loads in-process | Sanity check (N=5, all-position patch) then main patched run (N=25, pos 594); writes clean logs to `scripts_outputs_txt/patching_phase1/patched/clean_log/` and full logs to `patched/full_log/` |
 
 ## Typical flow
 
@@ -87,7 +87,7 @@ bash /workspace/openpi/runpod/run_patching_phase1.sh
 # Record C3 (sanity) and D3 (patched pos 594) in status_cc/patching_implementation.md §7.1.
 ```
 
-Logs → `scripts_outputs_txt/patching_phase1/verify/verify_*.txt`, `baselines/baselines_*.txt`, `patched/run_*.txt`.
+Logs → `scripts_outputs_txt/patching_phase1/verify/verify_*.txt`, `baselines/baselines_*.txt`, `patched/clean_log/run_*_clean.txt`, and `patched/full_log/run_*_full.txt`.
 
 **Reading the results:** The key question is whether `patched_success_rate` recovers toward `clean_success_rate`. Update `status_cc/patching_implementation.md §7.1` with all four rows (C3 sanity + D1 clean + D2 corrupt + D3 patched).
 

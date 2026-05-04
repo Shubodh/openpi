@@ -263,15 +263,11 @@ def eval_libero(args: Args) -> None:
                 video_filename = f"rollout_{task_segment}_{suffix}.mp4"
             imageio.mimwrite(out_dir / video_filename, [np.asarray(x) for x in replay_images], fps=10)
 
-            logging.info("Success: %s", done)
-            logging.info("Episodes so far: %d | Successes: %d (%.1f%%)",
-                         total_episodes, total_successes, total_successes / total_episodes * 100)
+            tqdm.tqdm.write(f"[ep {episode_idx+1:03d}] {suffix.upper()} | total {total_successes}/{total_episodes} ({total_successes/total_episodes*100:.1f}%)")
 
-        logging.info("Task success rate: %.3f", task_successes / task_episodes)
-        logging.info("Total success rate: %.3f", total_successes / total_episodes)
+        tqdm.tqdm.write(f"=== TASK DONE | success rate: {task_successes}/{task_episodes} ({task_successes/task_episodes*100:.1f}%) ===")
 
-    logging.info("=== FINAL ===")
-    logging.info("Total success rate: %.3f (%d/%d)", total_successes / total_episodes, total_successes, total_episodes)
+    tqdm.tqdm.write(f"=== FINAL | total success rate: {total_successes}/{total_episodes} ({total_successes/total_episodes*100:.1f}%) ===")
 
 
 def _get_libero_env(task, resolution, seed):

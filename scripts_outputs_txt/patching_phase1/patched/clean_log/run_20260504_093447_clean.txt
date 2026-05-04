@@ -1,0 +1,80 @@
+# Cleaned patching Phase 1 output
+
+Raw log preserved at:
+
+```text
+scripts_outputs_txt/patching_phase1/patched/old/run_20260504_093447.txt
+```
+
+Run:
+
+```text
+timestamp: 20260504_093447
+task: put_the_bowl_on_the_plate
+suite: LIBERO-Goal
+script: run_patching_phase1.sh
+model path: in-process OpenPI/JAX policy, no websocket server
+```
+
+## Conditions run
+
+### C3 sanity check
+
+```text
+prompt sent to model: put the bowl on the stove
+donor prompt: put the bowl on the plate
+KV patch: all 788 prefix positions
+N: 5
+raw-log status: completed
+```
+
+The raw log shows the C3 progress bar completing `5/5` and then reaching the script's C3 completion banner.
+
+Important caveat: the raw text log does not contain the `INFO:root:Success: ...` per-episode lines for `main_patching_expt.py`, so the C3 success count is not recoverable from this text file alone. Use saved rollout video filenames or rerun with logging fixed to recover the exact C3 success rate.
+
+### D3 patched run
+
+```text
+prompt sent to model: put the bowl on the stove
+donor prompt: put the bowl on the plate
+KV patch: position 594 only
+N: 25
+raw-log status: completed
+```
+
+The raw log shows the D3 progress bar completing `25/25` and then reaching the script's final completion banner:
+
+```text
+=== All runs complete ===
+=== Record results in status_cc/patching_implementation.md §7.1 ===
+=== Key question: does patched success rate recover toward clean baseline? ===
+```
+
+Important caveat: the raw text log does not contain the `INFO:root:Success: ...` per-episode lines for `main_patching_expt.py`, so the D3 success count is not recoverable from this text file alone. Use saved rollout video filenames or rerun with logging fixed to recover the exact D3 success rate.
+
+## Baseline reference from `baselines_20260504_072520.txt`
+
+```text
+D1 clean baseline:   25/25 successes = 100%
+D2 corrupt baseline:  0/25 successes = 0%
+```
+
+Those baseline rates are recoverable from the baseline text log because `main_corrupt_run_expt.py` emitted per-episode `INFO:root:Success` lines.
+
+## Noise removed from raw log
+
+The raw log contains substantial runtime noise that was omitted here:
+
+- robosuite private macro warnings
+- Gym deprecation warning
+- JAX / Flax deprecation warnings
+- repeated LIBERO datasets path warnings
+- tqdm progress bar control characters
+- EGL context cleanup exceptions at process shutdown
+- `os.fork()` warnings from image/video writing after JAX has started threads
+
+None of those warnings prevented the script from reaching the final completion banner.
+
+## Follow-up needed
+
+The next useful cleanup is in code, not this text file: `main_patching_expt.py` should force logging output in the patching environment, or explicitly print success counts at the end of each condition, so future patch logs contain the C3 and D3 success rates directly.

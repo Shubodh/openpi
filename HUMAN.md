@@ -20,6 +20,9 @@ The implementation is structurally correct for the intended Phase 1 experiment:
 - The bash scripts call the intended Python scripts with the right tyro-style `--args.*` flags for these entry points.
 - The baseline script correctly reuses `main_corrupt_run_expt.py` and therefore requires the normal policy server.
 - The patching script correctly does not require the policy server.
+- `run_patching_phase1_verify.sh` omits OpenPI's appended newline token, but this does not affect the destination-token index: `plate`/`stove` remain at expected absolute index 594.
+- The all-position sanity path may compile slowly because `tuple(range(788))` is passed into jitted `sample_actions()` and unrolled as many `.at[..., pos, ...].set(...)` updates. A direct all-prefix replacement path would be cleaner if this becomes painful.
+- `main_patching_expt.py` and `pi0.py` parse cleanly with Python `ast.parse`; I did not run LIBERO/JAX execution locally because this environment lacks the RunPod GPU/runtime setup.
 
 However, I would not treat the current sanity-check interpretation as airtight. The all-position sanity check patches a donor prefix harvested from `initial_states[0]` into episodes using `initial_states[0..4]`. If those initial states differ, the all-position donor contains stale image-token K/V for most sanity episodes. A failed all-position sanity check would therefore not necessarily prove the patching mechanism is broken. It may prove that fully replacing the current episode's visual prefix with episode-0 visual K/V is too destructive.
 

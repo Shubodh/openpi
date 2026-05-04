@@ -18,7 +18,9 @@
 # C1 (kv_cache shape) is auto-verified: look for "Donor KV cache harvested. K shape:"
 #   in the log — expected: (18, 1, 788, 1, 256).
 #
-# Output: tee'd to stdout AND scripts_outputs_txt/patching_phase1/run_YYYYMMDD_HHMMSS.txt
+# Output:
+#   Full log  — scripts_outputs_txt/patching_phase1/patched/full_log/run_YYYYMMDD_HHMMSS_full.txt
+#   Clean log — scripts_outputs_txt/patching_phase1/patched/clean_log/run_YYYYMMDD_HHMMSS_clean.txt
 # Videos: data/libero/videos/patched_posall_kv/  (sanity)
 #         data/libero/videos/patched_pos594_kv/  (main run)
 
@@ -28,8 +30,11 @@ cd "$OPENPI_DIR"
 
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 OUT_DIR="scripts_outputs_txt/patching_phase1/patched"
-OUT_FILE="$OUT_DIR/run_${TIMESTAMP}.txt"
-mkdir -p "$OUT_DIR"
+FULL_DIR="$OUT_DIR/full_log"
+CLEAN_DIR="$OUT_DIR/clean_log"
+FULL_FILE="$FULL_DIR/run_${TIMESTAMP}_full.txt"
+CLEAN_FILE="$CLEAN_DIR/run_${TIMESTAMP}_clean.txt"
+mkdir -p "$FULL_DIR" "$CLEAN_DIR"
 
 {
 echo "=== patching_phase1 run: $TIMESTAMP ==="
@@ -70,7 +75,13 @@ echo ""
 echo "=== All runs complete ==="
 echo "=== Record results in status_cc/patching_implementation.md §7.1 ==="
 echo "=== Key question: does patched success rate recover toward clean baseline? ==="
-} 2>&1 | tee "$OUT_FILE"
+} 2>&1 \
+  | tee "$FULL_FILE" \
+  | tr '\r' '\n' \
+  | sed -u $'s/\x1b\\[[0-9;]*[A-Za-z]//g' \
+  | grep -E --line-buffered '^(===|\[ep |INFO:root:|ERROR:root:|WARNING:root:|.*SANITY CHECK MODE|.*Patch positions|.*Donor KV cache)' \
+  | tee "$CLEAN_FILE"
 
 echo ""
-echo "=== Full log saved to: $OUT_FILE ==="
+echo "=== Clean log saved to: $CLEAN_FILE ==="
+echo "=== Full log saved to:  $FULL_FILE ==="
