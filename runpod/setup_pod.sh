@@ -38,18 +38,25 @@ uv pip install -e third_party/libero
 uv pip install sentencepiece "fsspec[gcs]" filelock tqdm-loggable
 
 echo "=== [5/4] Installing LIBERO simulation deps into server venv (for main_patching_expt.py) ==="
-# main_patching_expt.py loads the JAX model in-process, so it must run in the server venv
-# (Python 3.11 + JAX). LIBERO simulation deps are added here so the server venv can also
-# step the environment. Torch is intentionally excluded — not needed for env stepping.
-# uv sync repairs the server venv Python symlink (broken when pod stops wipes Python binaries).
-# Then activate explicitly to avoid ambiguous pip target.
+# main_patching_expt.py loads JAX in-process (server venv, Python 3.11) but also steps
+# LIBERO environments. Install the simulation deps here so both work in one process.
+# uv sync repairs the server venv Python symlink (broken on pod stop/restart).
 uv sync
 source /workspace/openpi/.venv/bin/activate
+# Install non-robosuite deps via pip (robosuite is copied below — see note)
 pip install \
-  "mujoco>=3.2" "robosuite==1.4.1" imageio imageio-ffmpeg numpy "opencv-python>=4.6" scipy tqdm pyyaml \
+  "mujoco>=3.2" imageio imageio-ffmpeg numpy "opencv-python>=4.6" scipy tqdm pyyaml \
   pyopengl etils tyro
-pip install -e /workspace/openpi/third_party/libero --no-deps
 pip install -e /workspace/openpi/packages/openpi-client
+# Install LIBERO with its deps (gets bddl and other LIBERO-specific packages).
+# This will pull in robosuite 1.5.x, which we immediately overwrite below.
+pip install -e /workspace/openpi/third_party/libero
+# Copy robosuite from the LIBERO client venv — pip's version is incompatible with LIBERO
+# (resolves to 1.5.x even when pinned to ==1.4.1; git tag v1.4.1 also wrong).
+SERVER_SITE=$(python -c "import site; print(site.getsitepackages()[0])")
+rm -rf "${SERVER_SITE}/robosuite"
+cp -r /workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite \
+      "${SERVER_SITE}/robosuite"
 deactivate
 
 echo ""

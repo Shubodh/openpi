@@ -149,4 +149,6 @@ uv run python ...          # ← Python 3.11, server venv — has JAX + LIBERO s
 
 Shell-level exports (`MUJOCO_GL`, `PYTHONPATH`, `OPENPI_DATA_HOME`) are inherited by `uv run python` since they live in the shell environment, not in a venv. That is why `source libero_env.sh` is still required before running `run_patching_phase1.sh` even though the venv it activates is overridden by `uv run`.
 
-**LIBERO simulation deps in the server venv:** `setup_pod.sh` (and `setup_once.sh`) install robosuite, mujoco, imageio, etc. into the server venv without torch (torch is not needed for env stepping — only for training). This is what allows `main_patching_expt.py` to do both in-process model inference (JAX) and LIBERO environment simulation in a single process.
+**LIBERO simulation deps in the server venv:** `setup_pod.sh` (and `setup_once.sh`) install mujoco, imageio, etc. into the server venv, then copy robosuite directly from the LIBERO client venv. Torch is not included — not needed for env stepping.
+
+**Why copy robosuite instead of pip-installing it?** `pip install robosuite==1.4.1` resolves to version 1.5.x (incompatible module layout — missing `single_arm_env`), even with the exact pin. Installing from the git tag `v1.4.1` has the same problem. The only reliable source of the correct robosuite is the LIBERO client venv, which already has exactly the right version. The setup scripts do `rm -rf` then `cp -r` (not just `cp -r`, which would nest the directory inside the existing one rather than replacing it).
