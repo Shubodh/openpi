@@ -523,6 +523,7 @@ LIBERO-Goal initial states vary in object placement. For the sanity check, this 
 | Corrupt baseline (D2) | `"put the bowl on the stove"` | normal | 25 | **0%** (0/25) | `baselines_20260504_072520.txt` |
 | Step 0 debug | `"put the bowl on the stove"` | pos 594 from donor | 1 | **0%** (0/1) | `run_20260504_172532_step0_debug_clean.txt`; donor differs from corrupt at pos594 |
 | Step 1 C3 sanity | `"put the bowl on the stove"` | language positions 588-787 from precomputed donor | 5 | **0%** (0/5) | `run_20260504_173138_step1_c3_clean.txt`; language-only precomputed donor did not recover behavior |
+| Step 4 C3 sanity | `"put the bowl on the stove"` | language positions 588-787 from per-step donor | 5 | **0%** (0/5) | `run_20260504_175753_step4_perstep_c3_clean.txt`; donor rebuilt from current obs each inference, still no recovery |
 | Patched (D3, pos 594, K+V) | `"put the bowl on the stove"` | pos 594 from donor | 25 | — | |
 
 ### 8.2 Implementation notes
@@ -534,3 +535,4 @@ LIBERO-Goal initial states vary in object placement. For the sanity check, this 
 | 2026-05-04 | D1/D2 baselines: perfect 100%/0% separation on plate/stove pair. Clean ceiling is 100% (not ~96% as in the Apr 29 cabinet/wine-bottle run). Any D3 success above 0% is meaningful signal. |
 | 2026-05-04 | Step 0 debug (`run_20260504_172532_step0_debug_clean.txt`): donor vs corrupt KV differs at pos594 (`K=3.000000`, `V=4.812500` L-inf); control pos688 `K=1.156250`. Patching pos594 is not a no-op. |
 | 2026-05-04 | Step 1 C3 (`run_20260504_173138_step1_c3_clean.txt`): patching only language positions 588-787 from the precomputed t=0 donor still failed 0/5. Since prefix attention is bidirectional, stale-donor/image-conditioned language K/V remains a likely issue; proceeding to per-step donor. |
+| 2026-05-04 | Step 4 C3 (`run_20260504_175753_step4_perstep_c3_clean.txt`): per-step donor with current images and language positions 588-787 also failed 0/5 (`pos594 K=3.375000`, `V=5.312500`; pos688 `K=1.179688`). D3 was not run because the sanity mechanism did not pass. |

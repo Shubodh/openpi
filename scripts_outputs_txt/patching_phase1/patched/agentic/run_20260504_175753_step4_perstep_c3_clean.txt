@@ -1,0 +1,9 @@
+[DEBUG pos594] donor vs corrupt L-inf: K=3.375000, V=5.312500
+[DEBUG pos688] donor vs corrupt L-inf: K=1.179688
+[ep 001] FAILURE | total 0/1 (0.0%)
+[ep 002] FAILURE | total 0/2 (0.0%)
+[ep 003] FAILURE | total 0/3 (0.0%)
+[ep 004] FAILURE | total 0/4 (0.0%)
+[ep 005] FAILURE | total 0/5 (0.0%)
+=== TASK DONE | success rate: 0/5 (0.0%) ===
+=== FINAL | total success rate: 0/5 (0.0%) ===
