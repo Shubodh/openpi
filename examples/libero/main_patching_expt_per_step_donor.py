@@ -89,6 +89,9 @@ class Args:
     clean_prompt: str = "put the bowl on the plate"   # donor source — clean task language
     corrupt_prompt: str = "put the bowl on the stove"  # sent to model each step
     patch_positions: str = "594"   # comma-separated absolute KV cache indices to overwrite
+    patch_layers: str = ""  # comma-separated layer indices/ranges; empty means all layers
+    patch_k: bool = True
+    patch_v: bool = True
     sanity_check: bool = False     # if True, patches language positions 588-787
 
     #################################################################################################################
@@ -148,6 +151,20 @@ def _positions_tag(patch_positions: tuple[int, ...]) -> str:
     return "-".join(str(pos) for pos in patch_positions)
 
 
+def _parse_int_spec(spec: str) -> tuple[int, ...]:
+    values: list[int] = []
+    for part in spec.split(","):
+        part = part.strip()
+        if not part:
+            continue
+        if "-" in part:
+            start, end = part.split("-", 1)
+            values.extend(range(int(start), int(end) + 1))
+        else:
+            values.append(int(part))
+    return tuple(dict.fromkeys(values))
+
+
 def eval_libero(args: Args) -> None:
     np.random.seed(args.seed)
     _patch_torch_load_for_libero_init_states()
@@ -157,12 +174,20 @@ def eval_libero(args: Args) -> None:
         patch_positions = tuple(range(588, 788))
         logging.info("SANITY CHECK MODE: patching language prefix positions 588-787")
     else:
-        patch_positions = tuple(int(p.strip()) for p in args.patch_positions.split(","))
+        patch_positions = _parse_int_spec(args.patch_positions)
+    patch_layers = _parse_int_spec(args.patch_layers) if args.patch_layers.strip() else None
     logging.info("Patch positions: %s", patch_positions)
+    logging.info("Patch layers: %s", "all" if patch_layers is None else patch_layers)
+    logging.info("Patch K/V: K=%s V=%s", args.patch_k, args.patch_v)
 
     # Build output directory name encoding the patch config
     pos_tag = "all" if args.sanity_check else _positions_tag(patch_positions)
-    out_dir = pathlib.Path(args.video_out_path) / ("sanity_posall" if args.sanity_check else f"pos{pos_tag}")
+    layer_tag = "layersall" if patch_layers is None else f"layers{_positions_tag(patch_layers)}"
+    kv_tag = ("k" if args.patch_k else "") + ("v" if args.patch_v else "")
+    if not kv_tag:
+        raise ValueError("At least one of --args.patch-k or --args.patch-v must be true")
+    out_dir_name = "sanity_posall" if args.sanity_check else f"pos{pos_tag}_{layer_tag}_{kv_tag}"
+    out_dir = pathlib.Path(args.video_out_path) / out_dir_name
     out_dir.mkdir(parents=True, exist_ok=True)
 
     # Load policy in-process (no websocket server)
@@ -227,11 +252,21 @@ def eval_libero(args: Args) -> None:
         diff_K_mid = float(jnp.max(jnp.abs(K_d[:, :, mid, :, :] - K_c[:, :, mid, :, :])))
         tqdm.tqdm.write(f"[DEBUG pos{mid}] donor vs corrupt L-inf: K={diff_K_mid:.6f}")
         policy._sample_kwargs["patch_positions"] = patch_positions
+        policy._sample_kwargs["patch_layers"] = patch_layers
+        policy._sample_kwargs["patch_k"] = args.patch_k
+        policy._sample_kwargs["patch_v"] = args.patch_v
 
         task_episodes, task_successes = 0, 0
 
         for episode_idx in tqdm.tqdm(range(args.num_trials_per_task)):
-            logging.info("Starting episode %d (patch_positions=%s) ...", task_episodes + 1, patch_positions)
+            logging.info(
+                "Starting episode %d (patch_positions=%s, patch_layers=%s, patch_k=%s, patch_v=%s) ...",
+                task_episodes + 1,
+                patch_positions,
+                "all" if patch_layers is None else patch_layers,
+                args.patch_k,
+                args.patch_v,
+            )
 
             env.reset()
             action_plan = collections.deque()
@@ -265,6 +300,9 @@ def eval_libero(args: Args) -> None:
                             policy, donor_kv_builder, clean_element
                         )
                         policy._sample_kwargs["patch_positions"] = patch_positions
+                        policy._sample_kwargs["patch_layers"] = patch_layers
+                        policy._sample_kwargs["patch_k"] = args.patch_k
+                        policy._sample_kwargs["patch_v"] = args.patch_v
                         action_chunk = policy.infer(element)["actions"]
                         assert len(action_chunk) >= args.replan_steps
                         action_plan.extend(action_chunk[: args.replan_steps])

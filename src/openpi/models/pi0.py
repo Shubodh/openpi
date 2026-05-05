@@ -227,13 +227,19 @@ class Pi0(_model.BaseModel):
         corrupt_kv_cache: _gemma.KVCache,
         donor_kv_cache: _gemma.KVCache,
         patch_positions: tuple[int, ...],
+        patch_layers: tuple[int, ...] | None = None,
+        patch_k: bool = True,
+        patch_v: bool = True,
     ) -> _gemma.KVCache:
         """Replace specified prefix positions in corrupt cache with donor cache values."""
         K_d, V_d = donor_kv_cache
         K, V = corrupt_kv_cache
+        layer_indices = tuple(range(K.shape[0])) if patch_layers is None else patch_layers
         for pos in patch_positions:
-            K = K.at[:, :, pos, :, :].set(K_d[:, :, pos, :, :])
-            V = V.at[:, :, pos, :, :].set(V_d[:, :, pos, :, :])
+            if patch_k:
+                K = K.at[layer_indices, :, pos, :, :].set(K_d[layer_indices, :, pos, :, :])
+            if patch_v:
+                V = V.at[layer_indices, :, pos, :, :].set(V_d[layer_indices, :, pos, :, :])
         return (K, V)
 
     @override
@@ -246,6 +252,9 @@ class Pi0(_model.BaseModel):
         noise: at.Float[at.Array, "b ah ad"] | None = None,
         donor_kv_cache: _gemma.KVCache | None = None,
         patch_positions: tuple[int, ...] = (594,),
+        patch_layers: tuple[int, ...] | None = None,
+        patch_k: bool = True,
+        patch_v: bool = True,
     ) -> _model.Actions:
         observation = _model.preprocess_observation(None, observation, train=False)
         # note that we use the convention more common in diffusion literature, where t=1 is noise and t=0 is the target
@@ -262,7 +271,7 @@ class Pi0(_model.BaseModel):
         _, kv_cache = self.PaliGemma.llm([prefix_tokens, None], mask=prefix_attn_mask, positions=positions)
 
         if donor_kv_cache is not None:
-            kv_cache = self._apply_kv_patch(kv_cache, donor_kv_cache, patch_positions)
+            kv_cache = self._apply_kv_patch(kv_cache, donor_kv_cache, patch_positions, patch_layers, patch_k, patch_v)
 
         def step(carry):
             x_t, time = carry

@@ -407,7 +407,7 @@ Review the two implementation files against the plan and source facts before mov
 - [x] **RAB12.** `done = False` initialised before the episode loop; used correctly for video suffix and success counting even on exception-caused breaks. ✅
 
 **Known deviations from §4.1 spec — accepted for Phase 1:**
-- [ ] **RAB13.** `patch_k` / `patch_v` flags (K-only or V-only patching) are NOT implemented — `_apply_kv_patch` always patches both K and V. Accepted: K+V is the right default for Phase 1. Add selective K/V flags when doing the heatmap sweep.
+- [x] **RAB13.** `patch_k` / `patch_v` flags and `patch_layers` are implemented for layer localization and K-only/V-only ablations. Defaults preserve previous behavior: all layers, K+V. ✅
 - [ ] **RAB14.** `build_donor_kv_cache` is called without `module_jit` — runs eagerly (slow once, ~seconds, not minutes). Accepted: it is a one-time pre-rollout call per task. If this proves too slow on RunPod, wrap with `nnx_utils.module_jit`.
 
 **Pre-existing inherited issues (not blocking):**
@@ -559,6 +559,7 @@ LIBERO-Goal initial states vary in object placement. For the sanity check, this 
 | 2026-05-05 | Step 5 image left-trim probe (`run_20260505_074857_step5_img331-514_n10_clean.txt`): positions 331-514 recovered 2/10. Since both edge trims of 294-514 dropped to 2/10 while 294-514 itself recovered 8/10, promote 294-514 to N=25 as the smallest defensible contiguous region from the current search. |
 | 2026-05-05 | Step 5 localized image region (`run_20260505_075914_step5_img294-514_n25_clean.txt`): positions 294-514 recovered 22/25 at N=25. This completes image-token localization: the smallest defensible contiguous region spans left_wrist local tokens 98-195 and right_wrist/masked-stream local tokens 0-122. |
 | 2026-05-05 | Camera/token-region visualization created with `examples/libero/visualize_patching_region.py`. Artifacts: `scripts_outputs_txt/patching_phase1/patched/visualizations/img294-514_token_region_overlay.png` and `scripts_outputs_txt/patching_phase1/patched/visualizations/img294-514_token_region_mapping.json`. The overlay shows no selected agentview cells, the bottom half of `left_wrist_0_rgb` (local 98-195; rows 7-13), and the top/mid part of the masked padded stream `right_wrist_0_rgb` (local 0-122; rows 0-8 through col 10). |
+| 2026-05-05 | Added layer and K/V-selective patch controls: `pi0.py` now accepts `patch_layers`, `patch_k`, and `patch_v`; `main_patching_expt_per_step_donor.py` exposes `--args.patch-layers`, `--args.patch-k`, and `--args.patch-v`. Empty `patch_layers` keeps the previous all-layer behavior. |
 
 ### 8.3 Current conclusion and next steps
 
