@@ -81,11 +81,15 @@
 | A-D1 | Clean baseline (correct prompt, normal KV) | 25 | ~100% |
 | A-D2 | Corrupt baseline (wine bottle prompt, normal KV) | 25 | ~0% |
 | A-C3 | Per-step full-prefix sanity (all 0–787, per-step donor) | 5 | ≥60% (3/5) |
-| A-D3 | Image prefix (0–587, per-step donor) | 10 | >2/10 if finding holds |
+| A-lang | Language-only sanity (588–787, per-step donor) | 5 | Unknown — Phase 1 found 0% on destination axis; object axis may differ |
+| A-lang-binary | Binary search within 588–787 (only if A-lang passes) | N=10 per probe | Recurse until minimal |
+| A-D3 | Image prefix (0–587, per-step donor) | 10 | >2/10 if Phase 1 finding holds |
 | A-binary | Binary search within 0–587 to find minimal set | N=10 per probe | Recurse until minimal |
 | A-final | Minimal set promoted to N=25 | 25 | >5/25 (20%) |
 
-**Success gate:** A-C3 ≥ 3/5 before running binary search. If A-C3 fails, stop and write `0_PHASE2A_FAILURE.txt`.
+**Success gates:**
+- A-C3 ≥ 3/5 before anything else. If A-C3 fails, stop and write `0_PHASE2A_FAILURE.txt`.
+- A-lang is run after A-C3 regardless. If A-lang passes, run A-lang-binary before A-D3. If A-lang fails, proceed directly to A-D3.
 
 ---
 
@@ -178,6 +182,7 @@ Run N=5 each. If either endpoint fails, the implementation is wrong — debug be
 | A-D1 | clean | normal | 25 | | |
 | A-D2 | corrupt | normal | 25 | | |
 | A-C3 | corrupt | per-step full-prefix 0–787 | 5 | | |
+| A-lang | corrupt | per-step language-only 588–787 | 5 | | |
 | A-D3 | corrupt | per-step image prefix 0–587 | 10 | | |
 | | | | | | |
 

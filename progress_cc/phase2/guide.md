@@ -34,8 +34,10 @@ You are running Phase 2 of the AXMech activation-patching experiment on π₀.�
 
 | Condition | Threshold | Action |
 |-----------|-----------|--------|
-| Per-step full-prefix sanity (A-C3) passes | ≥ 3/5 (60%) | Proceed to binary search |
+| Per-step full-prefix sanity (A-C3) passes | ≥ 3/5 (60%) | Proceed to A4-lang |
 | Per-step full-prefix sanity (A-C3) fails | < 3/5 | Debug ≤2 iterations; if still failing, write `0_PHASE2A_FAILURE.txt` and stop |
+| Language-only sanity (A4-lang) passes | ≥ 3/5 | Run binary search within 588–787 before testing image prefix |
+| Language-only sanity (A4-lang) fails | < 3/5 | Note it (replicates Phase 1 on object axis); proceed to A4-img |
 | Binary search probe (N=10) meaningful | > 2/10 (20%) | Promote region; recurse |
 | Binary search probe (N=10) absent | 0/10 | Widen (try combined regions); if all fail, document and stop Phase 2a |
 | Minimal set N=25 run (A-final) meaningful | > 5/25 (20%) | Write `1_PHASE2A_MEANINGFUL_RESULT.txt`; proceed to Phase 2b |
@@ -92,15 +94,16 @@ Phase 1 established that π₀.₅'s prefix attention is **fully bidirectional**
 
 **What this means for Phase 2:**
 - Skip pre-computed donor entirely — it fails because it overwrites current image K/V with stale initial-scene images
-- Skip language-token-only patching — it fails for the same bidirectional-mixing reason Phase 1 found
-- Start directly with per-step full-prefix sanity, then probe image tokens
-- Expect the minimal sufficient set to also fall in the wrist/masked-camera image-token region (`196–587`), though it may differ from Phase 1's `294–587`
+- Do NOT skip language-token-only patching — Phase 1 tested destination encoding (plate ↔ stove) and found it failed. Phase 2 tests object-identity encoding (bowl ↔ wine bottle), a different axis. Language-only is tested systematically in Step A4-lang before falling back to image tokens.
+- Start with per-step full-prefix sanity (A3), then language-only sanity (A4-lang), then image prefix (A4-img)
+- If language-only sanity passes (unlike Phase 1): run binary search within language positions before testing image
+- If language-only sanity fails: note it as a cross-axis replication of Phase 1's finding, proceed to image prefix
 
 **Simple Pair 2 tests the orthogonal dimension — different object, same destination:**
-- Phase 1: `plate` vs `stove` — same object (`bowl`), different destination. Established that destination encoding is causally active and localizable in image-token K/V.
-- Phase 2: `bowl` vs `wine bottle` — same destination (`cabinet`), different object. Clean: "put the bowl on top of the cabinet"; corrupt: "put the wine bottle on top of the cabinet". Tests whether object-identity encoding is equally patchable.
+- Phase 1: `plate` vs `stove` — same object (`bowl`), different destination. Established that destination encoding, after bidirectional mixing, lives in image-token K/V not language-token K/V.
+- Phase 2: `bowl` vs `wine bottle` — same destination (`cabinet`), different object. Tests whether object-identity encoding shows the same pattern or stays more localized to language tokens.
 
-The key question: does the image-token localization finding from Phase 1 generalize to a different-object-same-destination pair? If yes, the mechanism captures object selection, not just destination encoding.
+The key question: does the image-token localization finding from Phase 1 generalize to a different-object-same-destination pair? If language-only patching works here (unlike Phase 1), it would mean object-identity mixes less into image K/V than destination encoding does — a meaningful architectural distinction.
 
 ---
 
@@ -212,7 +215,43 @@ python examples/libero/main_patching_expt_per_step_donor.py \
 
 ---
 
-### Step A4 — Image prefix probe (0–587, N=10)
+### Step A4-lang — Language-only sanity (588–787, N=5)
+
+**Scientific purpose:** Phase 1 found language-only patching fails on a destination-axis pair. Phase 2 uses an object-axis pair — test whether the result differs before assuming image tokens are the only route.
+
+```bash
+POSITIONS=$(python -c "print(','.join(map(str, range(588, 788))))")
+TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+FULL="progress_cc/phase2/signal_files/logs/run_${TIMESTAMP}_phase2a_lang588-787_full.txt"
+CLEAN="progress_cc/phase2/signal_files/logs/run_${TIMESTAMP}_phase2a_lang588-787_clean.txt"
+mkdir -p data/libero/videos/phase2/lang588-787
+
+{
+python examples/libero/main_patching_expt_per_step_donor.py \
+  --args.task-suite-name libero_goal \
+  --args.task-name-filter "put the bowl on top of the cabinet" \
+  --args.clean-prompt "put the bowl on top of the cabinet" \
+  --args.corrupt-prompt "put the wine bottle on top of the cabinet" \
+  --args.patch-positions "$POSITIONS" \
+  --args.num-trials-per-task 5 \
+  --args.save-all-videos \
+  --args.video-out-path data/libero/videos/phase2/lang588-787
+} 2>&1 \
+  | tee "$FULL" \
+  | tr '\r' '\n' | sed -u $'s/\x1b\\[[0-9;]*[A-Za-z]//g' \
+  | grep -E --line-buffered '^(===|\[ep |\[DEBUG|INFO:root:|ERROR:root:)' \
+  | tee "$CLEAN"
+```
+
+**Interpret:**
+- ≥ 3/5: language-token K/V carries the object-identity signal. Run binary search within 588–787 using N=10 probes (halves: 588–687, 688–787) before moving to image prefix. Update §6.1.
+- < 3/5: replicates Phase 1 finding on the object axis — language-only is insufficient. Note it in §6.1, proceed to A4-img without further language search.
+
+**Commit after A4-lang.**
+
+---
+
+### Step A4-img — Image prefix probe (0–587, N=10)
 
 ```bash
 POSITIONS=$(python -c "print(','.join(map(str, range(588))))")
@@ -240,7 +279,7 @@ python examples/libero/main_patching_expt_per_step_donor.py \
 
 **Interpret:**
 - > 2/10: image-token K/V carries the signal on this pair. Proceed to binary search (A5).
-- 0–2/10: image prefix alone insufficient. Try full language prefix (588–787) at N=10 before concluding. If that also fails, write `0_PHASE2A_FAILURE.txt`.
+- 0–2/10: image prefix alone insufficient. If A4-lang also failed, write `0_PHASE2A_FAILURE.txt`. If A4-lang passed, the signal is in language tokens — skip image binary search.
 
 ---
 
