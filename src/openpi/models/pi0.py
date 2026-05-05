@@ -236,10 +236,10 @@ class Pi0(_model.BaseModel):
         K, V = corrupt_kv_cache
         layer_indices = tuple(range(K.shape[0])) if patch_layers is None else patch_layers
         for pos in patch_positions:
-            if patch_k:
-                K = K.at[layer_indices, :, pos, :, :].set(K_d[layer_indices, :, pos, :, :])
-            if patch_v:
-                V = V.at[layer_indices, :, pos, :, :].set(V_d[layer_indices, :, pos, :, :])
+            K_patched = K.at[layer_indices, :, pos, :, :].set(K_d[layer_indices, :, pos, :, :])
+            V_patched = V.at[layer_indices, :, pos, :, :].set(V_d[layer_indices, :, pos, :, :])
+            K = jax.lax.cond(patch_k, lambda _: K_patched, lambda _: K, operand=None)
+            V = jax.lax.cond(patch_v, lambda _: V_patched, lambda _: V, operand=None)
         return (K, V)
 
     @override
