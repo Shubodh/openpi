@@ -16,6 +16,7 @@
 6. [Results — Phase 2a](#6-results--phase-2a)
 7. [Results — Phase 2b](#7-results--phase-2b)
 8. [Current Status and Next Steps](#8-current-status-and-next-steps)
+9. [Results — Phase 2c](#9-results--phase-2c)
 
 ---
 
@@ -53,7 +54,7 @@
 
 | Decision | Resolution |
 |----------|-----------|
-| Task pair | Simple Pair 2: `put_the_bowl_on_top_of_the_cabinet` (clean) ↔ `put_the_bowl_on_the_stove` (corrupt) |
+| Task pair | Simple Pair 2: `put_the_bowl_on_top_of_the_cabinet` (clean) ↔ `put_the_wine_bottle_on_top_of_the_cabinet` (corrupt) — different object, same destination |
 | Donor approach | Per-step donor only (`main_patching_expt_per_step_donor.py`) |
 | Phase 2a goal | Replicate Phase 1's methodology on Simple Pair 2 → find minimal sufficient image-token patch set |
 | Phase 2b goal | Alpha sweep: vary interpolation weight α ∈ {0, 0.25, 0.5, 0.75, 1.0} on Phase 2a's localized region |
@@ -66,18 +67,19 @@
 
 ## 3. Phase 2a — Simple Pair 2 Battery
 
-**Task pair:**
+**Task pair (Simple Pair 2 — different object, same destination):**
 - Environment task: `put_the_bowl_on_top_of_the_cabinet`
 - Clean prompt: `"put the bowl on top of the cabinet"`
-- Corrupt prompt: `"put the bowl on the stove"`
+- Corrupt prompt: `"put the wine bottle on top of the cabinet"`
 - Task name filter flag: `"put the bowl on top of the cabinet"`
+- Scientific axis: Phase 1 tested same-object-different-destination (plate ↔ stove). This pair tests different-object-same-destination (bowl ↔ wine bottle, both on cabinet) — the orthogonal dimension.
 
 **Experiment sequence (same methodology as Phase 1):**
 
 | Code | Condition | N | Expected |
 |------|-----------|---|----------|
 | A-D1 | Clean baseline (correct prompt, normal KV) | 25 | ~100% |
-| A-D2 | Corrupt baseline (stove prompt, normal KV) | 25 | ~0% |
+| A-D2 | Corrupt baseline (wine bottle prompt, normal KV) | 25 | ~0% |
 | A-C3 | Per-step full-prefix sanity (all 0–787, per-step donor) | 5 | ≥60% (3/5) |
 | A-D3 | Image prefix (0–587, per-step donor) | 10 | >2/10 if finding holds |
 | A-binary | Binary search within 0–587 to find minimal set | N=10 per probe | Recurse until minimal |
@@ -155,6 +157,14 @@ Run N=5 each. If either endpoint fails, the implementation is wrong — debug be
 - [ ] **B6.** Write `progress_cc/phase2/signal_files/alpha_sweep_results.csv`
 - [ ] **B7.** Write `progress_cc/phase2/signal_files/2_PHASE2B_ALPHA_SWEEP_COMPLETE.txt`
 
+### Phase 2c (run after 2a+2b complete)
+
+- [ ] **C1.** Run Pair A BOTH case sanity (N=5) + main run (N=10): `wine_bottle/rack ↔ bowl/plate` — gate for all of Phase 2c
+- [ ] **C2a.** Run Pair A destination-only (N=10): `wine_bottle/rack ↔ wine_bottle/cabinet` — automated metric
+- [ ] **C2b.** Run Pair A object-only (N=10): `wine_bottle/rack ↔ bowl/rack` — automated metric (corrupt prompt compositionally novel; inspect videos)
+- [ ] **C3.** Run Pair D sanity (N=5) + main run (N=10): `bowl/stove ↔ turn_on_stove` — motor-class flip test
+- [ ] **C4.** Write `3_PHASE2C_COMPLETE.txt` (or `0_PHASE2C_FAILURE.txt` if C1 fails)
+
 ---
 
 ## 6. Results — Phase 2a
@@ -216,11 +226,33 @@ Run N=5 each. If either endpoint fails, the implementation is wrong — debug be
 
 ---
 
+
+## 9. Results — Phase 2c
+
+*(Agent fills this in. Run only after Phase 2b complete and `2_PHASE2B_ALPHA_SWEEP_COMPLETE.txt` exists.)*
+
+### 9.1 Results table
+
+| Run code | Pair | Corrupt prompt | N | Success rate | Log file |
+|----------|------|---------------|---|-------------|----------|
+| C1-sanity | A (BOTH) | put the bowl on the plate | 5 | | |
+| C1-main | A (BOTH) | put the bowl on the plate | 10 | | |
+| C2a | A (dest-only) | put the wine bottle on top of the cabinet | 10 | | |
+| C2b | A (obj-only) | put the bowl on the rack | 10 | | |
+| C3-sanity | D (motor-class) | turn on the stove | 5 | | |
+| C3-main | D (motor-class) | turn on the stove | 10 | | |
+
+### 9.2 Interpretation
+
+*(Agent writes one paragraph after Phase 2c is complete: did cross-pair patching work? Was the encoding decomposable? Did motor-class flip occur?)*
+
+---
+
 ## 8. Current Status and Next Steps
 
 *(Agent updates this section at the end of each work session.)*
 
-**Last updated:** 2026-05-05 — document initialized.
+**Last updated:** 2026-05-05 — document updated with Phase 2c structure. Simple Pair 2 corrected to different-object-same-destination (bowl/cabinet ↔ wine_bottle/cabinet).
 
 **Current state:** Not started. Begin with Phase 2a (A1: D1 baseline).
 

@@ -1,9 +1,9 @@
 ---
 name: phase2-guide
-purpose: Agent guide for Phase 2 — KV-cache patching on Simple Pair 2 (bowl/cabinet ↔ bowl/stove) and alpha sweep for steerability, on π₀.₅ + LIBERO-Goal.
+purpose: Agent guide for Phase 2 — KV-cache patching on Simple Pair 2 (bowl/cabinet ↔ wine_bottle/cabinet) and alpha sweep for steerability, on π₀.₅ + LIBERO-Goal.
 when-to-read: You are the autonomous agent running Phase 2. Read this before touching any code or running any commands.
 tl;dr:
-  - Phase 2a: replicate Phase 1's methodology on Simple Pair 2 (different destination concept) → find minimal image-token patch set.
+  - Phase 2a: replicate Phase 1's methodology on Simple Pair 2 (different object, same destination — cabinet) → find minimal image-token patch set.
   - Phase 2b: alpha sweep on Phase 2a's minimal set — verify endpoints first (α=0 ≡ corrupt, α=1 ≡ clean), then run intermediates.
   - Per-step donor only. Pre-computed donor is known to fail (stale images). Do not use main_patching_expt.py for patching runs — use main_patching_expt_per_step_donor.py.
   - No success signal for intermediate alpha values — just save videos and CSV. Do not attempt to interpret or iterate on intermediate results.
@@ -15,7 +15,7 @@ tl;dr:
 
 ## YOUR MISSION
 
-You are running Phase 2 of the AXMech activation-patching experiment on π₀.₅ + LIBERO-Goal. Phase 1 (on branch `patching_phase1_agentic`) is running in parallel and focuses on localizing the minimal patch set and sweeping layers/K-vs-V on Simple Pair 1 (`plate` ↔ `stove`). Your job is complementary: run the same initial battery on a **new task pair** (Simple Pair 2: `cabinet` ↔ `stove`), then run an **alpha sweep** to test steerability.
+You are running Phase 2 of the AXMech activation-patching experiment on π₀.₅ + LIBERO-Goal. Phase 1 (on branch `patching_phase1_agentic`) is running in parallel and focuses on localizing the minimal patch set and sweeping layers/K-vs-V on Simple Pair 1 (`plate` ↔ `stove`). Your job is complementary: run the same initial battery on a **new task pair** (Simple Pair 2: `bowl` ↔ `wine bottle`, same destination — cabinet), then run an **alpha sweep** to test steerability.
 
 **You are on branch `axmech-agentic-phase-2`.** Do not touch any other branch. Do not modify files that Phase 1 is using without adding new parameters with defaults that preserve existing behavior.
 
@@ -93,11 +93,11 @@ Phase 1 established that π₀.₅'s prefix attention is **fully bidirectional**
 - Start directly with per-step full-prefix sanity, then probe image tokens
 - Expect the minimal sufficient set to also fall in the wrist/masked-camera image-token region (`196–587`), though it may differ from Phase 1's `294–587`
 
-**Simple Pair 2 is a different destination concept:**
-- Phase 1: `plate` vs `stove` (destination token at absolute position 594 in "put the bowl on the plate/stove")
-- Phase 2: `cabinet` vs `stove` in "put the bowl on top of the cabinet/stove" — the discriminating tokens are different and span a longer phrase
+**Simple Pair 2 tests the orthogonal dimension — different object, same destination:**
+- Phase 1: `plate` vs `stove` — same object (`bowl`), different destination. Established that destination encoding is causally active and localizable in image-token K/V.
+- Phase 2: `bowl` vs `wine bottle` — same destination (`cabinet`), different object. Clean: "put the bowl on top of the cabinet"; corrupt: "put the wine bottle on top of the cabinet". Tests whether object-identity encoding is equally patchable.
 
-The key question: does the image-token localization finding from Phase 1 generalize to a different task pair with a multi-word destination?
+The key question: does the image-token localization finding from Phase 1 generalize to a different-object-same-destination pair? If yes, the mechanism captures object selection, not just destination encoding.
 
 ---
 
@@ -108,7 +108,7 @@ The key question: does the image-token localization finding from Phase 1 general
 | Environment task | `put_the_bowl_on_top_of_the_cabinet` |
 | `--args.task-name-filter` | `"put the bowl on top of the cabinet"` |
 | `--args.clean-prompt` | `"put the bowl on top of the cabinet"` |
-| `--args.corrupt-prompt` | `"put the bowl on the stove"` |
+| `--args.corrupt-prompt` | `"put the wine bottle on top of the cabinet"` |
 | `--args.task-suite-name` | `libero_goal` |
 | `--args.checkpoint-dir` | `/workspace/openpi_assets/openpi-assets/checkpoints/pi05_libero` |
 
@@ -154,7 +154,7 @@ mkdir -p data/libero/videos/phase2/baselines
 python examples/libero/main_corrupt_run_expt.py \
   --args.task-suite-name libero_goal \
   --args.task-name-filter "put the bowl on top of the cabinet" \
-  --args.corrupt-prompt "put the bowl on the stove" \
+  --args.corrupt-prompt "put the wine bottle on top of the cabinet" \
   --args.num-trials-per-task 25 \
   --args.save-all-videos \
   --args.video-out-path data/libero/videos/phase2/baselines
@@ -189,7 +189,7 @@ python examples/libero/main_patching_expt_per_step_donor.py \
   --args.task-suite-name libero_goal \
   --args.task-name-filter "put the bowl on top of the cabinet" \
   --args.clean-prompt "put the bowl on top of the cabinet" \
-  --args.corrupt-prompt "put the bowl on the stove" \
+  --args.corrupt-prompt "put the wine bottle on top of the cabinet" \
   --args.patch-positions "$(python -c "print(','.join(map(str, range(788))))")" \
   --args.num-trials-per-task 5 \
   --args.save-all-videos \
@@ -223,7 +223,7 @@ python examples/libero/main_patching_expt_per_step_donor.py \
   --args.task-suite-name libero_goal \
   --args.task-name-filter "put the bowl on top of the cabinet" \
   --args.clean-prompt "put the bowl on top of the cabinet" \
-  --args.corrupt-prompt "put the bowl on the stove" \
+  --args.corrupt-prompt "put the wine bottle on top of the cabinet" \
   --args.patch-positions "$POSITIONS" \
   --args.num-trials-per-task 10 \
   --args.save-all-videos \
@@ -279,12 +279,12 @@ POSITIONS="<minimal set from binary search>"
 **If > 5/25:** write `progress_cc/phase2/signal_files/1_PHASE2A_MEANINGFUL_RESULT.txt`:
 ```
 Phase 2a meaningful result — [DATE]
-Task pair: put_the_bowl_on_top_of_the_cabinet (clean) / put_the_bowl_on_the_stove (corrupt)
+Task pair: put_the_bowl_on_top_of_the_cabinet (clean) / put_the_wine_bottle_on_top_of_the_cabinet (corrupt)
 Minimal patch positions: [list]
 Success rate: X/25
 Clean baseline: Y/25, Corrupt baseline: Z/25
 Log: progress_cc/phase2/signal_files/logs/[filename]
-Comparison to Phase 1: Phase 1 found 294-587 as main region on plate/stove pair.
+Comparison to Phase 1: Phase 1 found 294-587 as main region on plate/stove (same obj, diff dest) pair.
 See progress_cc/phase2/implementation.md §6.3 for interpretation.
 ```
 
@@ -375,7 +375,7 @@ python examples/libero/main_patching_expt_per_step_donor.py \
   --args.task-suite-name libero_goal \
   --args.task-name-filter "put the bowl on top of the cabinet" \
   --args.clean-prompt "put the bowl on top of the cabinet" \
-  --args.corrupt-prompt "put the bowl on the stove" \
+  --args.corrupt-prompt "put the wine bottle on top of the cabinet" \
   --args.patch-positions "$POSITIONS" \
   --args.patch-alpha 0.0 \
   --args.num-trials-per-task 5 \
@@ -417,7 +417,7 @@ python examples/libero/main_patching_expt_per_step_donor.py \
   --args.task-suite-name libero_goal \
   --args.task-name-filter "put the bowl on top of the cabinet" \
   --args.clean-prompt "put the bowl on top of the cabinet" \
-  --args.corrupt-prompt "put the bowl on the stove" \
+  --args.corrupt-prompt "put the wine bottle on top of the cabinet" \
   --args.patch-positions "$POSITIONS" \
   --args.patch-alpha $ALPHA \
   --args.num-trials-per-task 10 \
@@ -516,3 +516,241 @@ Rules:
 - Stage only `progress_cc/phase2/`, `src/openpi/models/pi0.py`, and `examples/libero/main_patching_expt_per_step_donor.py` — nothing else.
 - Never amend published commits.
 - Never touch `patching_phase1_agentic` branch or any Phase 1 files under `status_cc/` or `scripts_outputs_txt/patching_phase1/`.
+
+---
+
+## Phase 2c Steps (Challenging Pairs — Cross-Object + Cross-Destination)
+
+**Prerequisite:** `progress_cc/phase2/signal_files/2_PHASE2B_ALPHA_SWEEP_COMPLETE.txt` exists. Do not begin Phase 2c until Phase 2a and 2b are fully done.
+
+**Disclaimer:** Phase 2c experiments all have automated success metrics (the done flag always measures the clean task outcome — see `status_cc/misc/libero_suite_choice_detailed.md §Automated success metric` for the full explanation). However, some corrupt prompts (e.g., "put the bowl on the rack") are compositionally novel — the model has not been trained on that exact combination. The corrupt unpatched baseline may show unusual behavior, which is expected and worth noting in videos. The patched-run success rate is still reliable. **Agent self-correction rule:** C1 is the correctness anchor. If C1 fails (< 2/5), do not run C2a, C2b, or Pair D — the mechanism does not work on cross-pair patching and further runs have no scientific value.
+
+**Scientific questions:**
+- Can KV-cache patching flip behavior when BOTH object AND destination differ (C1)?
+- Is the encoding decomposable — can we flip destination alone (C2a) or object alone (C2b)?
+- Can patching flip qualitatively different motor behaviors, not just object/destination selection (Pair D)?
+
+---
+
+### Phase 2c — Pair A: `put_the_wine_bottle_on_the_rack` (clean) ↔ `put_the_bowl_on_the_plate` (corrupt)
+
+| Parameter | Value |
+|-----------|-------|
+| Environment task | `put_the_wine_bottle_on_the_rack` |
+| `--args.task-name-filter` | `"put the wine bottle on the rack"` |
+| `--args.clean-prompt` | `"put the wine bottle on the rack"` |
+| `--args.corrupt-prompt` | `"put the bowl on the plate"` |
+| Success metric | Automated (done flag checks wine bottle on rack) |
+
+Scientific contrast with Phase 2a: Phase 2a changes only the object (bowl→wine bottle), same destination (cabinet). Pair A changes BOTH object (wine bottle vs bowl) AND destination (rack vs plate) simultaneously.
+
+---
+
+### Step C1 — Pair A BOTH case: sanity (N=5) + main run (N=10)
+
+```bash
+TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+FULL="progress_cc/phase2/signal_files/logs/run_${TIMESTAMP}_phase2c_pairA_both_sanity_full.txt"
+CLEAN="progress_cc/phase2/signal_files/logs/run_${TIMESTAMP}_phase2c_pairA_both_sanity_clean.txt"
+mkdir -p data/libero/videos/phase2c/pairA_both_sanity
+
+{
+python examples/libero/main_patching_expt_per_step_donor.py \
+  --args.task-suite-name libero_goal \
+  --args.task-name-filter "put the wine bottle on the rack" \
+  --args.clean-prompt "put the wine bottle on the rack" \
+  --args.corrupt-prompt "put the bowl on the plate" \
+  --args.patch-positions "$(python -c "print(','.join(map(str, range(788))))")" \
+  --args.num-trials-per-task 5 \
+  --args.save-all-videos \
+  --args.video-out-path data/libero/videos/phase2c/pairA_both_sanity
+} 2>&1 \
+  | tee "$FULL" \
+  | tr '\r' '\n' | sed -u $'s/\x1b\\[[0-9;]*[A-Za-z]//g' \
+  | grep -E --line-buffered '^(===|\[ep |\[DEBUG|INFO:root:|ERROR:root:)' \
+  | tee "$CLEAN"
+```
+
+**Interpret:**
+- ≥ 3/5: cross-pair patching works. Run N=10 (label `phase2c_pairA_both_n10`, same command, `--args.num-trials-per-task 10`). Proceed to C2a.
+- < 3/5: stop Phase 2c. Write `0_PHASE2C_FAILURE.txt` (see below). Do not run C2a, C2b, or Pair D.
+
+**Commit after C1.**
+
+---
+
+### Step C2a — Pair A, destination-only sub-test (automated metric)
+
+Same object (wine bottle), different destination (rack vs cabinet). Tests whether destination encoding alone drives the behavioral difference.
+
+| Parameter | Value |
+|-----------|-------|
+| `--args.clean-prompt` | `"put the wine bottle on the rack"` |
+| `--args.corrupt-prompt` | `"put the wine bottle on top of the cabinet"` |
+| `--args.task-name-filter` | `"put the wine bottle on the rack"` |
+| Success metric | Automated (both are LIBERO-Goal tasks) |
+
+```bash
+TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+FULL="progress_cc/phase2/signal_files/logs/run_${TIMESTAMP}_phase2c_pairA_destonly_full.txt"
+CLEAN="progress_cc/phase2/signal_files/logs/run_${TIMESTAMP}_phase2c_pairA_destonly_clean.txt"
+mkdir -p data/libero/videos/phase2c/pairA_destonly
+
+{
+python examples/libero/main_patching_expt_per_step_donor.py \
+  --args.task-suite-name libero_goal \
+  --args.task-name-filter "put the wine bottle on the rack" \
+  --args.clean-prompt "put the wine bottle on the rack" \
+  --args.corrupt-prompt "put the wine bottle on top of the cabinet" \
+  --args.patch-positions "$(python -c "print(','.join(map(str, range(788))))")" \
+  --args.num-trials-per-task 10 \
+  --args.save-all-videos \
+  --args.video-out-path data/libero/videos/phase2c/pairA_destonly
+} 2>&1 \
+  | tee "$FULL" \
+  | tr '\r' '\n' | sed -u $'s/\x1b\\[[0-9;]*[A-Za-z]//g' \
+  | grep -E --line-buffered '^(===|\[ep |\[DEBUG|INFO:root:|ERROR:root:)' \
+  | tee "$CLEAN"
+```
+
+**Interpret:** Record success rate in `progress_cc/phase2/implementation.md §9.1`. No minimum threshold — just record and proceed to C2b.
+
+**Commit after C2a.**
+
+---
+
+### Step C2b — Pair A, object-only sub-test
+
+Same destination (rack), different object (wine bottle vs bowl). Corrupt prompt "put the bowl on the rack" is compositionally novel (not a LIBERO-Goal task), but the done flag still measures the clean task (wine bottle on rack) — automated metric holds.
+
+| Parameter | Value |
+|-----------|-------|
+| `--args.clean-prompt` | `"put the wine bottle on the rack"` |
+| `--args.corrupt-prompt` | `"put the bowl on the rack"` (not a LIBERO-Goal task — model may show novel behavior on the unpatched corrupt run) |
+| `--args.task-name-filter` | `"put the wine bottle on the rack"` |
+| Success metric | Automated for patched run (done flag checks wine bottle on rack). Unpatched corrupt baseline may show unusual behavior — inspect videos. |
+
+```bash
+TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+FULL="progress_cc/phase2/signal_files/logs/run_${TIMESTAMP}_phase2c_pairA_objonly_full.txt"
+CLEAN="progress_cc/phase2/signal_files/logs/run_${TIMESTAMP}_phase2c_pairA_objonly_clean.txt"
+mkdir -p data/libero/videos/phase2c/pairA_objonly
+
+{
+python examples/libero/main_patching_expt_per_step_donor.py \
+  --args.task-suite-name libero_goal \
+  --args.task-name-filter "put the wine bottle on the rack" \
+  --args.clean-prompt "put the wine bottle on the rack" \
+  --args.corrupt-prompt "put the bowl on the rack" \
+  --args.patch-positions "$(python -c "print(','.join(map(str, range(788))))")" \
+  --args.num-trials-per-task 10 \
+  --args.save-all-videos \
+  --args.video-out-path data/libero/videos/phase2c/pairA_objonly
+} 2>&1 \
+  | tee "$FULL" \
+  | tr '\r' '\n' | sed -u $'s/\x1b\\[[0-9;]*[A-Za-z]//g' \
+  | grep -E --line-buffered '^(===|\[ep |\[DEBUG|INFO:root:|ERROR:root:)' \
+  | tee "$CLEAN"
+```
+
+**Interpret:** Record success rate in §9.1. Note that the done flag is valid for the patched run. Inspect videos to observe whether the model goes for wine bottle (expected if patching works on object encoding).
+
+**Commit after C2b.**
+
+---
+
+### Phase 2c — Pair D: `put_the_bowl_on_the_stove` (clean) ↔ `turn_on_the_stove` (corrupt)
+
+| Parameter | Value |
+|-----------|-------|
+| Environment task | `put_the_bowl_on_the_stove` |
+| `--args.task-name-filter` | `"put the bowl on the stove"` |
+| `--args.clean-prompt` | `"put the bowl on the stove"` |
+| `--args.corrupt-prompt` | `"turn on the stove"` |
+| Success metric | Automated (done flag checks bowl on stove) |
+
+**Scientific question:** Can patching flip between qualitatively different motor behaviors — pick-place (put bowl on stove) vs. knob-turn (turn on stove)? This tests whether KV patching controls action class, not just object/destination selection.
+
+### Step C3 — Pair D sanity (N=5) + main run (N=10)
+
+```bash
+TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+FULL="progress_cc/phase2/signal_files/logs/run_${TIMESTAMP}_phase2c_pairD_sanity_full.txt"
+CLEAN="progress_cc/phase2/signal_files/logs/run_${TIMESTAMP}_phase2c_pairD_sanity_clean.txt"
+mkdir -p data/libero/videos/phase2c/pairD_sanity
+
+{
+python examples/libero/main_patching_expt_per_step_donor.py \
+  --args.task-suite-name libero_goal \
+  --args.task-name-filter "put the bowl on the stove" \
+  --args.clean-prompt "put the bowl on the stove" \
+  --args.corrupt-prompt "turn on the stove" \
+  --args.patch-positions "$(python -c "print(','.join(map(str, range(788))))")" \
+  --args.num-trials-per-task 5 \
+  --args.save-all-videos \
+  --args.video-out-path data/libero/videos/phase2c/pairD_sanity
+} 2>&1 \
+  | tee "$FULL" \
+  | tr '\r' '\n' | sed -u $'s/\x1b\\[[0-9;]*[A-Za-z]//g' \
+  | grep -E --line-buffered '^(===|\[ep |\[DEBUG|INFO:root:|ERROR:root:)' \
+  | tee "$CLEAN"
+```
+
+**Interpret:**
+- ≥ 3/5: proceed to N=10 (label `phase2c_pairD_n10`). Motor-class flip is possible.
+- < 3/5: note failure. Motor-class patching may require different patch positions or may not be achievable via prefix KV alone. Record and stop.
+
+**Commit after C3.**
+
+---
+
+### Step C4 — Write Phase 2c signal file
+
+After all Phase 2c sub-experiments:
+
+Write `progress_cc/phase2/signal_files/3_PHASE2C_COMPLETE.txt`:
+```
+Phase 2c complete — [DATE]
+
+Pair A (BOTH, wine_bottle/rack ↔ bowl/plate):
+  C1 sanity: X/5; N=10: Y/10
+  C2a (dest-only, wine_bottle/rack ↔ wine_bottle/cabinet): Z/10
+  C2b (obj-only, wine_bottle/rack ↔ bowl/rack): W/10
+
+Pair D (bowl/stove ↔ turn_on_stove):
+  C3 sanity: X/5; N=10: Y/10
+
+Videos: data/libero/videos/phase2c/
+See progress_cc/phase2/implementation.md §9 for interpretation.
+```
+
+If C1 failed, write `progress_cc/phase2/signal_files/0_PHASE2C_FAILURE.txt`:
+```
+Phase 2c failure — [DATE]
+C1 sanity (wine_bottle/rack ↔ bowl/plate, full prefix, N=5): X/5 — below threshold.
+Cross-pair patching does not appear to work. Phase 2c aborted.
+See progress_cc/phase2/implementation.md §9 for details.
+```
+
+**Final commit for Phase 2c:**
+```bash
+git add progress_cc/phase2/
+git commit -m "$(cat <<'EOF'
+phase2c complete: Pair A C1=Y/10 C2a=Z/10 C2b=W/10, Pair D C3=Y/10
+
+[Optional: key observation about cross-pair patching and motor-class flip]
+EOF
+)"
+```
+
+---
+
+## Updated Signal Files Summary
+
+| File | Write when | Location |
+|------|-----------|----------|
+| `0_PHASE2A_FAILURE.txt` | A-C3 fails after 2 debug iterations | `progress_cc/phase2/signal_files/` |
+| `1_PHASE2A_MEANINGFUL_RESULT.txt` | A-final N=25 > 5/25 | `progress_cc/phase2/signal_files/` |
+| `2_PHASE2B_ALPHA_SWEEP_COMPLETE.txt` | All alpha values run, CSV written | `progress_cc/phase2/signal_files/` |
+| `3_PHASE2C_COMPLETE.txt` | All Phase 2c sub-experiments run | `progress_cc/phase2/signal_files/` |
+| `0_PHASE2C_FAILURE.txt` | C1 fails (< 2/5) | `progress_cc/phase2/signal_files/` |
