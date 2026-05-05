@@ -535,6 +535,7 @@ LIBERO-Goal initial states vary in object placement. For the sanity check, this 
 | Step 5 image right-trim probe | `"put the bowl on the stove"` | image prefix positions 294-477 from per-step donor | 10 | **20%** (2/10) | `run_20260505_073828_step5_img294-477_n10_clean.txt`; trimming 478-514 drops below the strict meaningful threshold |
 | Step 5 image left-trim probe | `"put the bowl on the stove"` | image prefix positions 331-514 from per-step donor | 10 | **20%** (2/10) | `run_20260505_074857_step5_img331-514_n10_clean.txt`; trimming 294-330 also drops below the strict meaningful threshold |
 | Step 5 localized image region | `"put the bowl on the stove"` | image prefix positions 294-514 from per-step donor | 25 | **88%** (22/25) | `run_20260505_075914_step5_img294-514_n25_clean.txt`; smallest defensible contiguous image-token region validated at N=25 |
+| Step 6 layer block A | `"put the bowl on the stove"` | image positions 294-514, layers 0-5, K+V | 10 | **0%** (0/10) | `run_20260505_082736_step6_img294-514_layers0-5_n10_clean.txt`; early layers alone are insufficient |
 | Patched (D3, pos 594, K+V) | `"put the bowl on the stove"` | pos 594 from donor | 25 | — | |
 
 ### 8.2 Implementation notes
@@ -560,6 +561,7 @@ LIBERO-Goal initial states vary in object placement. For the sanity check, this 
 | 2026-05-05 | Step 5 localized image region (`run_20260505_075914_step5_img294-514_n25_clean.txt`): positions 294-514 recovered 22/25 at N=25. This completes image-token localization: the smallest defensible contiguous region spans left_wrist local tokens 98-195 and right_wrist/masked-stream local tokens 0-122. |
 | 2026-05-05 | Camera/token-region visualization created with `examples/libero/visualize_patching_region.py`. Artifacts: `scripts_outputs_txt/patching_phase1/patched/visualizations/img294-514_token_region_overlay.png` and `scripts_outputs_txt/patching_phase1/patched/visualizations/img294-514_token_region_mapping.json`. The overlay shows no selected agentview cells, the bottom half of `left_wrist_0_rgb` (local 98-195; rows 7-13), and the top/mid part of the masked padded stream `right_wrist_0_rgb` (local 0-122; rows 0-8 through col 10). |
 | 2026-05-05 | Added layer and K/V-selective patch controls: `pi0.py` now accepts `patch_layers`, `patch_k`, and `patch_v`; `main_patching_expt_per_step_donor.py` exposes `--args.patch-layers`, `--args.patch-k`, and `--args.patch-v`. Empty `patch_layers` keeps the previous all-layer behavior. |
+| 2026-05-05 | Step 6 layer block A (`run_20260505_082736_step6_img294-514_layers0-5_n10_clean.txt`): patching layers 0-5 only with image positions 294-514 recovered 0/10. Continue coarse layer localization with layers 6-11 and 12-17. |
 
 ### 8.3 Current conclusion and next steps
 
