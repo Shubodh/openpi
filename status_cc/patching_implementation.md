@@ -530,6 +530,7 @@ LIBERO-Goal initial states vary in object placement. For the sanity check, this 
 | Step 5 image half A | `"put the bowl on the stove"` | image prefix positions 0-293 from per-step donor | 10 | **0%** (0/10) | `run_20260504_184132_step5_img0-293_n10_clean.txt`; first half of image tokens is insufficient |
 | Step 5 image half B | `"put the bowl on the stove"` | image prefix positions 294-587 from per-step donor | 10 | **80%** (8/10) | `run_20260504_185204_step5_img294-587_n10_clean.txt`; second half contains most of the sufficient signal |
 | Step 5 image quarter B1 | `"put the bowl on the stove"` | image prefix positions 294-440 from per-step donor | 10 | **10%** (1/10) | `run_20260504_185938_step5_img294-440_n10_clean.txt`; lower half of 294-587 is below meaningful threshold |
+| Step 5 image quarter B2 | `"put the bowl on the stove"` | image prefix positions 441-587 from per-step donor | 10 | **0%** (0/10) | `run_20260505_072014_step5_img441-587_n10_clean.txt`; upper half of 294-587 is also below threshold on its own |
 | Patched (D3, pos 594, K+V) | `"put the bowl on the stove"` | pos 594 from donor | 25 | — | |
 
 ### 8.2 Implementation notes
@@ -548,6 +549,7 @@ LIBERO-Goal initial states vary in object placement. For the sanity check, this 
 | 2026-05-04 | Step 5 image half A (`run_20260504_184132_step5_img0-293_n10_clean.txt`): positions 0-293 failed 0/10, so the sufficient image-prefix signal is not in the first half alone; test 294-587 next. |
 | 2026-05-04 | Step 5 image half B (`run_20260504_185204_step5_img294-587_n10_clean.txt`): positions 294-587 recovered 8/10. This is above the meaningful threshold and localizes most of the recoverable signal to the second half of image tokens; recurse within 294-587. |
 | 2026-05-04 | Step 5 image quarter B1 (`run_20260504_185938_step5_img294-440_n10_clean.txt`): positions 294-440 recovered only 1/10, below the meaningful threshold. Next probe should test positions 441-587. |
+| 2026-05-05 | Step 5 image quarter B2 (`run_20260505_072014_step5_img441-587_n10_clean.txt`): positions 441-587 recovered 0/10, also below threshold. Since the parent range 294-587 recovered 8/10, the sufficient signal is likely distributed across subregions or depends on crossing the 391/392 camera boundary; next probes should test combined or boundary windows rather than single halves. |
 
 ### 8.3 Current conclusion and next steps
 
