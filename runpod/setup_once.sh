@@ -28,10 +28,27 @@ source $HOME/.local/bin/env
 echo "=== [4/5] Setting OPENPI_DATA_HOME (checkpoint cache → network volume) ==="
 export OPENPI_DATA_HOME=/workspace/openpi_assets
 mkdir -p /workspace/openpi_assets
-echo 'export OPENPI_DATA_HOME=/workspace/openpi_assets' >> ~/.bashrc
+grep -qxF 'export OPENPI_DATA_HOME=/workspace/openpi_assets' ~/.bashrc || \
+  echo 'export OPENPI_DATA_HOME=/workspace/openpi_assets' >> ~/.bashrc
 
 echo "=== [5/5] Setting up LIBERO client venv and installing deps ==="
 cd /workspace/openpi
+
+echo "=== [5a/5] Configuring LIBERO paths non-interactively ==="
+# Keep LIBERO config on the persistent workspace volume. Without this file, importing
+# libero can prompt on stdin for a dataset path and crash non-interactive experiment runs.
+export LIBERO_CONFIG_PATH=/workspace/openpi/.libero_config
+mkdir -p "$LIBERO_CONFIG_PATH"
+cat > "$LIBERO_CONFIG_PATH/config.yaml" <<'EOF'
+assets: /workspace/openpi/third_party/libero/libero/libero/assets
+bddl_files: /workspace/openpi/third_party/libero/libero/libero/bddl_files
+benchmark_root: /workspace/openpi/third_party/libero/libero/libero
+datasets: /workspace/openpi/third_party/libero/libero/datasets
+init_states: /workspace/openpi/third_party/libero/libero/libero/init_files
+EOF
+grep -qxF 'export LIBERO_CONFIG_PATH=/workspace/openpi/.libero_config' ~/.bashrc || \
+  echo 'export LIBERO_CONFIG_PATH=/workspace/openpi/.libero_config' >> ~/.bashrc
+
 uv venv --python 3.8 examples/libero/.venv
 source examples/libero/.venv/bin/activate
 uv pip install -r examples/libero/requirements.txt -r third_party/libero/requirements.txt \
@@ -68,6 +85,21 @@ SERVER_SITE=$(/workspace/openpi/.venv/bin/python -c "import site; print(site.get
 rm -rf "${SERVER_SITE}/robosuite"
 cp -r /workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite \
       "${SERVER_SITE}/robosuite"
+
+echo "=== Verifying server venv patching imports ==="
+PYTHONPATH="/workspace/openpi/third_party/libero:${PYTHONPATH:-}" \
+  /workspace/openpi/.venv/bin/python - <<'PY'
+import bddl
+import jax
+import libero
+import libero.libero.envs
+import numpy as np
+import robosuite
+
+major, minor = map(int, np.__version__.split(".")[:2])
+assert (major, minor) >= (1, 25), f"NumPy {np.__version__} is too old for JAX"
+print(f"server patching imports OK: jax={jax.__version__}, numpy={np.__version__}")
+PY
 
 echo ""
 echo "=== setup_once.sh complete ==="

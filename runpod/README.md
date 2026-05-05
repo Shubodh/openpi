@@ -151,6 +151,8 @@ Shell-level exports (`MUJOCO_GL`, `PYTHONPATH`, `OPENPI_DATA_HOME`) are inherite
 
 **LIBERO simulation deps in the server venv:** `setup_pod.sh` (and `setup_once.sh`) install mujoco, imageio, etc. into the server venv, then copy robosuite directly from the LIBERO client venv. Torch is not included — not needed for env stepping.
 
+**LIBERO config for non-interactive runs:** `setup_pod.sh`, `setup_once.sh`, and `patching_env.sh` all set `LIBERO_CONFIG_PATH=/workspace/openpi/.libero_config` and write `config.yaml` there. This is required because LIBERO prompts for a dataset path during import if the config file is missing; piped experiment commands then fail with `EOFError: EOF when reading a line`. Keeping the config under `/workspace/openpi` makes it survive pod restarts.
+
 **Why copy robosuite instead of pip-installing it?** `pip install robosuite==1.4.1` resolves to version 1.5.x (incompatible module layout — missing `single_arm_env`), even with the exact pin. Installing from the git tag `v1.4.1` has the same problem. The only reliable source of the correct robosuite is the LIBERO client venv, which already has exactly the right version. The setup scripts do `rm -rf` then `cp -r` (not just `cp -r`, which would nest the directory inside the existing one rather than replacing it).
 
 ---
@@ -194,6 +196,15 @@ Run with the server venv implicit (from `/workspace/openpi`):
 
 ```bash
 cd /workspace/openpi
+export LIBERO_CONFIG_PATH=/workspace/openpi/.libero_config
+mkdir -p "$LIBERO_CONFIG_PATH"
+cat > "$LIBERO_CONFIG_PATH/config.yaml" <<'EOF'
+assets: /workspace/openpi/third_party/libero/libero/libero/assets
+bddl_files: /workspace/openpi/third_party/libero/libero/libero/bddl_files
+benchmark_root: /workspace/openpi/third_party/libero/libero/libero
+datasets: /workspace/openpi/third_party/libero/libero/datasets
+init_states: /workspace/openpi/third_party/libero/libero/libero/init_files
+EOF
 uv sync
 uv pip install "mujoco>=3.2" imageio imageio-ffmpeg "opencv-python>=4.6" scipy tqdm pyyaml pyopengl etils tyro
 uv pip install -e /workspace/openpi/packages/openpi-client
@@ -210,6 +221,21 @@ uv pip install "numpy>=1.22.4,<2.0.0"
 SERVER_SITE=$(/workspace/openpi/.venv/bin/python -c "import site; print(site.getsitepackages()[0])")
 rm -rf "${SERVER_SITE}/robosuite"
 cp -r /workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite "${SERVER_SITE}/robosuite"
+
+# Verify the combined JAX + LIBERO server environment.
+PYTHONPATH="/workspace/openpi/third_party/libero:${PYTHONPATH:-}" \
+  /workspace/openpi/.venv/bin/python - <<'PY'
+import bddl
+import jax
+import libero
+import libero.libero.envs
+import numpy as np
+import robosuite
+
+major, minor = map(int, np.__version__.split(".")[:2])
+assert (major, minor) >= (1, 25), f"NumPy {np.__version__} is too old for JAX"
+print(f"server patching imports OK: jax={jax.__version__}, numpy={np.__version__}")
+PY
 ```
 
 Then run the patching script:
@@ -218,4 +244,4 @@ source /workspace/openpi/runpod/patching_env.sh
 bash /workspace/openpi/runpod/run_patching_phase1.sh
 ```
 
-**Status as of 2026-05-04:** numpy downgrade fixed, robosuite working. Script has not yet completed a full run — further import errors possible. Update this section as new blockers are resolved.
+**Status as of 2026-05-05:** server-venv imports verified under `patching_env.sh`: `bddl`, `robosuite`, `libero`, `libero.libero.envs`, `jax`, and NumPy all import successfully with JAX-compatible NumPy (`1.26.4` in the verified run). `LIBERO_CONFIG_PATH` is now created non-interactively to avoid the dataset-path prompt on fresh pods.
