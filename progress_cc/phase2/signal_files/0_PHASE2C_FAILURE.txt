@@ -1,0 +1,5 @@
+Phase 2c failure — 2026-05-05
+C1 sanity (wine_bottle/rack ↔ bowl/plate, all language positions 588-787, N=5): 0/5 — below threshold.
+Cross-pair language-token patching does not appear to work under the C1 gate. Phase 2c aborted before C1-main, C2a, C2b, and Pair D.
+Log: progress_cc/phase2/signal_files/logs/run_20260505_191325_phase2c_pairA_both_sanity_clean.txt
+See progress_cc/phase2/implementation.md §9 for details.

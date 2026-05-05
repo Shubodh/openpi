@@ -258,7 +258,7 @@ The sweep shows a sharp threshold over the sampled values: alpha 0.25, 0.50, and
 
 | Run code | Pair | Corrupt prompt | N | Result | Metric |
 |----------|------|---------------|---|--------|--------|
-| C1-sanity | A (BOTH, all lang tokens 588-787) | put the bowl on the plate | 5 | | automated success rate |
+| C1-sanity | A (BOTH, all lang tokens 588-787) | put the bowl on the plate | 5 | 0/5 (0%) | automated success rate |
 | C1-main | A (BOTH, all lang tokens 588-787) | put the bowl on the plate | 10 | | automated success rate |
 | C2a | A (dest-only patch, pos 595→594) | put the bowl on the plate | 10 | | video-only: bowl/rack behavior? |
 | C2b | A (obj-only patch, pos 591-592) | put the bowl on the plate | 10 | | video-only: wine_bottle/plate behavior? |
@@ -267,7 +267,7 @@ The sweep shows a sharp threshold over the sampled values: alpha 0.25, 0.50, and
 
 ### 9.2 Interpretation
 
-*(Agent writes one paragraph after Phase 2c is complete: did cross-pair patching work? Was the encoding decomposable? Did motor-class flip occur?)*
+Pair A C1 failed 0/5, below the Phase 2c continuation threshold. Per the guide, Phase 2c was aborted before C1-main, C2a, C2b, and Pair D; no decomposability or motor-class flip conclusions should be drawn from unrun conditions.
 
 ---
 
@@ -275,8 +275,8 @@ The sweep shows a sharp threshold over the sampled values: alpha 0.25, 0.50, and
 
 *(Agent updates this section at the end of each work session.)*
 
-**Last updated:** 2026-05-05 — Phase 2b complete.
+**Last updated:** 2026-05-05 — Phase 2c aborted at C1 sanity.
 
-**Current state:** Phase 2b alpha sweep complete. Endpoints passed, intermediate alphas 0.25/0.50/0.75 all recovered 0/10, and `2_PHASE2B_ALPHA_SWEEP_COMPLETE.txt` has been written.
+**Current state:** Phase 2c Pair A C1 sanity failed 0/5, so `0_PHASE2C_FAILURE.txt` has been written and later Phase 2c runs were not started.
 
-**Next action:** Begin Phase 2c with Pair A C1 sanity (wine_bottle/rack clean vs bowl/plate corrupt, all language tokens 588–787, N=5).
+**Next action:** None for Phase 2c under the current guide; the phase is stopped at the C1 failure gate.
