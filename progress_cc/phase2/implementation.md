@@ -210,6 +210,7 @@ Run N=5 each. If either endpoint fails, the implementation is wrong — debug be
 | 2026-05-05 | Phase 2b endpoint verification passed on positions 294–587: alpha=0.0 recovered 0/5 and alpha=1.0 recovered 5/5. Proceeding to intermediate alpha values without self-correction loops. |
 | 2026-05-05 | Alpha sweep alpha=0.25 recovered 0/10. Recorded without rerun per guide. |
 | 2026-05-05 | Alpha sweep alpha=0.50 recovered 0/10. Recorded without rerun per guide. |
+| 2026-05-05 | Alpha sweep alpha=0.75 recovered 0/10. Wrote `alpha_sweep_results.csv` and `2_PHASE2B_ALPHA_SWEEP_COMPLETE.txt`; proceeding to Phase 2c. |
 
 ### 6.3 Minimal patch set found
 
@@ -236,15 +237,15 @@ Run N=5 each. If either endpoint fails, the implementation is wrong — debug be
 
 | Alpha | Successes | Trials | Success rate | Video path |
 |-------|-----------|--------|-------------|-----------|
-| 0.00 | | | | (= A-D2) |
+| 0.00 | 0 | 25 | 0% | (= A-D2) |
 | 0.25 | 0 | 10 | 0% | `data/libero/videos/phase2/alpha_sweep/alpha_0.25/` |
 | 0.50 | 0 | 10 | 0% | `data/libero/videos/phase2/alpha_sweep/alpha_0.50/` |
-| 0.75 | | | | `data/libero/videos/phase2/alpha_sweep/alpha_0.75/` |
-| 1.00 | | | | (= A-C3/A-final) |
+| 0.75 | 0 | 10 | 0% | `data/libero/videos/phase2/alpha_sweep/alpha_0.75/` |
+| 1.00 | 5 | 5 | 100% | (= alpha endpoint; A-final was 21/25) |
 
 ### 7.3 Interpretation
 
-*(Agent writes one paragraph after sweep is complete: is the transition graded or binary? Which alpha first shows meaningful recovery?)*
+The sweep shows a sharp threshold over the sampled values: alpha 0.25, 0.50, and 0.75 all recovered 0/10, while alpha 1.0 recovered 5/5 at the endpoint and the full Phase 2a region recovered 21/25. No intermediate sampled alpha produced meaningful recovery.
 
 ---
 
@@ -274,8 +275,8 @@ Run N=5 each. If either endpoint fails, the implementation is wrong — debug be
 
 *(Agent updates this section at the end of each work session.)*
 
-**Last updated:** 2026-05-05 — Phase 2b alpha=0.50 complete.
+**Last updated:** 2026-05-05 — Phase 2b complete.
 
-**Current state:** Alpha=0.50 recovered 0/10 on positions 294–587.
+**Current state:** Phase 2b alpha sweep complete. Endpoints passed, intermediate alphas 0.25/0.50/0.75 all recovered 0/10, and `2_PHASE2B_ALPHA_SWEEP_COMPLETE.txt` has been written.
 
-**Next action:** Run alpha=0.75 at N=10.
+**Next action:** Begin Phase 2c with Pair A C1 sanity (wine_bottle/rack clean vs bowl/plate corrupt, all language tokens 588–787, N=5).

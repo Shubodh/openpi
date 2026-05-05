@@ -1,0 +1,7 @@
+Phase 2b alpha sweep complete — 2026-05-05
+Patch positions: 294-587
+Endpoint verification: alpha=0 → 0/5 (expected ~0%), alpha=1 → 5/5 (expected ≥60%)
+Intermediate results: alpha=0.25 → 0/10, alpha=0.50 → 0/10, alpha=0.75 → 0/10
+CSV: progress_cc/phase2/signal_files/alpha_sweep_results.csv
+Videos: data/libero/videos/phase2/alpha_sweep/
+See progress_cc/phase2/implementation.md §7 for full results and interpretation.
