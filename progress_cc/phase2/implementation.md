@@ -184,7 +184,7 @@ Run N=5 each. If either endpoint fails, the implementation is wrong — debug be
 | A-D2 | corrupt | normal | 25 | 0/25 (0%) | `progress_cc/phase2/signal_files/logs/run_20260505_162107_phase2a_baselines_clean.txt` |
 | A-C3 | corrupt | per-step full-prefix 0–787 | 5 | 5/5 (100%) | `progress_cc/phase2/signal_files/logs/run_20260505_163750_phase2a_c3_fullprefix_clean.txt` |
 | A-lang | corrupt | per-step language-only 588–787 | 5 | 0/5 (0%) | `progress_cc/phase2/signal_files/logs/run_20260505_164700_phase2a_lang588-787_clean.txt` |
-| A-D3 | corrupt | per-step image prefix 0–587 | 10 | | |
+| A-D3 | corrupt | per-step image prefix 0–587 | 10 | 10/10 (100%) | `progress_cc/phase2/signal_files/logs/run_20260505_165623_phase2a_img0-587_clean.txt` |
 | | | | | | |
 
 ### 6.2 Implementation notes
@@ -196,6 +196,7 @@ Run N=5 each. If either endpoint fails, the implementation is wrong — debug be
 | 2026-05-05 | A1/A2 baselines passed contrastive gate for Simple Pair 2: clean prompt recovered 24/25, corrupt wine-bottle prompt recovered 0/25 on the bowl/cabinet environment task. Proceeding to A3 full-prefix per-step sanity. |
 | 2026-05-05 | A3 full-prefix per-step sanity passed 5/5, confirming the donor rebuild and KV patch path work for the bowl/cabinet vs wine_bottle/cabinet pair. Proceeding to A4 language-only sanity. |
 | 2026-05-05 | A4 language-only sanity failed 0/5. This replicates Phase 1's language-slot insufficiency on the object-identity axis, so the search proceeds to image prefix positions 0–587. |
+| 2026-05-05 | A4 image-prefix probe recovered 10/10, showing image-token K/V positions 0–587 are sufficient for Simple Pair 2 recovery. Proceeding to binary localization inside image tokens. |
 
 ### 6.3 Minimal patch set found
 
@@ -260,8 +261,8 @@ Run N=5 each. If either endpoint fails, the implementation is wrong — debug be
 
 *(Agent updates this section at the end of each work session.)*
 
-**Last updated:** 2026-05-05 — A4 language-only sanity complete.
+**Last updated:** 2026-05-05 — A4 image-prefix probe complete.
 
-**Current state:** A-lang failed 0/5; language-only KV patching is insufficient on Simple Pair 2.
+**Current state:** A-D3 image prefix recovered 10/10; binary localization should proceed inside positions 0–587.
 
-**Next action:** Run A4 image-prefix probe (positions 0–587, N=10).
+**Next action:** Run image binary split probes: positions 0–293 and 294–587 at N=10.
