@@ -196,8 +196,11 @@ Both are training-only. Exclude `transformers` (and by extension tokenizers) fro
 **6. LIBERO's numpy pin (1.22.4) breaks JAX**
 Installing from requirements.txt downgrades numpy from 1.26.x → 1.22.4. JAX 0.5.3 requires `np.dtypes` (added in numpy 1.25). After the requirements.txt install, restore numpy:
 ```bash
-uv pip install --python /workspace/openpi/.venv/bin/python "numpy>=1.22.4,<2.0.0"
+uv pip install --python /workspace/openpi/.venv/bin/python "numpy>=1.25,<2.0.0"
 ```
+
+**7. LIBERO's matplotlib pin (3.5.3) breaks on Python 3.11**
+The server venv is Python 3.11. `matplotlib==3.5.3` has no cp311 wheel, so it falls back to a source build and can fail during freetype configure. Matplotlib is not needed for server-side LIBERO env stepping, so the setup scripts exclude it from the server requirements install.
 
 ### The working manual setup sequence (as of 2026-05-04)
 
@@ -214,7 +217,7 @@ benchmark_root: /workspace/openpi/third_party/libero/libero/libero
 datasets: /workspace/openpi/third_party/libero/libero/datasets
 init_states: /workspace/openpi/third_party/libero/libero/libero/init_files
 EOF
-env -u VIRTUAL_ENV uv sync
+env -u VIRTUAL_ENV uv sync --inexact
 SERVER_PYTHON=/workspace/openpi/.venv/bin/python
 LIBERO_VENV=/workspace/openpi/examples/libero/.venv
 uv pip install --python "$SERVER_PYTHON" "mujoco>=3.2" imageio imageio-ffmpeg "opencv-python>=4.6" scipy tqdm pyyaml pyopengl etils tyro
@@ -222,11 +225,11 @@ uv pip install --python "$SERVER_PYTHON" -e /workspace/openpi/packages/openpi-cl
 uv pip install --python "$SERVER_PYTHON" -e /workspace/openpi/third_party/libero
 
 # Install LIBERO requirements (excluding training-only and incompatible packages)
-grep -viE "^\s*(robosuite|torch|wandb|transformers|thop|robomimic|numpy)" \
+grep -viE "^\s*(robosuite|torch|wandb|transformers|thop|robomimic|numpy|matplotlib)" \
   /workspace/openpi/third_party/libero/requirements.txt | uv pip install --python "$SERVER_PYTHON" -r /dev/stdin
 
 # Restore numpy (LIBERO pin downgrades it, breaking JAX)
-uv pip install --python "$SERVER_PYTHON" "numpy>=1.22.4,<2.0.0"
+uv pip install --python "$SERVER_PYTHON" "numpy>=1.25,<2.0.0"
 
 # Copy robosuite from LIBERO client venv (pip version is wrong)
 SERVER_SITE=$("$SERVER_PYTHON" -c "import site; print(site.getsitepackages()[0])")

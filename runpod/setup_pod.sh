@@ -6,124 +6,39 @@
 # Codex CLI is NOT reinstalled here — run setup_agents.sh separately if needed.
 set -e
 
+OPENPI_DIR=/workspace/openpi
+# shellcheck source=/dev/null
+source "$OPENPI_DIR/runpod/setup_common.sh"
 
 echo "=== [1/6] Installing system packages ==="
-apt-get update -q && apt-get install -y -q tmux vim libegl1-mesa cmake rsync xclip git # libegl1-mesa for MUJOCO_GL=egl; cmake for egl-probe build; xclip for tmux clipboard
+install_system_packages
+
+echo "=== [1b/6] Verifying openpi checkout + submodules ==="
+ensure_openpi_checkout
 
 echo "=== [2/6] Restoring tmux config + plugins (wiped on pod stop) ==="
-git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm 2>/dev/null || true
-cp /workspace/openpi/runpod/tmux.conf ~/.tmux.conf
-TMUX= ~/.tmux/plugins/tpm/bin/install_plugins || true
+restore_tmux_config
 
 echo "=== [3/6] Re-installing uv (wiped on pod stop) ==="
-curl -LsSf https://astral.sh/uv/install.sh | sh
-source $HOME/.local/bin/env
+install_uv
 
 echo "=== [4/6] Restoring persistent cache/env paths ==="
-export OPENPI_DATA_HOME=/workspace/openpi_assets
-export UV_CACHE_DIR=/workspace/uv_cache
-export UV_PYTHON_INSTALL_DIR=/workspace/python
-mkdir -p "$OPENPI_DATA_HOME" "$UV_CACHE_DIR" "$UV_PYTHON_INSTALL_DIR"
-grep -qxF 'export OPENPI_DATA_HOME=/workspace/openpi_assets' ~/.bashrc || \
-  echo 'export OPENPI_DATA_HOME=/workspace/openpi_assets' >> ~/.bashrc
-grep -qxF 'export UV_CACHE_DIR=/workspace/uv_cache' ~/.bashrc || \
-  echo 'export UV_CACHE_DIR=/workspace/uv_cache' >> ~/.bashrc
-grep -qxF 'export UV_PYTHON_INSTALL_DIR=/workspace/python' ~/.bashrc || \
-  echo 'export UV_PYTHON_INSTALL_DIR=/workspace/python' >> ~/.bashrc
+configure_persistent_env
 
 echo "=== [5/6] Ensuring LIBERO venv deps are installed ==="
-cd /workspace/openpi
-OPENPI_DIR=/workspace/openpi
-LIBERO_VENV="$OPENPI_DIR/examples/libero/.venv"
-LIBERO_PYTHON="$LIBERO_VENV/bin/python"
-SERVER_VENV="$OPENPI_DIR/.venv"
-SERVER_PYTHON="$SERVER_VENV/bin/python"
+cd "$OPENPI_DIR"
 
 echo "=== [5a/6] Configuring LIBERO paths non-interactively ==="
-# Keep LIBERO config on the persistent workspace volume. Without this file, importing
-# libero can prompt on stdin for a dataset path and crash non-interactive experiment runs.
-export LIBERO_CONFIG_PATH=/workspace/openpi/.libero_config
-mkdir -p "$LIBERO_CONFIG_PATH"
-cat > "$LIBERO_CONFIG_PATH/config.yaml" <<'EOF'
-assets: /workspace/openpi/third_party/libero/libero/libero/assets
-bddl_files: /workspace/openpi/third_party/libero/libero/libero/bddl_files
-benchmark_root: /workspace/openpi/third_party/libero/libero/libero
-datasets: /workspace/openpi/third_party/libero/libero/datasets
-init_states: /workspace/openpi/third_party/libero/libero/libero/init_files
-EOF
-grep -qxF 'export LIBERO_CONFIG_PATH=/workspace/openpi/.libero_config' ~/.bashrc || \
-  echo 'export LIBERO_CONFIG_PATH=/workspace/openpi/.libero_config' >> ~/.bashrc
-
+write_libero_config
 
 echo "=== [5b/6] Configuring git identity ==="
-git config --global user.name "Shubodh RunPod April"
-git config --global user.email "p.saishubodh@gmail.com"
+configure_git_identity
 
 echo "=== [5c/6] Ensuring persistent Python 3.8 and LIBERO venv ==="
-uv python install 3.8 --install-dir "$UV_PYTHON_INSTALL_DIR"
-PYTHON38=$(uv python find 3.8 --managed-python --no-project)
-
-LIBERO_BASE_PYTHON=""
-if [ -x "$LIBERO_PYTHON" ]; then
-  LIBERO_BASE_PYTHON=$("$LIBERO_PYTHON" -c 'import os, sys; print(os.path.realpath(getattr(sys, "_base_executable", sys.executable)))' 2>/dev/null || true)
-fi
-
-if [ ! -x "$LIBERO_PYTHON" ] || [[ "$LIBERO_BASE_PYTHON" != "$UV_PYTHON_INSTALL_DIR"/* ]]; then
-  echo "Creating LIBERO venv with persistent Python: $PYTHON38"
-  uv venv --python "$PYTHON38" --clear "$LIBERO_VENV"
-else
-  echo "Reusing LIBERO venv backed by persistent Python: $LIBERO_BASE_PYTHON"
-  uv venv --python "$PYTHON38" --allow-existing "$LIBERO_VENV"
-fi
-
-uv pip install --python "$LIBERO_PYTHON" -r examples/libero/requirements.txt -r third_party/libero/requirements.txt \
-  --extra-index-url https://download.pytorch.org/whl/cu113 --index-strategy=unsafe-best-match
-uv pip install --python "$LIBERO_PYTHON" -e packages/openpi-client
-uv pip install --python "$LIBERO_PYTHON" -e third_party/libero
-# Extra openpi deps not pulled in by the libero requirements (needed for analysis scripts):
-uv pip install --python "$LIBERO_PYTHON" sentencepiece "fsspec[gcs]" filelock tqdm-loggable
+ensure_libero_client_venv
 
 echo "=== [6/6] Installing LIBERO simulation deps into server venv (for main_patching_expt.py) ==="
-# main_patching_expt.py loads JAX in-process (server venv, Python 3.11) but also steps
-# LIBERO environments. Install the simulation deps here so both work in one process.
-# uv sync repairs the server venv Python symlink (broken on pod stop/restart).
-env -u VIRTUAL_ENV uv sync
-# Use 'uv pip install' — uv-created venvs have no pip binary in bin/.
-# Install with --python so an inherited active venv cannot capture these server deps.
-# Install non-robosuite deps (robosuite is copied below — see note)
-uv pip install --python "$SERVER_PYTHON" \
-  "mujoco>=3.2" imageio imageio-ffmpeg numpy "opencv-python>=4.6" scipy tqdm pyyaml \
-  pyopengl etils tyro
-uv pip install --python "$SERVER_PYTHON" -e /workspace/openpi/packages/openpi-client
-# Install LIBERO editable + its requirements.txt (setup.py alone misses bddl, easydict, gym, etc.)
-# requirements.txt lines have leading spaces — use ^\s* not ^.
-# Exclude: robosuite (copied below), training-only packages, and numpy (restored after).
-uv pip install --python "$SERVER_PYTHON" -e /workspace/openpi/third_party/libero
-grep -viE "^\s*(robosuite|torch|wandb|transformers|thop|robomimic|numpy)" \
-  /workspace/openpi/third_party/libero/requirements.txt | uv pip install --python "$SERVER_PYTHON" -r /dev/stdin
-# Restore numpy: LIBERO requirements downgrade to 1.22.4 which breaks JAX (needs np.dtypes, >=1.25).
-uv pip install --python "$SERVER_PYTHON" "numpy>=1.22.4,<2.0.0"
-# Copy robosuite from LIBERO client venv — pip resolves to incompatible 1.5.x even with ==1.4.1 pin.
-# Must rm -rf first: cp -r into existing dir nests instead of replacing.
-SERVER_SITE=$("$SERVER_PYTHON" -c "import site; print(site.getsitepackages()[0])")
-rm -rf "${SERVER_SITE}/robosuite"
-cp -r "$LIBERO_VENV/lib/python3.8/site-packages/robosuite" \
-      "${SERVER_SITE}/robosuite"
-
-echo "=== [6a/6] Verifying server venv patching imports ==="
-PYTHONPATH="/workspace/openpi/third_party/libero:${PYTHONPATH:-}" \
-  "$SERVER_PYTHON" - <<'PY'
-import bddl
-import jax
-import libero
-import libero.libero.envs
-import numpy as np
-import robosuite
-
-major, minor = map(int, np.__version__.split(".")[:2])
-assert (major, minor) >= (1, 25), f"NumPy {np.__version__} is too old for JAX"
-print(f"server patching imports OK: jax={jax.__version__}, numpy={np.__version__}")
-PY
+ensure_server_patching_venv
 
 echo ""
 echo "=== setup_pod.sh complete ==="
