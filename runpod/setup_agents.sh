@@ -9,9 +9,9 @@ echo "=== [1/3] Installing Node.js ==="
 curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
 apt-get install -y -q nodejs
 
-echo "=== [2/3] Installing Claude Code ==="
-curl -fsSL https://claude.ai/install.sh | bash
-source "$HOME/.local/bin/env" 2>/dev/null || true
+# echo "=== [2/3] Installing Claude Code ==="
+# curl -fsSL https://claude.ai/install.sh | bash
+# source "$HOME/.local/bin/env" 2>/dev/null || true
 
 echo "=== [3/3] Installing Codex CLI ==="
 npm install -g @openai/codex

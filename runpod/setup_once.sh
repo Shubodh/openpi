@@ -8,13 +8,18 @@ git config --global user.name "Shubodh RunPod April"
 git config --global user.email "p.saishubodh@gmail.com"
 
 echo "=== [1/5] Installing system packages ==="
-apt-get update -q && apt-get install -y -q tmux vim libegl1-mesa cmake rsync # libegl1-mesa for MUJOCO_GL=egl; cmake for egl-probe build
+apt-get update -q && apt-get install -y -q tmux vim libegl1-mesa cmake rsync xclip git # libegl1-mesa for MUJOCO_GL=egl; cmake for egl-probe build; xclip for tmux clipboard
 
 echo "=== [2/5] Cloning openpi ==="
 cd /workspace
 git clone https://github.com/Shubodh/openpi.git
 cd openpi
 git submodule update --init --recursive
+
+echo "=== [2b/5] Setting up tmux config + plugins ==="
+git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm 2>/dev/null || true
+cp /workspace/openpi/runpod/tmux.conf ~/.tmux.conf
+TMUX= ~/.tmux/plugins/tpm/bin/install_plugins || true
 
 echo "=== [3/5] Installing uv ==="
 curl -LsSf https://astral.sh/uv/install.sh | sh
