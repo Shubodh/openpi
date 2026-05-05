@@ -189,6 +189,7 @@ Run N=5 each. If either endpoint fails, the implementation is wrong — debug be
 | A-bin-1b | corrupt | per-step image half 294–587 | 10 | 7/10 (70%) | `progress_cc/phase2/signal_files/logs/run_20260505_171739_phase2a_img294-587_clean.txt` |
 | A-bin-2a | corrupt | per-step image quarter 294–440 | 10 | 0/10 (0%) | `progress_cc/phase2/signal_files/logs/run_20260505_172654_phase2a_img294-440_clean.txt` |
 | A-bin-2b | corrupt | per-step image quarter 441–587 | 10 | 0/10 (0%) | `progress_cc/phase2/signal_files/logs/run_20260505_173744_phase2a_img441-587_clean.txt` |
+| A-final | corrupt | per-step image region 294–587 | 25 | 21/25 (84%) | `progress_cc/phase2/signal_files/logs/run_20260505_174905_phase2a_final_n25_clean.txt` |
 | | | | | | |
 
 ### 6.2 Implementation notes
@@ -205,14 +206,15 @@ Run N=5 each. If either endpoint fails, the implementation is wrong — debug be
 | 2026-05-05 | Binary split 294–587 recovered 7/10, so this half is promoted for recursive localization. Next probes split it into 294–440 and 441–587. |
 | 2026-05-05 | Recursive split 294–440 recovered 0/10, below threshold. Next probe is the complementary quarter 441–587. |
 | 2026-05-05 | Recursive split 441–587 also recovered 0/10. Since the parent region 294–587 recovered 7/10 but both quarters failed, 294–587 is the smallest defensible contiguous region for promotion to N=25. |
+| 2026-05-05 | A-final promoted positions 294–587 to N=25 and recovered 21/25, clearing the >5/25 meaningful-result threshold. Wrote `1_PHASE2A_MEANINGFUL_RESULT.txt`; proceeding to Phase 2b alpha interpolation. |
 
 ### 6.3 Minimal patch set found
 
 *(Fill after binary search complete.)*
 
-- Minimal sufficient positions: 294–587 candidate pending N=25 promotion
-- Success rate at N=25: TBD
-- Comparison to Phase 1 result (294–587 or similar): Phase 2a currently matches Phase 1's main image-token half, though Phase 1 later narrowed to 294–514; Phase 2a quarters 294–440 and 441–587 both failed alone.
+- Minimal sufficient positions: 294–587
+- Success rate at N=25: 21/25 (84%)
+- Comparison to Phase 1 result (294–587 or similar): Phase 2a matches Phase 1's main image-token half. Phase 1 later narrowed to 294–514, while Phase 2a's direct quarters 294–440 and 441–587 both failed alone, so the defensible Phase 2a contiguous set is 294–587.
 
 ---
 
@@ -269,8 +271,8 @@ Run N=5 each. If either endpoint fails, the implementation is wrong — debug be
 
 *(Agent updates this section at the end of each work session.)*
 
-**Last updated:** 2026-05-05 — image quarter 441–587 complete.
+**Last updated:** 2026-05-05 — Phase 2a complete.
 
-**Current state:** Binary search stopped at candidate minimal region 294–587 because both quarters failed while the parent region recovered 7/10.
+**Current state:** Phase 2a succeeded. Minimal sufficient image-token region 294–587 recovered 21/25 at N=25, and `1_PHASE2A_MEANINGFUL_RESULT.txt` has been written.
 
-**Next action:** Promote positions 294–587 to N=25 and write the Phase 2a signal file if it clears >5/25.
+**Next action:** Implement Phase 2b alpha interpolation in `pi0.py` and `main_patching_expt_per_step_donor.py`.

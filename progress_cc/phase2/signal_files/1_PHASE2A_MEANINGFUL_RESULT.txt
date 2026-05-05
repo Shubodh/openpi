@@ -1,0 +1,9 @@
+Phase 2a meaningful result — 2026-05-05
+Task pair: put_the_bowl_on_top_of_the_cabinet (clean) / put_the_wine_bottle_on_top_of_the_cabinet (corrupt)
+Minimal patch positions: 294-587
+Success rate: 21/25
+Clean baseline: 24/25, Corrupt baseline: 0/25
+Log: progress_cc/phase2/signal_files/logs/run_20260505_174905_phase2a_final_n25_clean.txt
+Language-only (A4-lang): 0/5 — failed
+Comparison to Phase 1: Phase 1 found language-only failed and image-token K/V carried the recoverable signal. Phase 2a likewise found language-only failed and image positions 294-587 were sufficient; direct quarters 294-440 and 441-587 failed alone.
+See progress_cc/phase2/implementation.md §6.3 for interpretation.
