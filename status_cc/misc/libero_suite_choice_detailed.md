@@ -227,3 +227,18 @@ Before committing to LIBERO-Object as the primary patching suite, run a **prompt
 - Same visual input, wrong/blank instruction → does success rate drop?
 - If yes: language is load-bearing → LIBERO-Object is valid
 - If no: positional shortcut present → reconsider suite choice or design a de-biased variant
+
+---
+
+## Key insight: automated success metric for all patching pairs where clean task ∈ LIBERO-Goal
+
+In our activation patching experiments, the environment ALWAYS evaluates the **clean task** — the task we inject the clean prompt's KV into the corrupt run for. The binary done flag measures whether the clean task was completed, regardless of what the corrupt prompt describes or how compositionally novel it is.
+
+**Consequence:** Any pair where the **clean task** is one of the 10 LIBERO-Goal tasks has a fully automated success metric, even when:
+- The corrupt prompt describes a compositionally novel task not in the training set
+- The corrupt prompt combines objects and destinations in a way never seen during training
+- The corrupt task has no LIBERO-Goal counterpart (e.g., "put the bowl on the rack")
+
+The only scenario where automated metrics break down is if the **environment** itself were asked to evaluate an unknown task. But in our setup, we always run the environment under the clean task ID (via `--args.task-name-filter` with the clean task name). The corrupt prompt only affects what the model tries to do, not what the environment measures.
+
+**Practical implication for Phase 2c and beyond:** Cross-object + cross-destination pairs (e.g., clean=`wine_bottle/rack` ↔ corrupt=`bowl/plate`) have automated success metrics as long as the clean task is from the 10. Even "object-only" sub-tests where the corrupt prompt is novel (e.g., "put the bowl on the rack") still produce valid done-flag measurements for the patched run, because the environment evaluates the clean task (wine bottle on rack), not the corrupt task. The agent always knows whether patching succeeded.
