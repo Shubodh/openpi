@@ -207,6 +207,7 @@ Run N=5 each. If either endpoint fails, the implementation is wrong — debug be
 | 2026-05-05 | Recursive split 294–440 recovered 0/10, below threshold. Next probe is the complementary quarter 441–587. |
 | 2026-05-05 | Recursive split 441–587 also recovered 0/10. Since the parent region 294–587 recovered 7/10 but both quarters failed, 294–587 is the smallest defensible contiguous region for promotion to N=25. |
 | 2026-05-05 | A-final promoted positions 294–587 to N=25 and recovered 21/25, clearing the >5/25 meaningful-result threshold. Wrote `1_PHASE2A_MEANINGFUL_RESULT.txt`; proceeding to Phase 2b alpha interpolation. |
+| 2026-05-05 | Phase 2b endpoint verification passed on positions 294–587: alpha=0.0 recovered 0/5 and alpha=1.0 recovered 5/5. Proceeding to intermediate alpha values without self-correction loops. |
 
 ### 6.3 Minimal patch set found
 
@@ -226,8 +227,8 @@ Run N=5 each. If either endpoint fails, the implementation is wrong — debug be
 
 | Alpha | N | Success rate | Matches expected? |
 |-------|---|-------------|------------------|
-| 0.0 | 5 | | (expect ~0%) |
-| 1.0 | 5 | | (expect ≥60%) |
+| 0.0 | 5 | 0/5 (0%) | yes |
+| 1.0 | 5 | 5/5 (100%) | yes |
 
 ### 7.2 Alpha sweep results
 
@@ -271,8 +272,8 @@ Run N=5 each. If either endpoint fails, the implementation is wrong — debug be
 
 *(Agent updates this section at the end of each work session.)*
 
-**Last updated:** 2026-05-05 — Phase 2a complete.
+**Last updated:** 2026-05-05 — Phase 2b endpoint verification complete.
 
-**Current state:** Phase 2a succeeded. Minimal sufficient image-token region 294–587 recovered 21/25 at N=25, and `1_PHASE2A_MEANINGFUL_RESULT.txt` has been written.
+**Current state:** Alpha endpoints passed on positions 294–587: alpha=0.0 recovered 0/5 and alpha=1.0 recovered 5/5.
 
-**Next action:** Implement Phase 2b alpha interpolation in `pi0.py` and `main_patching_expt_per_step_donor.py`.
+**Next action:** Run intermediate alpha sweep values 0.25, 0.50, and 0.75 at N=10 each.
