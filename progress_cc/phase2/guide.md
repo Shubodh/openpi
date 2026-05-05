@@ -3,7 +3,7 @@ name: phase2-guide
 purpose: Agent guide for Phase 2 — KV-cache patching on Simple Pair 2 (bowl/cabinet ↔ wine_bottle/cabinet) and alpha sweep for steerability, on π₀.₅ + LIBERO-Goal.
 when-to-read: You are the autonomous agent running Phase 2. Read this before touching any code or running any commands.
 tl;dr:
-  - Phase 2a: replicate Phase 1's methodology on Simple Pair 2 (different object, same destination — cabinet) → find minimal image-token patch set.
+  - Phase 2a: replicate Phase 1's methodology on Simple Pair 2 (different object, same destination — cabinet) → test language-token patching (new vs Phase 1) then image-token, find minimal sufficient patch set.
   - Phase 2b: alpha sweep on Phase 2a's minimal set — verify endpoints first (α=0 ≡ corrupt, α=1 ≡ clean), then run intermediates.
   - Phase 2c: challenging cross-pair experiments — flip BOTH object+destination (Pair A), test decomposability (C2a dest-only, C2b obj-only), test motor-class flip (Pair D). All have automated success metrics.
   - Per-step donor only. Pre-computed donor is known to fail (stale images). Do not use main_patching_expt.py for patching runs — use main_patching_expt_per_step_donor.py.
@@ -22,7 +22,7 @@ You are running Phase 2 of the AXMech activation-patching experiment on π₀.�
 
 **Success conditions:**
 
-1. **Phase 2a complete** → minimal sufficient image-token patch set found for Simple Pair 2, N=25 result recorded → write `progress_cc/phase2/signal_files/1_PHASE2A_MEANINGFUL_RESULT.txt`
+1. **Phase 2a complete** → minimal sufficient patch set found for Simple Pair 2 (language or image tokens), N=25 result recorded → write `progress_cc/phase2/signal_files/1_PHASE2A_MEANINGFUL_RESULT.txt`
 2. **Phase 2b complete** → alpha sweep run with verified endpoints, videos saved, CSV written → write `progress_cc/phase2/signal_files/2_PHASE2B_ALPHA_SWEEP_COMPLETE.txt`
 3. **Phase 2c complete** → all Pair A (C1/C2a/C2b) and Pair D (C3) experiments run → write `progress_cc/phase2/signal_files/3_PHASE2C_COMPLETE.txt` (or `0_PHASE2C_FAILURE.txt` if C1 fails)
 
@@ -283,9 +283,13 @@ python examples/libero/main_patching_expt_per_step_donor.py \
 
 ---
 
-### Step A5 — Binary search within image positions
+### Step A5 — Binary search (language or image positions)
 
 Use N=10 for all binary search probes. Mirror Phase 1's approach: split into halves, recurse into whichever half clears > 2/10.
+
+**Which positions to search:**
+- If A4-lang passed: search within **588–787** (language). Halves: 588–687, 688–787.
+- If A4-lang failed and A4-img passed: search within **0–587** (image). Halves below.
 
 **Image token layout for reference:**
 
@@ -315,7 +319,7 @@ Run the minimal sufficient set at N=25:
 
 ```bash
 POSITIONS="<minimal set from binary search>"
-# ... (same command pattern as A4, N=25, label: phase2a_final_n25)
+# ... (same command pattern as A4-lang or A4-img depending on which passed, N=25, label: phase2a_final_n25)
 ```
 
 **If > 5/25:** write `progress_cc/phase2/signal_files/1_PHASE2A_MEANINGFUL_RESULT.txt`:
@@ -326,7 +330,8 @@ Minimal patch positions: [list]
 Success rate: X/25
 Clean baseline: Y/25, Corrupt baseline: Z/25
 Log: progress_cc/phase2/signal_files/logs/[filename]
-Comparison to Phase 1: Phase 1 found 294-587 as main region on plate/stove (same obj, diff dest) pair.
+Language-only (A4-lang): [X/5 — passed/failed]
+Comparison to Phase 1: Phase 1 found language-only failed and 294-587 (image) as main region on plate/stove (same obj, diff dest) pair.
 See progress_cc/phase2/implementation.md §6.3 for interpretation.
 ```
 

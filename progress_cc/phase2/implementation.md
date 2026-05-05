@@ -146,9 +146,10 @@ Run N=5 each. If either endpoint fails, the implementation is wrong — debug be
 
 - [ ] **A1.** Run D1 baseline (clean prompt, normal KV, N=25)
 - [ ] **A2.** Run D2 baseline (corrupt prompt, normal KV, N=25)
-- [ ] **A3.** Run C3 per-step full-prefix sanity (N=5) — gate before binary search
-- [ ] **A4.** Run image prefix probe (0–587, N=10)
-- [ ] **A5.** Binary search within image positions → find minimal set
+- [ ] **A3.** Run C3 per-step full-prefix sanity (N=5) — gate; if fails stop
+- [ ] **A4-lang.** Run language-only sanity (588–787, N=5) — if passes, run language binary search before A4-img
+- [ ] **A4-img.** Run image prefix probe (0–587, N=10) — skip if A4-lang passed and localized
+- [ ] **A5.** Binary search within whichever region passed (language 588–787 or image 0–587) → find minimal set
 - [ ] **A6.** Promote minimal set to N=25 → write `progress_cc/phase2/signal_files/1_PHASE2A_MEANINGFUL_RESULT.txt`
 
 ### Phase 2b
