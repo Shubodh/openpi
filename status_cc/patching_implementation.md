@@ -538,6 +538,7 @@ LIBERO-Goal initial states vary in object placement. For the sanity check, this 
 | Step 6 layer block A | `"put the bowl on the stove"` | image positions 294-514, layers 0-5, K+V | 10 | **0%** (0/10) | `run_20260505_082736_step6_img294-514_layers0-5_n10_clean.txt`; early layers alone are insufficient |
 | Step 6 layer block B | `"put the bowl on the stove"` | image positions 294-514, layers 6-11, K+V | 10 | **0%** (0/10) | `run_20260505_083834_step6_img294-514_layers6-11_n10_clean.txt`; middle layers alone are insufficient |
 | Step 6 layer block C | `"put the bowl on the stove"` | image positions 294-514, layers 12-17, K+V | 10 | **50%** (5/10) | `run_20260505_084941_step6_img294-514_layers12-17_n10_clean.txt`; late layers carry meaningful recovery |
+| Step 6 layer sub-block C1 | `"put the bowl on the stove"` | image positions 294-514, layers 12-14, K+V | 10 | **30%** (3/10) | `run_20260505_085910_step6_img294-514_layers12-14_n10_clean.txt`; first half of late block is just above threshold |
 | Patched (D3, pos 594, K+V) | `"put the bowl on the stove"` | pos 594 from donor | 25 | — | |
 
 ### 8.2 Implementation notes
@@ -566,6 +567,7 @@ LIBERO-Goal initial states vary in object placement. For the sanity check, this 
 | 2026-05-05 | Step 6 layer block A (`run_20260505_082736_step6_img294-514_layers0-5_n10_clean.txt`): patching layers 0-5 only with image positions 294-514 recovered 0/10. Continue coarse layer localization with layers 6-11 and 12-17. |
 | 2026-05-05 | Step 6 layer block B (`run_20260505_083834_step6_img294-514_layers6-11_n10_clean.txt`): patching layers 6-11 only recovered 0/10. Continue with layers 12-17; if that also fails, test combined layer bands because the effect may require cross-depth accumulation. |
 | 2026-05-05 | Step 6 layer block C (`run_20260505_084941_step6_img294-514_layers12-17_n10_clean.txt`): patching layers 12-17 recovered 5/10, above the meaningful threshold. Recurse inside the late block with layers 12-14 and 15-17. |
+| 2026-05-05 | Step 6 layer sub-block C1 (`run_20260505_085910_step6_img294-514_layers12-14_n10_clean.txt`): patching layers 12-14 recovered 3/10, just above the meaningful threshold. Test layers 15-17 before deciding whether to recurse further or treat late layers as distributed. |
 
 ### 8.3 Current conclusion and next steps
 
