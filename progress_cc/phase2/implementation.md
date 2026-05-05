@@ -208,6 +208,7 @@ Run N=5 each. If either endpoint fails, the implementation is wrong — debug be
 | 2026-05-05 | Recursive split 441–587 also recovered 0/10. Since the parent region 294–587 recovered 7/10 but both quarters failed, 294–587 is the smallest defensible contiguous region for promotion to N=25. |
 | 2026-05-05 | A-final promoted positions 294–587 to N=25 and recovered 21/25, clearing the >5/25 meaningful-result threshold. Wrote `1_PHASE2A_MEANINGFUL_RESULT.txt`; proceeding to Phase 2b alpha interpolation. |
 | 2026-05-05 | Phase 2b endpoint verification passed on positions 294–587: alpha=0.0 recovered 0/5 and alpha=1.0 recovered 5/5. Proceeding to intermediate alpha values without self-correction loops. |
+| 2026-05-05 | Alpha sweep alpha=0.25 recovered 0/10. Recorded without rerun per guide. |
 
 ### 6.3 Minimal patch set found
 
@@ -235,7 +236,7 @@ Run N=5 each. If either endpoint fails, the implementation is wrong — debug be
 | Alpha | Successes | Trials | Success rate | Video path |
 |-------|-----------|--------|-------------|-----------|
 | 0.00 | | | | (= A-D2) |
-| 0.25 | | | | `data/libero/videos/phase2/alpha_sweep/alpha_0.25/` |
+| 0.25 | 0 | 10 | 0% | `data/libero/videos/phase2/alpha_sweep/alpha_0.25/` |
 | 0.50 | | | | `data/libero/videos/phase2/alpha_sweep/alpha_0.50/` |
 | 0.75 | | | | `data/libero/videos/phase2/alpha_sweep/alpha_0.75/` |
 | 1.00 | | | | (= A-C3/A-final) |
@@ -272,8 +273,8 @@ Run N=5 each. If either endpoint fails, the implementation is wrong — debug be
 
 *(Agent updates this section at the end of each work session.)*
 
-**Last updated:** 2026-05-05 — Phase 2b endpoint verification complete.
+**Last updated:** 2026-05-05 — Phase 2b alpha=0.25 complete.
 
-**Current state:** Alpha endpoints passed on positions 294–587: alpha=0.0 recovered 0/5 and alpha=1.0 recovered 5/5.
+**Current state:** Alpha=0.25 recovered 0/10 on positions 294–587.
 
-**Next action:** Run intermediate alpha sweep values 0.25, 0.50, and 0.75 at N=10 each.
+**Next action:** Run alpha=0.50 at N=10.
