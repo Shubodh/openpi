@@ -1,0 +1,304 @@
+[robosuite WARNING] No private macro file found! (macros.py:53)
+[robosuite WARNING] It is recommended to use a private macro file (macros.py:54)
+[robosuite WARNING] To setup, run: python /workspace/openpi/.venv/lib/python3.11/site-packages/robosuite/scripts/setup_macros.py (macros.py:55)
+Gym has been unmaintained since 2022 and does not support NumPy 2.0 amongst other critical functionality.
+Please upgrade to Gymnasium, the maintained drop-in replacement of Gym, or contact the authors of your software and request that they upgrade.
+See the migration guide at https://gymnasium.farama.org/introduction/migration_guide/ for additional information.
+/workspace/openpi/.venv/lib/python3.11/site-packages/jax/extend/linear_util.py:38: DeprecationWarning: linear_util.wrap_init is missing a DebugInfo object. This behavior is deprecated, use api_util.debug_info() to construct a proper DebugInfo object and propagate it to this function. See https://github.com/jax-ml/jax/issues/26480 for more details.
+  debug_info = debug_info or _missing_debug_info("linear_util.wrap_init")
+/workspace/openpi/.venv/lib/python3.11/site-packages/jax/extend/linear_util.py:38: DeprecationWarning: linear_util.wrap_init is missing a DebugInfo object. This behavior is deprecated, use api_util.debug_info() to construct a proper DebugInfo object and propagate it to this function. See https://github.com/jax-ml/jax/issues/26480 for more details.
+  debug_info = debug_info or _missing_debug_info("linear_util.wrap_init")
+/workspace/openpi/.venv/lib/python3.11/site-packages/flax/core/scope.py:959: DeprecationWarning: shape requires ndarray or scalar arguments, got <class 'jax._src.api.ShapeDtypeStruct'> at position 0. In a future JAX release this will be an error.
+  if jnp.shape(val) != jnp.shape(abs_val):
+[info] using task orders [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+  0%|          | 0/10 [00:00<?, ?it/s] 10%|█         | 1/10 [00:06<00:56,  6.23s/it] 20%|██        | 2/10 [00:07<00:26,  3.25s/it] 30%|███       | 3/10 [00:08<00:16,  2.30s/it] 40%|████      | 4/10 [00:09<00:11,  1.84s/it] 50%|█████     | 5/10 [00:10<00:07,  1.60s/it] 60%|██████    | 6/10 [00:11<00:05,  1.40s/it] 70%|███████   | 7/10 [00:12<00:03,  1.28s/it] 80%|████████  | 8/10 [00:14<00:02,  1.23s/it]/workspace/openpi/.venv/lib/python3.11/site-packages/flax/core/scope.py:959: DeprecationWarning: shape requires ndarray or scalar arguments, got <class 'jax._src.api.ShapeDtypeStruct'> at position 0. In a future JAX release this will be an error.
+  if jnp.shape(val) != jnp.shape(abs_val):
+/workspace/openpi/.venv/lib/python3.11/site-packages/jax/extend/linear_util.py:38: DeprecationWarning: linear_util.wrap_init is missing a DebugInfo object. This behavior is deprecated, use api_util.debug_info() to construct a proper DebugInfo object and propagate it to this function. See https://github.com/jax-ml/jax/issues/26480 for more details.
+  debug_info = debug_info or _missing_debug_info("linear_util.wrap_init")
+/workspace/openpi/.venv/lib/python3.11/site-packages/flax/core/scope.py:959: DeprecationWarning: shape requires ndarray or scalar arguments, got <class 'jax._src.api.ShapeDtypeStruct'> at position 0. In a future JAX release this will be an error.
+  if jnp.shape(val) != jnp.shape(abs_val):
+/workspace/openpi/.venv/lib/python3.11/site-packages/jax/extend/linear_util.py:38: DeprecationWarning: linear_util.wrap_init is missing a DebugInfo object. This behavior is deprecated, use api_util.debug_info() to construct a proper DebugInfo object and propagate it to this function. See https://github.com/jax-ml/jax/issues/26480 for more details.
+  debug_info = debug_info or _missing_debug_info("linear_util.wrap_init")
+/workspace/openpi/.venv/lib/python3.11/site-packages/flax/core/scope.py:959: DeprecationWarning: shape requires ndarray or scalar arguments, got <class 'jax._src.api.ShapeDtypeStruct'> at position 0. In a future JAX release this will be an error.
+  if jnp.shape(val) != jnp.shape(abs_val):
+/workspace/openpi/.venv/lib/python3.11/site-packages/flax/core/scope.py:959: DeprecationWarning: shape requires ndarray or scalar arguments, got <class 'jax._src.api.ShapeDtypeStruct'> at position 0. In a future JAX release this will be an error.
+  if jnp.shape(val) != jnp.shape(abs_val):
+/workspace/openpi/.venv/lib/python3.11/site-packages/flax/core/scope.py:959: DeprecationWarning: shape requires ndarray or scalar arguments, got <class 'jax._src.api.ShapeDtypeStruct'> at position 0. In a future JAX release this will be an error.
+  if jnp.shape(val) != jnp.shape(abs_val):
+/workspace/openpi/.venv/lib/python3.11/site-packages/flax/core/scope.py:959: DeprecationWarning: shape requires ndarray or scalar arguments, got <class 'jax._src.api.ShapeDtypeStruct'> at position 0. In a future JAX release this will be an error.
+  if jnp.shape(val) != jnp.shape(abs_val):
+                                               80%|████████  | 8/10 [01:27<00:02,  1.23s/it]                                               80%|████████  | 8/10 [01:27<00:02,  1.23s/it][Warning]: datasets path /workspace/openpi/third_party/libero/libero/datasets does not exist!
+[Warning]: datasets path /workspace/openpi/third_party/libero/libero/datasets does not exist!
+[Warning]: datasets path /workspace/openpi/third_party/libero/libero/datasets does not exist!
+[Warning]: datasets path /workspace/openpi/third_party/libero/libero/datasets does not exist!
+[Warning]: datasets path /workspace/openpi/third_party/libero/libero/datasets does not exist!
+[Warning]: datasets path /workspace/openpi/third_party/libero/libero/datasets does not exist!
+[Warning]: datasets path /workspace/openpi/third_party/libero/libero/datasets does not exist!
+[Warning]: datasets path /workspace/openpi/third_party/libero/libero/datasets does not exist!
+[Warning]: datasets path /workspace/openpi/third_party/libero/libero/datasets does not exist!
+[Warning]: datasets path /workspace/openpi/third_party/libero/libero/datasets does not exist!
+[Warning]: datasets path /workspace/openpi/third_party/libero/libero/datasets does not exist!
+[Warning]: datasets path /workspace/openpi/third_party/libero/libero/datasets does not exist!
+[Warning]: datasets path /workspace/openpi/third_party/libero/libero/datasets does not exist!
+[Warning]: datasets path /workspace/openpi/third_party/libero/libero/datasets does not exist!
+[Warning]: datasets path /workspace/openpi/third_party/libero/libero/datasets does not exist!
+[Warning]: datasets path /workspace/openpi/third_party/libero/libero/datasets does not exist!
+[Warning]: datasets path /workspace/openpi/third_party/libero/libero/datasets does not exist!
+[Warning]: datasets path /workspace/openpi/third_party/libero/libero/datasets does not exist!
+[DEBUG pos594] donor vs corrupt L-inf: K=3.375000, V=5.312500
+[DEBUG pos688] donor vs corrupt L-inf: K=1.179688
+
+  0%|          | 0/25 [00:00<?, ?it/s][A/workspace/openpi/.venv/lib/python3.11/site-packages/flax/core/scope.py:959: DeprecationWarning: shape requires ndarray or scalar arguments, got <class 'jax._src.api.ShapeDtypeStruct'> at position 0. In a future JAX release this will be an error.
+  if jnp.shape(val) != jnp.shape(abs_val):
+/workspace/openpi/.venv/lib/python3.11/site-packages/jax/extend/linear_util.py:38: DeprecationWarning: linear_util.wrap_init is missing a DebugInfo object. This behavior is deprecated, use api_util.debug_info() to construct a proper DebugInfo object and propagate it to this function. See https://github.com/jax-ml/jax/issues/26480 for more details.
+  debug_info = debug_info or _missing_debug_info("linear_util.wrap_init")
+/workspace/openpi/.venv/lib/python3.11/site-packages/flax/core/scope.py:959: DeprecationWarning: shape requires ndarray or scalar arguments, got <class 'jax._src.api.ShapeDtypeStruct'> at position 0. In a future JAX release this will be an error.
+  if jnp.shape(val) != jnp.shape(abs_val):
+/workspace/openpi/.venv/lib/python3.11/site-packages/jax/extend/linear_util.py:38: DeprecationWarning: linear_util.wrap_init is missing a DebugInfo object. This behavior is deprecated, use api_util.debug_info() to construct a proper DebugInfo object and propagate it to this function. See https://github.com/jax-ml/jax/issues/26480 for more details.
+  debug_info = debug_info or _missing_debug_info("linear_util.wrap_init")
+/workspace/openpi/.venv/lib/python3.11/site-packages/flax/core/scope.py:959: DeprecationWarning: shape requires ndarray or scalar arguments, got <class 'jax._src.api.ShapeDtypeStruct'> at position 0. In a future JAX release this will be an error.
+  if jnp.shape(val) != jnp.shape(abs_val):
+/workspace/openpi/.venv/lib/python3.11/site-packages/flax/core/scope.py:959: DeprecationWarning: shape requires ndarray or scalar arguments, got <class 'jax._src.api.ShapeDtypeStruct'> at position 0. In a future JAX release this will be an error.
+  if jnp.shape(val) != jnp.shape(abs_val):
+/workspace/openpi/.venv/lib/python3.11/site-packages/flax/core/scope.py:959: DeprecationWarning: shape requires ndarray or scalar arguments, got <class 'jax._src.api.ShapeDtypeStruct'> at position 0. In a future JAX release this will be an error.
+  if jnp.shape(val) != jnp.shape(abs_val):
+/workspace/openpi/.venv/lib/python3.11/site-packages/flax/core/scope.py:959: DeprecationWarning: shape requires ndarray or scalar arguments, got <class 'jax._src.api.ShapeDtypeStruct'> at position 0. In a future JAX release this will be an error.
+  if jnp.shape(val) != jnp.shape(abs_val):
+/workspace/openpi/.venv/lib/python3.11/site-packages/jax/extend/linear_util.py:38: DeprecationWarning: linear_util.wrap_init is missing a DebugInfo object. This behavior is deprecated, use api_util.debug_info() to construct a proper DebugInfo object and propagate it to this function. See https://github.com/jax-ml/jax/issues/26480 for more details.
+  debug_info = debug_info or _missing_debug_info("linear_util.wrap_init")
+/workspace/openpi/.venv/lib/python3.11/site-packages/flax/core/scope.py:959: DeprecationWarning: shape requires ndarray or scalar arguments, got <class 'jax._src.api.ShapeDtypeStruct'> at position 0. In a future JAX release this will be an error.
+  if jnp.shape(val) != jnp.shape(abs_val):
+/workspace/openpi/.venv/lib/python3.11/site-packages/flax/core/scope.py:959: DeprecationWarning: shape requires ndarray or scalar arguments, got <class 'jax._src.api.ShapeDtypeStruct'> at position 0. In a future JAX release this will be an error.
+  if jnp.shape(val) != jnp.shape(abs_val):
+/workspace/openpi/.venv/lib/python3.11/site-packages/flax/core/scope.py:959: DeprecationWarning: shape requires ndarray or scalar arguments, got <class 'jax._src.api.ShapeDtypeStruct'> at position 0. In a future JAX release this will be an error.
+  if jnp.shape(val) != jnp.shape(abs_val):
+/workspace/openpi/.venv/lib/python3.11/site-packages/flax/core/scope.py:959: DeprecationWarning: shape requires ndarray or scalar arguments, got <class 'jax._src.api.ShapeDtypeStruct'> at position 0. In a future JAX release this will be an error.
+  if jnp.shape(val) != jnp.shape(abs_val):
+/usr/lib/python3.11/subprocess.py:1885: RuntimeWarning: os.fork() was called. os.fork() is incompatible with multithreaded code, and JAX is multithreaded, so this will likely lead to a deadlock.
+  self.pid = _fork_exec(
+                                              
+                                      [A 80%|████████  | 8/10 [02:53<00:02,  1.23s/it]
+  0%|          | 0/25 [01:26<?, ?it/s][A
+  4%|▍         | 1/25 [01:26<34:25, 86.08s/it][A/usr/lib/python3.11/subprocess.py:1885: RuntimeWarning: os.fork() was called. os.fork() is incompatible with multithreaded code, and JAX is multithreaded, so this will likely lead to a deadlock.
+  self.pid = _fork_exec(
+                                              
+                                              [A 80%|████████  | 8/10 [03:22<00:02,  1.23s/it]
+  4%|▍         | 1/25 [01:54<34:25, 86.08s/it][A
+  8%|▊         | 2/25 [01:54<20:04, 52.36s/it][A/usr/lib/python3.11/subprocess.py:1885: RuntimeWarning: os.fork() was called. os.fork() is incompatible with multithreaded code, and JAX is multithreaded, so this will likely lead to a deadlock.
+  self.pid = _fork_exec(
+                                              
+                                              [A 80%|████████  | 8/10 [03:50<00:02,  1.23s/it]
+  8%|▊         | 2/25 [02:23<20:04, 52.36s/it][A
+ 12%|█▏        | 3/25 [02:23<15:14, 41.55s/it][A/usr/lib/python3.11/subprocess.py:1885: RuntimeWarning: os.fork() was called. os.fork() is incompatible with multithreaded code, and JAX is multithreaded, so this will likely lead to a deadlock.
+  self.pid = _fork_exec(
+                                              
+                                              [A 80%|████████  | 8/10 [04:20<00:02,  1.23s/it]
+ 12%|█▏        | 3/25 [02:52<15:14, 41.55s/it][A
+ 16%|█▌        | 4/25 [02:52<12:49, 36.64s/it][A/usr/lib/python3.11/subprocess.py:1885: RuntimeWarning: os.fork() was called. os.fork() is incompatible with multithreaded code, and JAX is multithreaded, so this will likely lead to a deadlock.
+  self.pid = _fork_exec(
+                                              
+                                              [A 80%|████████  | 8/10 [04:50<00:02,  1.23s/it]
+ 16%|█▌        | 4/25 [03:23<12:49, 36.64s/it][A
+ 20%|██        | 5/25 [03:23<11:30, 34.51s/it][A/usr/lib/python3.11/subprocess.py:1885: RuntimeWarning: os.fork() was called. os.fork() is incompatible with multithreaded code, and JAX is multithreaded, so this will likely lead to a deadlock.
+  self.pid = _fork_exec(
+                                              
+                                              [A 80%|████████  | 8/10 [05:19<00:02,  1.23s/it]
+ 20%|██        | 5/25 [03:52<11:30, 34.51s/it][A
+ 24%|██▍       | 6/25 [03:52<10:19, 32.61s/it][A/usr/lib/python3.11/subprocess.py:1885: RuntimeWarning: os.fork() was called. os.fork() is incompatible with multithreaded code, and JAX is multithreaded, so this will likely lead to a deadlock.
+  self.pid = _fork_exec(
+                                              
+                                              [A 80%|████████  | 8/10 [05:48<00:02,  1.23s/it]
+ 24%|██▍       | 6/25 [04:21<10:19, 32.61s/it][A
+ 28%|██▊       | 7/25 [04:21<09:25, 31.41s/it][A/usr/lib/python3.11/subprocess.py:1885: RuntimeWarning: os.fork() was called. os.fork() is incompatible with multithreaded code, and JAX is multithreaded, so this will likely lead to a deadlock.
+  self.pid = _fork_exec(
+                                              
+                                              [A 80%|████████  | 8/10 [06:17<00:02,  1.23s/it]
+ 28%|██▊       | 7/25 [04:50<09:25, 31.41s/it][A
+ 32%|███▏      | 8/25 [04:50<08:42, 30.74s/it][A/usr/lib/python3.11/subprocess.py:1885: RuntimeWarning: os.fork() was called. os.fork() is incompatible with multithreaded code, and JAX is multithreaded, so this will likely lead to a deadlock.
+  self.pid = _fork_exec(
+                                              
+                                              [A 80%|████████  | 8/10 [06:47<00:02,  1.23s/it]
+ 32%|███▏      | 8/25 [05:19<08:42, 30.74s/it][A
+ 36%|███▌      | 9/25 [05:19<08:05, 30.32s/it][A/usr/lib/python3.11/subprocess.py:1885: RuntimeWarning: os.fork() was called. os.fork() is incompatible with multithreaded code, and JAX is multithreaded, so this will likely lead to a deadlock.
+  self.pid = _fork_exec(
+                                              
+                                              [A 80%|████████  | 8/10 [07:15<00:02,  1.23s/it]
+ 36%|███▌      | 9/25 [05:48<08:05, 30.32s/it][A
+ 40%|████      | 10/25 [05:48<07:26, 29.73s/it][A/usr/lib/python3.11/subprocess.py:1885: RuntimeWarning: os.fork() was called. os.fork() is incompatible with multithreaded code, and JAX is multithreaded, so this will likely lead to a deadlock.
+  self.pid = _fork_exec(
+                                              
+                                               [A 80%|████████  | 8/10 [07:44<00:02,  1.23s/it]
+ 40%|████      | 10/25 [06:17<07:26, 29.73s/it][A
+ 44%|████▍     | 11/25 [06:17<06:53, 29.57s/it][A/usr/lib/python3.11/subprocess.py:1885: RuntimeWarning: os.fork() was called. os.fork() is incompatible with multithreaded code, and JAX is multithreaded, so this will likely lead to a deadlock.
+  self.pid = _fork_exec(
+                                              
+                                               [A 80%|████████  | 8/10 [08:14<00:02,  1.23s/it]
+ 44%|████▍     | 11/25 [06:46<06:53, 29.57s/it][A
+ 48%|████▊     | 12/25 [06:46<06:23, 29.48s/it][A/usr/lib/python3.11/subprocess.py:1885: RuntimeWarning: os.fork() was called. os.fork() is incompatible with multithreaded code, and JAX is multithreaded, so this will likely lead to a deadlock.
+  self.pid = _fork_exec(
+                                              
+                                               [A 80%|████████  | 8/10 [08:44<00:02,  1.23s/it]
+ 48%|████▊     | 12/25 [07:16<06:23, 29.48s/it][A
+ 52%|█████▏    | 13/25 [07:16<05:54, 29.58s/it][A/usr/lib/python3.11/subprocess.py:1885: RuntimeWarning: os.fork() was called. os.fork() is incompatible with multithreaded code, and JAX is multithreaded, so this will likely lead to a deadlock.
+  self.pid = _fork_exec(
+                                              
+                                               [A 80%|████████  | 8/10 [09:15<00:02,  1.23s/it]
+ 52%|█████▏    | 13/25 [07:47<05:54, 29.58s/it][A
+ 56%|█████▌    | 14/25 [07:47<05:31, 30.11s/it][A/usr/lib/python3.11/subprocess.py:1885: RuntimeWarning: os.fork() was called. os.fork() is incompatible with multithreaded code, and JAX is multithreaded, so this will likely lead to a deadlock.
+  self.pid = _fork_exec(
+                                              
+                                               [A 80%|████████  | 8/10 [09:45<00:02,  1.23s/it]
+ 56%|█████▌    | 14/25 [08:18<05:31, 30.11s/it][A
+ 60%|██████    | 15/25 [08:18<05:02, 30.26s/it][A/usr/lib/python3.11/subprocess.py:1885: RuntimeWarning: os.fork() was called. os.fork() is incompatible with multithreaded code, and JAX is multithreaded, so this will likely lead to a deadlock.
+  self.pid = _fork_exec(
+                                              
+                                               [A 80%|████████  | 8/10 [10:15<00:02,  1.23s/it]
+ 60%|██████    | 15/25 [08:47<05:02, 30.26s/it][A
+ 64%|██████▍   | 16/25 [08:47<04:29, 29.94s/it][A/usr/lib/python3.11/subprocess.py:1885: RuntimeWarning: os.fork() was called. os.fork() is incompatible with multithreaded code, and JAX is multithreaded, so this will likely lead to a deadlock.
+  self.pid = _fork_exec(
+                                              
+                                               [A 80%|████████  | 8/10 [10:44<00:02,  1.23s/it]
+ 64%|██████▍   | 16/25 [09:16<04:29, 29.94s/it][A
+ 68%|██████▊   | 17/25 [09:16<03:57, 29.64s/it][A/usr/lib/python3.11/subprocess.py:1885: RuntimeWarning: os.fork() was called. os.fork() is incompatible with multithreaded code, and JAX is multithreaded, so this will likely lead to a deadlock.
+  self.pid = _fork_exec(
+                                              
+                                               [A 80%|████████  | 8/10 [11:13<00:02,  1.23s/it]
+ 68%|██████▊   | 17/25 [09:46<03:57, 29.64s/it][A
+ 72%|███████▏  | 18/25 [09:46<03:27, 29.64s/it][A/usr/lib/python3.11/subprocess.py:1885: RuntimeWarning: os.fork() was called. os.fork() is incompatible with multithreaded code, and JAX is multithreaded, so this will likely lead to a deadlock.
+  self.pid = _fork_exec(
+                                              
+                                               [A 80%|████████  | 8/10 [11:42<00:02,  1.23s/it]
+ 72%|███████▏  | 18/25 [10:15<03:27, 29.64s/it][A
+ 76%|███████▌  | 19/25 [10:15<02:56, 29.45s/it][A/usr/lib/python3.11/subprocess.py:1885: RuntimeWarning: os.fork() was called. os.fork() is incompatible with multithreaded code, and JAX is multithreaded, so this will likely lead to a deadlock.
+  self.pid = _fork_exec(
+                                              
+                                               [A 80%|████████  | 8/10 [12:12<00:02,  1.23s/it]
+ 76%|███████▌  | 19/25 [10:44<02:56, 29.45s/it][A
+ 80%|████████  | 20/25 [10:44<02:27, 29.42s/it][A/usr/lib/python3.11/subprocess.py:1885: RuntimeWarning: os.fork() was called. os.fork() is incompatible with multithreaded code, and JAX is multithreaded, so this will likely lead to a deadlock.
+  self.pid = _fork_exec(
+                                              
+                                               [A 80%|████████  | 8/10 [12:42<00:02,  1.23s/it]
+ 80%|████████  | 20/25 [11:15<02:27, 29.42s/it][A
+ 84%|████████▍ | 21/25 [11:15<01:58, 29.70s/it][A/usr/lib/python3.11/subprocess.py:1885: RuntimeWarning: os.fork() was called. os.fork() is incompatible with multithreaded code, and JAX is multithreaded, so this will likely lead to a deadlock.
+  self.pid = _fork_exec(
+                                              
+                                               [A 80%|████████  | 8/10 [13:10<00:02,  1.23s/it]
+ 84%|████████▍ | 21/25 [11:43<01:58, 29.70s/it][A
+ 88%|████████▊ | 22/25 [11:43<01:27, 29.33s/it][A/usr/lib/python3.11/subprocess.py:1885: RuntimeWarning: os.fork() was called. os.fork() is incompatible with multithreaded code, and JAX is multithreaded, so this will likely lead to a deadlock.
+  self.pid = _fork_exec(
+                                              
+                                               [A 80%|████████  | 8/10 [13:39<00:02,  1.23s/it]
+ 88%|████████▊ | 22/25 [12:11<01:27, 29.33s/it][A
+ 92%|█████████▏| 23/25 [12:11<00:58, 29.06s/it][A/usr/lib/python3.11/subprocess.py:1885: RuntimeWarning: os.fork() was called. os.fork() is incompatible with multithreaded code, and JAX is multithreaded, so this will likely lead to a deadlock.
+  self.pid = _fork_exec(
+                                              
+                                               [A 80%|████████  | 8/10 [14:08<00:02,  1.23s/it]
+ 92%|█████████▏| 23/25 [12:40<00:58, 29.06s/it][A
+ 96%|█████████▌| 24/25 [12:40<00:29, 29.01s/it][A/usr/lib/python3.11/subprocess.py:1885: RuntimeWarning: os.fork() was called. os.fork() is incompatible with multithreaded code, and JAX is multithreaded, so this will likely lead to a deadlock.
+  self.pid = _fork_exec(
+                                              
+                                               [A 80%|████████  | 8/10 [14:37<00:02,  1.23s/it]
+ 96%|█████████▌| 24/25 [13:10<00:29, 29.01s/it][A
+100%|██████████| 25/25 [13:10<00:00, 29.16s/it][A100%|██████████| 25/25 [13:10<00:00, 31.61s/it]
+                                               80%|████████  | 8/10 [14:37<00:02,  1.23s/it] 90%|█████████ | 9/10 [14:37<04:30, 270.85s/it]100%|██████████| 10/10 [14:38<00:00, 187.62s/it]100%|██████████| 10/10 [14:38<00:00, 87.90s/it] 
+[ep 001] FAILURE | total 0/1 (0.0%)
+[ep 002] FAILURE | total 0/2 (0.0%)
+[ep 003] FAILURE | total 0/3 (0.0%)
+[ep 004] FAILURE | total 0/4 (0.0%)
+[ep 005] FAILURE | total 0/5 (0.0%)
+[ep 006] FAILURE | total 0/6 (0.0%)
+[ep 007] FAILURE | total 0/7 (0.0%)
+[ep 008] FAILURE | total 0/8 (0.0%)
+[ep 009] FAILURE | total 0/9 (0.0%)
+[ep 010] FAILURE | total 0/10 (0.0%)
+[ep 011] FAILURE | total 0/11 (0.0%)
+[ep 012] FAILURE | total 0/12 (0.0%)
+[ep 013] FAILURE | total 0/13 (0.0%)
+[ep 014] FAILURE | total 0/14 (0.0%)
+[ep 015] FAILURE | total 0/15 (0.0%)
+[ep 016] FAILURE | total 0/16 (0.0%)
+[ep 017] FAILURE | total 0/17 (0.0%)
+[ep 018] FAILURE | total 0/18 (0.0%)
+[ep 019] FAILURE | total 0/19 (0.0%)
+[ep 020] FAILURE | total 0/20 (0.0%)
+[ep 021] FAILURE | total 0/21 (0.0%)
+[ep 022] FAILURE | total 0/22 (0.0%)
+[ep 023] FAILURE | total 0/23 (0.0%)
+[ep 024] FAILURE | total 0/24 (0.0%)
+[ep 025] FAILURE | total 0/25 (0.0%)
+=== TASK DONE | success rate: 0/25 (0.0%) ===
+[Warning]: datasets path /workspace/openpi/third_party/libero/libero/datasets does not exist!
+[Warning]: datasets path /workspace/openpi/third_party/libero/libero/datasets does not exist!
+=== FINAL | total success rate: 0/25 (0.0%) ===
+Exception ignored in: <function MjRenderContext.__del__ at 0x739cff7a8ea0>
+Traceback (most recent call last):
+  File "/workspace/openpi/.venv/lib/python3.11/site-packages/robosuite/utils/binding_utils.py", line 199, in __del__
+    self.gl_ctx.free()
+  File "/workspace/openpi/.venv/lib/python3.11/site-packages/robosuite/renderers/context/egl_context.py", line 150, in free
+    EGL.eglDestroyContext(EGL_DISPLAY, self._context)
+  File "/workspace/openpi/.venv/lib/python3.11/site-packages/OpenGL/error.py", line 230, in glCheckError
+    raise self._errorClass(
+OpenGL.raw.EGL._errors.EGLError: EGLError(
+	err = EGL_NOT_INITIALIZED,
+	baseOperation = eglDestroyContext,
+	cArguments = (
+		<OpenGL._opaque.EGLDisplay_pointer object at 0x739b65f16d50>,
+		<OpenGL._opaque.EGLContext_pointer object at 0x739b5b76f920>,
+	),
+	result = 0
+)
+Exception ignored in: <function EGLGLContext.__del__ at 0x739cff7a8d60>
+Traceback (most recent call last):
+  File "/workspace/openpi/.venv/lib/python3.11/site-packages/robosuite/renderers/context/egl_context.py", line 155, in __del__
+    self.free()
+  File "/workspace/openpi/.venv/lib/python3.11/site-packages/robosuite/renderers/context/egl_context.py", line 150, in free
+    EGL.eglDestroyContext(EGL_DISPLAY, self._context)
+  File "/workspace/openpi/.venv/lib/python3.11/site-packages/OpenGL/error.py", line 230, in glCheckError
+    raise self._errorClass(
+OpenGL.raw.EGL._errors.EGLError: EGLError(
+	err = EGL_NOT_INITIALIZED,
+	baseOperation = eglDestroyContext,
+	cArguments = (
+		<OpenGL._opaque.EGLDisplay_pointer object at 0x739b65f16d50>,
+		<OpenGL._opaque.EGLContext_pointer object at 0x739b5b76f920>,
+	),
+	result = 0
+)
+Exception ignored in: <function MjRenderContext.__del__ at 0x739cff7a8ea0>
+Traceback (most recent call last):
+  File "/workspace/openpi/.venv/lib/python3.11/site-packages/robosuite/utils/binding_utils.py", line 199, in __del__
+    self.gl_ctx.free()
+  File "/workspace/openpi/.venv/lib/python3.11/site-packages/robosuite/renderers/context/egl_context.py", line 149, in free
+    EGL.eglMakeCurrent(EGL_DISPLAY, EGL.EGL_NO_SURFACE, EGL.EGL_NO_SURFACE, EGL.EGL_NO_CONTEXT)
+  File "/workspace/openpi/.venv/lib/python3.11/site-packages/OpenGL/error.py", line 230, in glCheckError
+    raise self._errorClass(
+OpenGL.raw.EGL._errors.EGLError: EGLError(
+	err = EGL_NOT_INITIALIZED,
+	baseOperation = eglMakeCurrent,
+	cArguments = (
+		<OpenGL._opaque.EGLDisplay_pointer object at 0x739b65f16d50>,
+		<OpenGL._opaque.EGLSurface_pointer object at 0x739d03d1b6e0>,
+		<OpenGL._opaque.EGLSurface_pointer object at 0x739d03d1b6e0>,
+		<OpenGL._opaque.EGLContext_pointer object at 0x739d03d1b650>,
+	),
+	result = 0
+)
+Exception ignored in: <function EGLGLContext.__del__ at 0x739cff7a8d60>
+Traceback (most recent call last):
+  File "/workspace/openpi/.venv/lib/python3.11/site-packages/robosuite/renderers/context/egl_context.py", line 155, in __del__
+    self.free()
+  File "/workspace/openpi/.venv/lib/python3.11/site-packages/robosuite/renderers/context/egl_context.py", line 149, in free
+    EGL.eglMakeCurrent(EGL_DISPLAY, EGL.EGL_NO_SURFACE, EGL.EGL_NO_SURFACE, EGL.EGL_NO_CONTEXT)
+  File "/workspace/openpi/.venv/lib/python3.11/site-packages/OpenGL/error.py", line 230, in glCheckError
+    raise self._errorClass(
+OpenGL.raw.EGL._errors.EGLError: EGLError(
+	err = EGL_NOT_INITIALIZED,
+	baseOperation = eglMakeCurrent,
+	cArguments = (
+		<OpenGL._opaque.EGLDisplay_pointer object at 0x739b65f16d50>,
+		<OpenGL._opaque.EGLSurface_pointer object at 0x739d03d1b6e0>,
+		<OpenGL._opaque.EGLSurface_pointer object at 0x739d03d1b6e0>,
+		<OpenGL._opaque.EGLContext_pointer object at 0x739d03d1b650>,
+	),
+	result = 0
+)
