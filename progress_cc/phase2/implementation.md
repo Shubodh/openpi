@@ -165,8 +165,8 @@ Run N=5 each. If either endpoint fails, the implementation is wrong — debug be
 ### Phase 2c (run after 2a+2b complete)
 
 - [ ] **C1.** Run Pair A BOTH case sanity (N=5) + main run (N=10): `wine_bottle/rack ↔ bowl/plate` — gate for all of Phase 2c
-- [ ] **C2a.** Run Pair A destination-only (N=10): clean=`wine_bottle/rack`, corrupt=`bowl/plate`, patch only destination token (rack→plate pos) — **video-only, no automated metric**; inspect videos for bowl/rack behavior
-- [ ] **C2b.** Run Pair A object-only (N=10): clean=`wine_bottle/rack`, corrupt=`bowl/plate`, patch only object tokens (wine_bottle→bowl pos 591-592) — **video-only, no automated metric**; inspect videos for wine_bottle/plate behavior
+- [ ] **C2a.** Run Pair A destination-only (N=10): clean=`wine_bottle/rack`, corrupt=`bowl/plate`, patch only destination token (rack→plate pos) — **video-only, no automated metric**; human inspects videos later for bowl/rack behavior
+- [ ] **C2b.** Run Pair A object-only (N=10): clean=`wine_bottle/rack`, corrupt=`bowl/plate`, patch only object tokens (wine_bottle→bowl pos 591-592) — **video-only, no automated metric**; human inspects videos later for wine_bottle/plate behavior
 - [ ] **C3.** Run Pair D sanity (N=5) + main run (N=10): `bowl/stove ↔ turn_on_stove` — motor-class flip test
 - [ ] **C4.** Write `3_PHASE2C_COMPLETE.txt` (or `0_PHASE2C_FAILURE.txt` if C1 fails)
 
