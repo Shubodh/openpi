@@ -562,6 +562,12 @@ Rules:
 
 **Disclaimer:** Phase 2c experiments all have automated success metrics (the done flag always measures the clean task outcome — see `status_cc/misc/libero_suite_choice_detailed.md §Automated success metric` for the full explanation). However, some corrupt prompts (e.g., "put the bowl on the rack") are compositionally novel — the model has not been trained on that exact combination. The corrupt unpatched baseline may show unusual behavior, which is expected and worth noting in videos. The patched-run success rate is still reliable. **Agent self-correction rule:** C1 is the correctness anchor. If C1 fails (< 2/5), do not run C2a, C2b, or Pair D — the mechanism does not work on cross-pair patching and further runs have no scientific value.
 
+**What C1, C2a, C2b, Pair D mean (defined in full below):**
+- **C1** — Pair A BOTH case: `wine_bottle/rack` (clean) ↔ `bowl/plate` (corrupt). Both object AND destination differ.
+- **C2a** — Pair A destination-only: same object (wine bottle), different destination (rack vs cabinet).
+- **C2b** — Pair A object-only: same destination (rack), different object (wine bottle vs bowl). Corrupt prompt "put the bowl on the rack" is compositionally novel.
+- **Pair D** — `bowl/stove` (clean) ↔ `turn on the stove` (corrupt). Motor-class flip: pick-place vs. knob-turn.
+
 **Scientific questions:**
 - Can KV-cache patching flip behavior when BOTH object AND destination differ (C1)?
 - Is the encoding decomposable — can we flip destination alone (C2a) or object alone (C2b)?
