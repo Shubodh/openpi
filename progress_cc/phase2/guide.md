@@ -309,6 +309,8 @@ Continue until either:
 - A region of ~20–50 positions clears > 2/10 consistently, or
 - Further narrowing drops below threshold (the previous larger region is the minimal set)
 
+**Token mismatch note:** Phase 2a's clean and corrupt prompts differ in token count ("bowl"=1 token vs "wine bottle"=2 tokens), so language positions are not perfectly aligned between donor and corrupt. In practice this is low risk: image binary search (0–587) is unaffected by text length; bulk language patching (A4-lang, entire 588–787) overwrites the whole region so misalignment is a wash; and the binary search stopping criterion (~20–50 positions) is coarse enough to never require single-token precision. **If the language path (A4-lang passed) narrows to individual token positions, apply the token alignment convention from Step C2-prep before targeting specific tokens.**
+
 **Commit after each binary search iteration.**
 
 ---
