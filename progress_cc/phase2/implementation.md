@@ -188,6 +188,7 @@ Run N=5 each. If either endpoint fails, the implementation is wrong — debug be
 | A-bin-1a | corrupt | per-step image half 0–293 | 10 | 1/10 (10%) | `progress_cc/phase2/signal_files/logs/run_20260505_170647_phase2a_img0-293_clean.txt` |
 | A-bin-1b | corrupt | per-step image half 294–587 | 10 | 7/10 (70%) | `progress_cc/phase2/signal_files/logs/run_20260505_171739_phase2a_img294-587_clean.txt` |
 | A-bin-2a | corrupt | per-step image quarter 294–440 | 10 | 0/10 (0%) | `progress_cc/phase2/signal_files/logs/run_20260505_172654_phase2a_img294-440_clean.txt` |
+| A-bin-2b | corrupt | per-step image quarter 441–587 | 10 | 0/10 (0%) | `progress_cc/phase2/signal_files/logs/run_20260505_173744_phase2a_img441-587_clean.txt` |
 | | | | | | |
 
 ### 6.2 Implementation notes
@@ -203,14 +204,15 @@ Run N=5 each. If either endpoint fails, the implementation is wrong — debug be
 | 2026-05-05 | Binary split 0–293 recovered only 1/10, below the meaningful threshold. Next probe is the complementary image half 294–587. |
 | 2026-05-05 | Binary split 294–587 recovered 7/10, so this half is promoted for recursive localization. Next probes split it into 294–440 and 441–587. |
 | 2026-05-05 | Recursive split 294–440 recovered 0/10, below threshold. Next probe is the complementary quarter 441–587. |
+| 2026-05-05 | Recursive split 441–587 also recovered 0/10. Since the parent region 294–587 recovered 7/10 but both quarters failed, 294–587 is the smallest defensible contiguous region for promotion to N=25. |
 
 ### 6.3 Minimal patch set found
 
 *(Fill after binary search complete.)*
 
-- Minimal sufficient positions: TBD
+- Minimal sufficient positions: 294–587 candidate pending N=25 promotion
 - Success rate at N=25: TBD
-- Comparison to Phase 1 result (294–587 or similar): TBD
+- Comparison to Phase 1 result (294–587 or similar): Phase 2a currently matches Phase 1's main image-token half, though Phase 1 later narrowed to 294–514; Phase 2a quarters 294–440 and 441–587 both failed alone.
 
 ---
 
@@ -267,8 +269,8 @@ Run N=5 each. If either endpoint fails, the implementation is wrong — debug be
 
 *(Agent updates this section at the end of each work session.)*
 
-**Last updated:** 2026-05-05 — image quarter 294–440 complete.
+**Last updated:** 2026-05-05 — image quarter 441–587 complete.
 
-**Current state:** Image quarter 294–440 is insufficient at 0/10.
+**Current state:** Binary search stopped at candidate minimal region 294–587 because both quarters failed while the parent region recovered 7/10.
 
-**Next action:** Run image quarter 441–587 at N=10.
+**Next action:** Promote positions 294–587 to N=25 and write the Phase 2a signal file if it clears >5/25.
