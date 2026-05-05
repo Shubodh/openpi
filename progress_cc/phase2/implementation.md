@@ -186,6 +186,7 @@ Run N=5 each. If either endpoint fails, the implementation is wrong — debug be
 | A-lang | corrupt | per-step language-only 588–787 | 5 | 0/5 (0%) | `progress_cc/phase2/signal_files/logs/run_20260505_164700_phase2a_lang588-787_clean.txt` |
 | A-D3 | corrupt | per-step image prefix 0–587 | 10 | 10/10 (100%) | `progress_cc/phase2/signal_files/logs/run_20260505_165623_phase2a_img0-587_clean.txt` |
 | A-bin-1a | corrupt | per-step image half 0–293 | 10 | 1/10 (10%) | `progress_cc/phase2/signal_files/logs/run_20260505_170647_phase2a_img0-293_clean.txt` |
+| A-bin-1b | corrupt | per-step image half 294–587 | 10 | 7/10 (70%) | `progress_cc/phase2/signal_files/logs/run_20260505_171739_phase2a_img294-587_clean.txt` |
 | | | | | | |
 
 ### 6.2 Implementation notes
@@ -199,6 +200,7 @@ Run N=5 each. If either endpoint fails, the implementation is wrong — debug be
 | 2026-05-05 | A4 language-only sanity failed 0/5. This replicates Phase 1's language-slot insufficiency on the object-identity axis, so the search proceeds to image prefix positions 0–587. |
 | 2026-05-05 | A4 image-prefix probe recovered 10/10, showing image-token K/V positions 0–587 are sufficient for Simple Pair 2 recovery. Proceeding to binary localization inside image tokens. |
 | 2026-05-05 | Binary split 0–293 recovered only 1/10, below the meaningful threshold. Next probe is the complementary image half 294–587. |
+| 2026-05-05 | Binary split 294–587 recovered 7/10, so this half is promoted for recursive localization. Next probes split it into 294–440 and 441–587. |
 
 ### 6.3 Minimal patch set found
 
@@ -263,8 +265,8 @@ Run N=5 each. If either endpoint fails, the implementation is wrong — debug be
 
 *(Agent updates this section at the end of each work session.)*
 
-**Last updated:** 2026-05-05 — image binary half 0–293 complete.
+**Last updated:** 2026-05-05 — image binary half 294–587 complete.
 
-**Current state:** Image half 0–293 is insufficient at 1/10.
+**Current state:** Image half 294–587 is meaningful at 7/10 and is the active localization region.
 
-**Next action:** Run image binary half 294–587 at N=10.
+**Next action:** Run recursive split probes 294–440 and 441–587 at N=10.
