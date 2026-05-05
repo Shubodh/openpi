@@ -5,7 +5,7 @@ when-to-read: You are the autonomous agent running Phase 2. Read this before tou
 tl;dr:
   - Phase 2a: replicate Phase 1's methodology on Simple Pair 2 (different object, same destination — cabinet) → test language-token patching (new vs Phase 1) then image-token, find minimal sufficient patch set.
   - Phase 2b: alpha sweep on Phase 2a's minimal set — verify endpoints first (α=0 ≡ corrupt, α=1 ≡ clean), then run intermediates.
-  - Phase 2c: challenging cross-pair experiments — flip BOTH object+destination (Pair A), test decomposability (C2a dest-only, C2b obj-only), test motor-class flip (Pair D). All have automated success metrics.
+  - Phase 2c: C1 patches ALL language tokens (wine_bottle/rack ↔ bowl/plate, automated metric); C2a patches ONLY destination tokens ("rack" from clean into corrupt's "plate" position → effective behavior bowl/rack, video-only); C2b patches ONLY object tokens ("wine bottle" from clean into corrupt's "bowl" position → effective behavior wine_bottle/plate, video-only). Pair D motor-class flip (automated metric). C1/C2a/C2b all use identical clean+corrupt prompts — only patch positions differ.
   - Per-step donor only. Pre-computed donor is known to fail (stale images). Do not use main_patching_expt.py for patching runs — use main_patching_expt_per_step_donor.py.
   - No success signal for intermediate alpha values — just save videos and CSV. Do not attempt to interpret or iterate on intermediate results.
 ---
@@ -560,13 +560,14 @@ Rules:
 
 **Prerequisite:** `progress_cc/phase2/signal_files/2_PHASE2B_ALPHA_SWEEP_COMPLETE.txt` exists. Do not begin Phase 2c until Phase 2a and 2b are fully done.
 
-**Disclaimer:** Phase 2c experiments all have automated success metrics (the done flag always measures the clean task outcome — see `status_cc/misc/libero_suite_choice_detailed.md §Automated success metric` for the full explanation). However, some corrupt prompts (e.g., "put the bowl on the rack") are compositionally novel — the model has not been trained on that exact combination. The corrupt unpatched baseline may show unusual behavior, which is expected and worth noting in videos. The patched-run success rate is still reliable. **Agent self-correction rule:** C1 is the correctness anchor. If C1 fails (< 2/5), do not run C2a, C2b, or Pair D — the mechanism does not work on cross-pair patching and further runs have no scientific value.
+**Disclaimer:** Only C1 and Pair D have automated success metrics (done flag measures the clean task). **C2a and C2b are video-only** — they patch only a subset of language tokens into the SAME bowl/plate corrupt run, producing compositionally novel effective tasks (bowl/rack for C2a, wine_bottle/plate for C2b) that are not in LIBERO-Goal 10, so the done flag gives no useful signal. Save videos and move on — video interpretation is the human's job, not the agent's. **Agent self-correction rule:** C1 is the correctness anchor. If C1 fails (< 2/5), do not run C2a, C2b, or Pair D — write `0_PHASE2C_FAILURE.txt` and stop.
 
 **What C1, C2a, C2b, Pair D mean (defined in full below):**
-- **C1** — Pair A BOTH case: `wine_bottle/rack` (clean) ↔ `bowl/plate` (corrupt). Both object AND destination differ.
-- **C2a** — Pair A destination-only: same object (wine bottle), different destination (rack vs cabinet).
-- **C2b** — Pair A object-only: same destination (rack), different object (wine bottle vs bowl). Corrupt prompt "put the bowl on the rack" is compositionally novel.
-- **Pair D** — `bowl/stove` (clean) ↔ `turn on the stove` (corrupt). Motor-class flip: pick-place vs. knob-turn.
+- **C1, C2a, C2b all use the SAME prompt pair:** clean=`"put the wine bottle on the rack"`, corrupt=`"put the bowl on the plate"`. What differs is *which KV token positions* are patched from clean into corrupt.
+- **C1** — Patch ALL language positions (588–787). Full clean signal → automated metric (done flag: wine bottle on rack?).
+- **C2a** — Patch ONLY the destination token ("rack", ~position 595 in clean) into the corrupt run's destination position ("plate", ~position 594 in corrupt). Effective behavior: bowl/rack — compositionally novel. **Video-only. No automated metric.**
+- **C2b** — Patch ONLY the object tokens ("wine bottle", positions 591–592 in clean) into the corrupt run's object position ("bowl", position 591 in corrupt). Effective behavior: wine_bottle/plate — compositionally novel. **Video-only. No automated metric.**
+- **Pair D** — Separate pair. clean=`"put the bowl on the stove"`, corrupt=`"turn on the stove"`. Full prefix patch. Motor-class flip: pick-place vs. knob-turn. Automated metric.
 
 **Scientific questions:**
 - Can KV-cache patching flip behavior when BOTH object AND destination differ (C1)?
@@ -603,7 +604,7 @@ python examples/libero/main_patching_expt_per_step_donor.py \
   --args.task-name-filter "put the wine bottle on the rack" \
   --args.clean-prompt "put the wine bottle on the rack" \
   --args.corrupt-prompt "put the bowl on the plate" \
-  --args.patch-positions "$(python -c "print(','.join(map(str, range(788))))")" \
+  --args.patch-positions "$(python -c "print(','.join(map(str, range(588, 788))))")" \
   --args.num-trials-per-task 5 \
   --args.save-all-videos \
   --args.video-out-path data/libero/videos/phase2c/pairA_both_sanity
@@ -616,22 +617,170 @@ python examples/libero/main_patching_expt_per_step_donor.py \
 
 **Interpret:**
 - ≥ 3/5: cross-pair patching works. Run N=10 (label `phase2c_pairA_both_n10`, same command, `--args.num-trials-per-task 10`). Proceed to C2a.
-- < 3/5: stop Phase 2c. Write `0_PHASE2C_FAILURE.txt` (see below). Do not run C2a, C2b, or Pair D.
+- < 2/5: stop Phase 2c. Write `0_PHASE2C_FAILURE.txt` (see below). Do not run C2a, C2b, or Pair D.
 
 **Commit after C1.**
 
 ---
 
-### Step C2a — Pair A, destination-only sub-test (automated metric)
+### Step C2-prep — Identify object and destination token positions
 
-Same object (wine bottle), different destination (rack vs cabinet). Tests whether destination encoding alone drives the behavioral difference.
+Before running C2a or C2b, verify the exact KV positions for "wine bottle" and "rack" in the clean prompt, and "bowl" and "plate" in the corrupt prompt. The expected positions (RunPod-verified 2026-04-29):
+
+| Token | Prompt | Local index | Absolute KV position |
+|-------|--------|-------------|----------------------|
+| "wine" | clean | 3 | 591 |
+| "bottle" | clean | 4 | 592 |
+| "rack" | clean | 7 | 595 |
+| "bowl" | corrupt | 3 | 591 |
+| "plate" | corrupt | 6 | 594 |
+
+*Absolute KV position = 588 + local index. Language tokens start at absolute index 588 (image region occupies 0–587).*
+
+Run this tokenizer check to confirm (from the `openpi/` directory):
+
+```bash
+python -c "
+import glob, sentencepiece as spm
+
+# Find the PaliGemma SentencePiece tokenizer
+candidates = (glob.glob('**/*.model', recursive=True) +
+              glob.glob(os.path.expanduser('~/.cache/**/*.model'), recursive=True))
+tok_path = next((p for p in candidates if 'tokenizer' in p.lower()), None)
+if tok_path is None:
+    raise RuntimeError('No tokenizer.model found — try: find . -name tokenizer.model')
+sp = spm.SentencePieceProcessor(); sp.Load(tok_path)
+
+LANG_START = 588  # absolute KV index where language tokens begin
+for prompt, label in [
+    ('put the wine bottle on the rack', 'clean'),
+    ('put the bowl on the plate',       'corrupt'),
+]:
+    tokens = sp.EncodeAsPieces(prompt)
+    print(f'--- {label}: \"{prompt}\" ---')
+    for i, tok in enumerate(tokens):
+        print(f'  local[{i:2d}]  abs[{LANG_START + i}]  {tok!r}')
+    print()
+import os  # needed for expanduser above — move to top if running standalone
+"
+```
+
+If verification confirms the positions above, proceed. **Record actual positions if they differ from the table** — they determine C2a and C2b patch-positions.
+
+---
+
+**Token alignment convention — self-contained, applies to any future pair**
+
+When clean and corrupt prompts differ in token count, two distinct problems arise. Both are addressed here so the agent does not need to rediscover the logic for each new pair.
+
+**Problem 1 — Span mismatch.** A word in one prompt has more tokens than the corresponding word in the other. For example, "wine bottle" (2 tokens) vs "bowl" (1 token).
+
+Convention:
+- **For object tokens (C2b):** patch the full span of the longer name. "wine bottle" (positions 591–592 in clean) → overwrite positions 591–592 in the corrupt run. Position 591 maps wine→bowl (same-index, direct). Position 592 maps "bottle" (clean) → "on" (corrupt) — this is an approximation, since "bottle" and "on" are different tokens, but the pair is read together as a unit. Run both 591+592 first. If behavior looks wrong (robot acts on neither object correctly), retry with 591 only.
+- **For all other single-word differences:** patch only that one position. No span consideration needed.
+
+**Problem 2 — Position shift.** Because the two prompts have different-length spans at word W, every token *after* W shifts by N positions between clean and corrupt, where N = (clean span length) − (corrupt span length). This offset is constant for all subsequent tokens.
+
+Example here: "wine bottle" (N=2) vs "bowl" (N=1) → shift = +1 for clean relative to corrupt. So "rack" at clean[595] corresponds to corrupt[594] — you must write clean[595] → corrupt[594], not clean[594] → corrupt[594].
+
+Convention:
+- Whenever positions differ between clean and corrupt for a target token, use `--args.patch-positions` for the destination (corrupt) position and `--args.patch-source-positions` for the source (donor) position (e.g., `--args.patch-positions "594" --args.patch-source-positions "595"`).
+- Never assume same-index for tokens that come after a span-length difference. Always compute the offset from the tokenizer output above.
+- If the per-step donor script does not yet support `--args.patch-source-positions` / `--args.patch-dest-positions`, add these parameters first (additive change; when only `--args.patch-positions` is provided, behavior is unchanged — source and dest positions are identical).
+
+**General procedure for any new pair:** tokenize both prompts, find the first word where token counts differ, compute the shift (clean_span_len − corrupt_span_len), apply that offset to all subsequent token positions. Record source and dest positions explicitly in the experiment table before running.
+
+> Deeper rationale on span-mismatch options (A/B/C) is in `status_cc/kv_cache_findings.md §6`. Refer to it only if the conventions above produce ambiguous results.
+
+---
+
+### Step C2-code — Add source→dest position remapping (only if not already present)
+
+Check whether `main_patching_expt_per_step_donor.py` already has `--args.patch-source-positions`. If yes, skip this step. If not, make the following **additive** changes (defaults preserve all existing behavior):
+
+**`src/openpi/models/pi0.py` — `_apply_kv_patch`:**
+
+Add `patch_source_positions` parameter (default `None` = same as patch_positions, i.e., no change for existing callers):
+
+```python
+def _apply_kv_patch(
+    self,
+    corrupt_kv_cache: _gemma.KVCache,
+    donor_kv_cache: _gemma.KVCache,
+    patch_positions: tuple[int, ...],          # destination positions in corrupt cache
+    patch_layers: tuple[int, ...] | None = None,
+    patch_k: bool = True,
+    patch_v: bool = True,
+    patch_source_positions: tuple[int, ...] | None = None,  # NEW — source positions in donor cache; None = same as patch_positions
+) -> _gemma.KVCache:
+    K_d, V_d = donor_kv_cache
+    K, V = corrupt_kv_cache
+    layer_indices = tuple(range(K.shape[0])) if patch_layers is None else patch_layers
+    src_positions = patch_source_positions if patch_source_positions is not None else patch_positions  # NEW
+    for src_pos, dst_pos in zip(src_positions, patch_positions):                                       # CHANGED (was: for pos in patch_positions)
+        K_patched = K.at[layer_indices, :, dst_pos, :, :].set(K_d[layer_indices, :, src_pos, :, :])   # CHANGED (was: pos, pos)
+        V_patched = V.at[layer_indices, :, dst_pos, :, :].set(V_d[layer_indices, :, src_pos, :, :])   # CHANGED (was: pos, pos)
+        K = jax.lax.cond(patch_k, lambda _: K_patched, lambda _: K, operand=None)
+        V = jax.lax.cond(patch_v, lambda _: V_patched, lambda _: V, operand=None)
+    return (K, V)
+```
+
+**`src/openpi/models/pi0.py` — `sample_actions`:** add parameter and pass through:
+
+```python
+def sample_actions(
+    self,
+    rng,
+    observation,
+    *,
+    num_steps=10,
+    noise=None,
+    donor_kv_cache=None,
+    patch_positions=(594,),
+    patch_layers=None,
+    patch_k=True,
+    patch_v=True,
+    patch_source_positions=None,   # NEW
+):
+    ...
+    if donor_kv_cache is not None:
+        kv_cache = self._apply_kv_patch(
+            kv_cache, donor_kv_cache, patch_positions,
+            patch_layers, patch_k, patch_v,
+            patch_source_positions=patch_source_positions,   # NEW
+        )
+```
+
+**`examples/libero/main_patching_expt_per_step_donor.py` — `Args` and wiring:**
+
+```python
+# In Args dataclass — add after patch_positions:
+patch_source_positions: str = ""  # NEW — if set, donor positions to read from (comma-separated); defaults to same as patch_positions
+
+# In main(), after patch_positions is parsed — add:
+patch_source_positions = _parse_int_spec(args.patch_source_positions) if args.patch_source_positions.strip() else None
+
+# In _sample_kwargs wiring — add alongside patch_positions:
+policy._sample_kwargs["patch_source_positions"] = patch_source_positions
+```
+
+**Verify:** run A-C3 full-prefix with no `--args.patch-source-positions` flag — result must match the earlier A-C3 run. This confirms the default path is unchanged.
+
+**Commit:** `git commit -m "phase2c C2-code: add patch_source_positions for source→dest remapping (additive, default=None)"`
+
+---
+
+### Step C2a — Pair A, destination-only sub-test (video-only)
+
+Same clean/corrupt prompts as C1. Patch ONLY the destination token ("rack", clean position 595) into the corrupt run's destination position ("plate", corrupt position 594). Effective behavior: bowl/rack — compositionally novel, not in LIBERO-Goal 10.
 
 | Parameter | Value |
 |-----------|-------|
 | `--args.clean-prompt` | `"put the wine bottle on the rack"` |
-| `--args.corrupt-prompt` | `"put the wine bottle on top of the cabinet"` |
+| `--args.corrupt-prompt` | `"put the bowl on the plate"` (same as C1) |
 | `--args.task-name-filter` | `"put the wine bottle on the rack"` |
-| Success metric | Automated (both are LIBERO-Goal tasks) |
+| Patch positions | Source: 595 (clean "rack") → Destination: 594 (corrupt "plate") |
+| Success metric | **Video-only. No automated metric.** Done flag checks wine_bottle/rack, which won't trigger for bowl/rack behavior. |
 
 ```bash
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
@@ -644,8 +793,9 @@ python examples/libero/main_patching_expt_per_step_donor.py \
   --args.task-suite-name libero_goal \
   --args.task-name-filter "put the wine bottle on the rack" \
   --args.clean-prompt "put the wine bottle on the rack" \
-  --args.corrupt-prompt "put the wine bottle on top of the cabinet" \
-  --args.patch-positions "$(python -c "print(','.join(map(str, range(788))))")" \
+  --args.corrupt-prompt "put the bowl on the plate" \
+  --args.patch-positions "594" \
+  --args.patch-source-positions "595" \
   --args.num-trials-per-task 10 \
   --args.save-all-videos \
   --args.video-out-path data/libero/videos/phase2c/pairA_destonly
@@ -656,22 +806,25 @@ python examples/libero/main_patching_expt_per_step_donor.py \
   | tee "$CLEAN"
 ```
 
-**Interpret:** Record success rate in `progress_cc/phase2/implementation.md §9.1`. No minimum threshold — just record and proceed to C2b.
+**No automated metric.** Save videos to `data/libero/videos/phase2c/pairA_destonly` and record the run in `progress_cc/phase2/implementation.md §9.1`. Video interpretation is the human's job. Proceed to C2b.
 
 **Commit after C2a.**
 
 ---
 
-### Step C2b — Pair A, object-only sub-test
+### Step C2b — Pair A, object-only sub-test (video-only)
 
-Same destination (rack), different object (wine bottle vs bowl). Corrupt prompt "put the bowl on the rack" is compositionally novel (not a LIBERO-Goal task), but the done flag still measures the clean task (wine bottle on rack) — automated metric holds.
+Same clean/corrupt prompts as C1. Patch ONLY the object tokens ("wine bottle", clean positions 591–592) into the corrupt run's object position ("bowl", corrupt position 591). Effective behavior: wine_bottle/plate — compositionally novel, not in LIBERO-Goal 10.
+
+Note: position 591 is same-index in both prompts (wine=591 in clean, bowl=591 in corrupt) so this is a direct substitution. Position 592 is "bottle" in clean but "on" in corrupt — patch both 591+592 as a first attempt; if behavior is odd, try 591 alone.
 
 | Parameter | Value |
 |-----------|-------|
 | `--args.clean-prompt` | `"put the wine bottle on the rack"` |
-| `--args.corrupt-prompt` | `"put the bowl on the rack"` (not a LIBERO-Goal task — model may show novel behavior on the unpatched corrupt run) |
+| `--args.corrupt-prompt` | `"put the bowl on the plate"` (same as C1) |
 | `--args.task-name-filter` | `"put the wine bottle on the rack"` |
-| Success metric | Automated for patched run (done flag checks wine bottle on rack). Unpatched corrupt baseline may show unusual behavior — inspect videos. |
+| Patch positions | 591, 592 (clean "wine", "bottle" → corrupt "bowl", "on") |
+| Success metric | **Video-only. No automated metric.** Done flag checks wine_bottle/rack, which won't trigger for wine_bottle/plate behavior. |
 
 ```bash
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
@@ -684,8 +837,8 @@ python examples/libero/main_patching_expt_per_step_donor.py \
   --args.task-suite-name libero_goal \
   --args.task-name-filter "put the wine bottle on the rack" \
   --args.clean-prompt "put the wine bottle on the rack" \
-  --args.corrupt-prompt "put the bowl on the rack" \
-  --args.patch-positions "$(python -c "print(','.join(map(str, range(788))))")" \
+  --args.corrupt-prompt "put the bowl on the plate" \
+  --args.patch-positions "591,592" \
   --args.num-trials-per-task 10 \
   --args.save-all-videos \
   --args.video-out-path data/libero/videos/phase2c/pairA_objonly
@@ -696,7 +849,7 @@ python examples/libero/main_patching_expt_per_step_donor.py \
   | tee "$CLEAN"
 ```
 
-**Interpret:** Record success rate in §9.1. Note that the done flag is valid for the patched run. Inspect videos to observe whether the model goes for wine bottle (expected if patching works on object encoding).
+**No automated metric.** Save videos to `data/libero/videos/phase2c/pairA_objonly` and record the run in `progress_cc/phase2/implementation.md §9.1`. Video interpretation is the human's job.
 
 **Commit after C2b.**
 
@@ -755,10 +908,10 @@ Write `progress_cc/phase2/signal_files/3_PHASE2C_COMPLETE.txt`:
 ```
 Phase 2c complete — [DATE]
 
-Pair A (BOTH, wine_bottle/rack ↔ bowl/plate):
-  C1 sanity: X/5; N=10: Y/10
-  C2a (dest-only, wine_bottle/rack ↔ wine_bottle/cabinet): Z/10
-  C2b (obj-only, wine_bottle/rack ↔ bowl/rack): W/10
+Pair A (clean=wine_bottle/rack, corrupt=bowl/plate — same prompts for C1/C2a/C2b, patch positions differ):
+  C1 sanity (all lang tokens 588-787): X/5; N=10: Y/10 — automated metric
+  C2a (dest-only, patch rack→plate pos): videos saved to data/libero/videos/phase2c/pairA_destonly/
+  C2b (obj-only, patch wine_bottle→bowl pos 591-592): videos saved to data/libero/videos/phase2c/pairA_objonly/
 
 Pair D (bowl/stove ↔ turn_on_stove):
   C3 sanity: X/5; N=10: Y/10

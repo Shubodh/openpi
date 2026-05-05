@@ -165,8 +165,8 @@ Run N=5 each. If either endpoint fails, the implementation is wrong — debug be
 ### Phase 2c (run after 2a+2b complete)
 
 - [ ] **C1.** Run Pair A BOTH case sanity (N=5) + main run (N=10): `wine_bottle/rack ↔ bowl/plate` — gate for all of Phase 2c
-- [ ] **C2a.** Run Pair A destination-only (N=10): `wine_bottle/rack ↔ wine_bottle/cabinet` — automated metric
-- [ ] **C2b.** Run Pair A object-only (N=10): `wine_bottle/rack ↔ bowl/rack` — automated metric (corrupt prompt compositionally novel; inspect videos)
+- [ ] **C2a.** Run Pair A destination-only (N=10): clean=`wine_bottle/rack`, corrupt=`bowl/plate`, patch only destination token (rack→plate pos) — **video-only, no automated metric**; inspect videos for bowl/rack behavior
+- [ ] **C2b.** Run Pair A object-only (N=10): clean=`wine_bottle/rack`, corrupt=`bowl/plate`, patch only object tokens (wine_bottle→bowl pos 591-592) — **video-only, no automated metric**; inspect videos for wine_bottle/plate behavior
 - [ ] **C3.** Run Pair D sanity (N=5) + main run (N=10): `bowl/stove ↔ turn_on_stove` — motor-class flip test
 - [ ] **C4.** Write `3_PHASE2C_COMPLETE.txt` (or `0_PHASE2C_FAILURE.txt` if C1 fails)
 
@@ -239,14 +239,14 @@ Run N=5 each. If either endpoint fails, the implementation is wrong — debug be
 
 ### 9.1 Results table
 
-| Run code | Pair | Corrupt prompt | N | Success rate | Log file |
-|----------|------|---------------|---|-------------|----------|
-| C1-sanity | A (BOTH) | put the bowl on the plate | 5 | | |
-| C1-main | A (BOTH) | put the bowl on the plate | 10 | | |
-| C2a | A (dest-only) | put the wine bottle on top of the cabinet | 10 | | |
-| C2b | A (obj-only) | put the bowl on the rack | 10 | | |
-| C3-sanity | D (motor-class) | turn on the stove | 5 | | |
-| C3-main | D (motor-class) | turn on the stove | 10 | | |
+| Run code | Pair | Corrupt prompt | N | Result | Metric |
+|----------|------|---------------|---|--------|--------|
+| C1-sanity | A (BOTH, all lang tokens 588-787) | put the bowl on the plate | 5 | | automated success rate |
+| C1-main | A (BOTH, all lang tokens 588-787) | put the bowl on the plate | 10 | | automated success rate |
+| C2a | A (dest-only patch, pos 595→594) | put the bowl on the plate | 10 | | video-only: bowl/rack behavior? |
+| C2b | A (obj-only patch, pos 591-592) | put the bowl on the plate | 10 | | video-only: wine_bottle/plate behavior? |
+| C3-sanity | D (motor-class flip) | turn on the stove | 5 | | automated success rate |
+| C3-main | D (motor-class flip) | turn on the stove | 10 | | automated success rate |
 
 ### 9.2 Interpretation
 
