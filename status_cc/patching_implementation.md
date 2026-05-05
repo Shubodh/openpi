@@ -533,6 +533,7 @@ LIBERO-Goal initial states vary in object placement. For the sanity check, this 
 | Step 5 image quarter B2 | `"put the bowl on the stove"` | image prefix positions 441-587 from per-step donor | 10 | **0%** (0/10) | `run_20260505_072014_step5_img441-587_n10_clean.txt`; upper half of 294-587 is also below threshold on its own |
 | Step 5 image boundary window | `"put the bowl on the stove"` | image prefix positions 294-514 from per-step donor | 10 | **80%** (8/10) | `run_20260505_073035_step5_img294-514_n10_clean.txt`; removing 515-587 preserves the full 294-587 recovery |
 | Step 5 image right-trim probe | `"put the bowl on the stove"` | image prefix positions 294-477 from per-step donor | 10 | **20%** (2/10) | `run_20260505_073828_step5_img294-477_n10_clean.txt`; trimming 478-514 drops below the strict meaningful threshold |
+| Step 5 image left-trim probe | `"put the bowl on the stove"` | image prefix positions 331-514 from per-step donor | 10 | **20%** (2/10) | `run_20260505_074857_step5_img331-514_n10_clean.txt`; trimming 294-330 also drops below the strict meaningful threshold |
 | Patched (D3, pos 594, K+V) | `"put the bowl on the stove"` | pos 594 from donor | 25 | — | |
 
 ### 8.2 Implementation notes
@@ -554,6 +555,7 @@ LIBERO-Goal initial states vary in object placement. For the sanity check, this 
 | 2026-05-05 | Step 5 image quarter B2 (`run_20260505_072014_step5_img441-587_n10_clean.txt`): positions 441-587 recovered 0/10, also below threshold. Since the parent range 294-587 recovered 8/10, the sufficient signal is likely distributed across subregions or depends on crossing the 391/392 camera boundary; next probes should test combined or boundary windows rather than single halves. |
 | 2026-05-05 | Step 5 image boundary window (`run_20260505_073035_step5_img294-514_n10_clean.txt`): positions 294-514 recovered 8/10, matching the 294-587 parent while removing 515-587. The sufficient region still crosses the left-wrist/right-wrist image-token boundary, but the far tail of the right-wrist block is not needed. |
 | 2026-05-05 | Step 5 image right-trim probe (`run_20260505_073828_step5_img294-477_n10_clean.txt`): positions 294-477 recovered 2/10. This is weak signal but not a meaningful result under the `>2/10` rule, so the current smallest defensible meaningful region remains 294-514 unless a left-trim probe succeeds. |
+| 2026-05-05 | Step 5 image left-trim probe (`run_20260505_074857_step5_img331-514_n10_clean.txt`): positions 331-514 recovered 2/10. Since both edge trims of 294-514 dropped to 2/10 while 294-514 itself recovered 8/10, promote 294-514 to N=25 as the smallest defensible contiguous region from the current search. |
 
 ### 8.3 Current conclusion and next steps
 
