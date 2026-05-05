@@ -29,6 +29,19 @@ source examples/libero/.venv/bin/activate
 export PYTHONPATH=$PYTHONPATH:$PWD/third_party/libero
 export MUJOCO_GL=egl
 export OPENPI_DATA_HOME=/workspace/openpi_assets
+export LIBERO_CONFIG_PATH=$OPENPI_DIR/.libero_config
+export UV_CACHE_DIR=/workspace/uv_cache
+export UV_PYTHON_INSTALL_DIR=/workspace/python
+mkdir -p "$OPENPI_DATA_HOME" "$LIBERO_CONFIG_PATH" "$UV_CACHE_DIR" "$UV_PYTHON_INSTALL_DIR"
+if [ ! -f "$LIBERO_CONFIG_PATH/config.yaml" ]; then
+  cat > "$LIBERO_CONFIG_PATH/config.yaml" <<'EOF'
+assets: /workspace/openpi/third_party/libero/libero/libero/assets
+bddl_files: /workspace/openpi/third_party/libero/libero/libero/bddl_files
+benchmark_root: /workspace/openpi/third_party/libero/libero/libero
+datasets: /workspace/openpi/third_party/libero/libero/datasets
+init_states: /workspace/openpi/third_party/libero/libero/libero/init_files
+EOF
+fi
 
 echo "Suite: $SUITE | Trials/task: $NUM_TRIALS | Seed: $SEED | Videos: $OPENPI_DIR/$VIDEO_OUT"
 

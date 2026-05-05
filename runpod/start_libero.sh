@@ -19,7 +19,7 @@ tmux kill-session -t $SESSION 2>/dev/null || true
 # Pane 0: policy server
 tmux new-session -d -s $SESSION
 tmux send-keys -t $SESSION:0 \
-  "cd $OPENPI_DIR && export OPENPI_DATA_HOME=/workspace/openpi_assets && uv run scripts/serve_policy.py --env LIBERO" \
+  "cd $OPENPI_DIR && export OPENPI_DATA_HOME=/workspace/openpi_assets && export LIBERO_CONFIG_PATH=$OPENPI_DIR/.libero_config && export UV_CACHE_DIR=/workspace/uv_cache && export UV_PYTHON_INSTALL_DIR=/workspace/python && uv run scripts/serve_policy.py --env LIBERO" \
   Enter
 
 # Pane 1: open a clean shell — once server says "listening on :8000", run:

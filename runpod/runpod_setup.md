@@ -1,6 +1,6 @@
 # RunPod Setup Guide — LIBERO & VLA Models
 
-> **TODO (optimization, low priority):** Every pod restart currently takes ~15-20 min because Python 3.8 lives on container disk (wiped on stop), forcing a full venv recreate + pip reinstall. Fix: install Python 3.8 to `/workspace/python` in `setup_once.sh` so the interpreter persists; venv symlink stays valid; packages don't rebuild; restart drops to ~2-3 min. Not done yet — implement once the current flow is confirmed stable.
+> **Restart fix:** Python 3.8 and uv's package cache now live on the network volume (`/workspace/python` and `/workspace/uv_cache`). This keeps the LIBERO venv valid across pod stops and avoids full dependency rebuilds on each restart.
 
 ## Table of Contents
 
@@ -28,26 +28,18 @@
 
 **Primary (recommended):** RunPod UI → pod config → "Environment Variables" → add before starting the pod:
 ```
-ANTHROPIC_API_KEY=sk-ant-...
 OPENAI_API_KEY=sk-...
 ```
 These inject automatically on pod start — no typing needed in the terminal.
 
 **Fallback:** paste manually after SSH-ing in:
 ```bash
-export ANTHROPIC_API_KEY=sk-ant-...
 export OPENAI_API_KEY=sk-...
 ```
 
-### Step 2 — Install Claude Code (30 seconds, one command)
+### Step 2 — Install Codex CLI (30 seconds, one command)
 
-**Use the script instead of running the below commands**: `bash /workspace/openpi/runpod/setup_agents.sh` (installs both).
-
-```bash
-curl -fsSL https://claude.ai/install.sh | bash && source ~/.bashrc
-```
-
-### Step 2b — Install Codex CLI (optional, if you want the OpenAI agent)
+**Use the script instead of running the below commands**: `bash /workspace/openpi/runpod/setup_agents.sh`.
 
 ```bash
 curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && apt-get install -y nodejs
@@ -55,36 +47,26 @@ npm install -g @openai/codex
 ```
 
 
-### Step 3 — Agent permissions reference
+### Step 3 — Codex permissions reference
 
-Both agents will prompt for approval on tool use. Approve as needed, or configure permissions to reduce interruptions. 
-
-**For now, we're going with local `settings.json` in the current `openpi/.claude` folder.**
+Codex will prompt for approval on tool use. Approve as needed, or configure permissions to reduce interruptions.
 
 Key files for reference:
 
 | Agent | File | Scope | Notes |
 |-------|------|-------|-------|
-| Claude Code | `~/.claude/settings.json` | Global (all projects) | On pod: container disk, wiped on pod stop |
-| Claude Code | `.claude/settings.json` | Project (committed to repo) | Picked up automatically when running from project dir |
-| Claude Code | `.claude/settings.local.json` | Project (local only, gitignored) | Per-machine overrides |
 | Codex CLI | `~/.codex/config.toml` | Global | On pod: container disk, wiped on pod stop |
 | Codex CLI | `.codex/config.toml` | Project | Project-level override |
 
-See [Claude Code docs](https://docs.anthropic.com/en/docs/claude-code/) and [Codex CLI docs](https://developers.openai.com/codex/config-reference) for permission configuration options.
+See [Codex CLI docs](https://developers.openai.com/codex/config-reference) for permission configuration options.
 
 ### Step 4 — Launch the agent
 
 
 ```bash
 cd /workspace/openpi
-claude
+codex
 # Prompt: "Run runpod/setup_pod.sh then start_libero.sh for suite libero_object"
-```
-
-**Codex equivalent:**
-```bash
-cd /workspace/openpi
 ```
 
 
@@ -93,8 +75,8 @@ cd /workspace/openpi
 | Script | When | What |
 |--------|------|------|
 | `setup_once.sh` | Once per network volume | Clone openpi, create venv, all pip installs |
-| `setup_pod.sh` | Every pod restart (~15-20 min) | Reinstalls uv, recreates venv, reinstalls all deps |
-| `setup_agents.sh` | Once per volume, or each restart if you want agents | Node.js + Claude Code + Codex CLI |
+| `setup_pod.sh` | Every pod restart (~2-3 min after persistent venv exists) | Reinstalls uv, restores persistent cache/Python paths, reuses venvs, verifies deps |
+| `setup_agents.sh` | Once per volume, or each restart if you want Codex | Node.js + Codex CLI |
 | `start_libero.sh [suite]` | After setup_pod.sh | tmux: pane 0 = server, pane 1 = clean shell with reminder |
 | `libero_env.sh` | **Source** in pane 1 once server is up | Activates venv + exports env vars + prints python command |
 | `run_libero_client.sh [suite] [trials] [seed]` | Add parallel suite runs | Client against running server |
@@ -115,6 +97,8 @@ cd /workspace/openpi
 | openpi setup | **Without Docker** — two tmux panes (server + client). Docker does not work on RunPod; see §6.2. |
 | MuJoCo headless | `export MUJOCO_GL=egl` (fallback: `MUJOCO_GL=glx`) |
 | Checkpoint source (π₀.₅) | Auto-downloaded from GCS on first run — set `OPENPI_DATA_HOME` to network volume first |
+| uv cache | `/workspace/uv_cache` — persistent across pod stops |
+| uv-managed Python | `/workspace/python` — persistent Python 3.8 for LIBERO |
 
 > **Stopped vs Terminated:** Stopped = paused, volume survives. Terminated = deleted, volume gone.
 
@@ -139,14 +123,14 @@ apt-get update && apt-get install -y tmux vim
 
 ### Automated scripts (recommended)
 
-> **Better yet:** use the agent-first approach in §0 — let Claude Code run these scripts for you.
+> **Better yet:** use the agent-first approach in §0 — let Codex run these scripts for you.
 
 Scripts live at `runpod/` in this repo (i.e., `/workspace/openpi/runpod/` on the pod). They are available immediately after `git clone`.
 
 | Script | When to run | What it does |
 |--------|-------------|--------------|
-| `setup_once.sh` | **Once per network volume** — only if `/workspace/openpi/` does not yet exist | Clone, submodules, uv, venv, all pip installs |
-| `setup_pod.sh` | **Every pod restart** (~1-2 min) | Reinstall uv + restore env vars (venv + checkpoint persist on `/workspace`) |
+| `setup_once.sh` | **Once per network volume** — only if `/workspace/openpi/` does not yet exist | Clone, submodules, uv, persistent cache/Python dirs, venvs, all pip installs |
+| `setup_pod.sh` | **Every pod restart** (~2-3 min after persistent venv exists) | Reinstall uv, restore persistent cache/Python paths, reuse the LIBERO client venv, repair the server venv, verify imports |
 | `start_libero.sh [suite]` | After `setup_pod.sh` | tmux session: pane 0 = server, pane 1 = clean shell with reminder |
 | `libero_env.sh` | **Source** in pane 1 once server is up | Activates venv + exports env vars + prints python command to run |
 | `run_libero_client.sh [suite] [trials] [seed] [video_path]` | To add parallel suite runs | Runs a client against the already-running server |
@@ -159,7 +143,7 @@ Typically you'd run 2nd option below.
 bash /workspace/openpi/runpod/setup_once.sh
 bash /workspace/openpi/runpod/start_libero.sh
 # Once left pane says "listening on :8000", in right pane:
-bash /workspace/openpi/runpod/setup_agents.sh   # install Claude Code + Codex
+bash /workspace/openpi/runpod/setup_agents.sh   # install Codex CLI
 source /workspace/openpi/runpod/libero_env.sh
 python examples/libero/main_original.py --args.task-suite-name libero_object --args.video-out-path data/libero/videos/libero_object
 
@@ -167,7 +151,7 @@ python examples/libero/main_original.py --args.task-suite-name libero_object --a
 bash /workspace/openpi/runpod/setup_pod.sh
 bash /workspace/openpi/runpod/start_libero.sh
 # Once left pane says "listening on :8000", in right pane:
-bash /workspace/openpi/runpod/setup_agents.sh   # install Claude Code + Codex
+bash /workspace/openpi/runpod/setup_agents.sh   # install Codex CLI
 source /workspace/openpi/runpod/libero_env.sh
 python examples/libero/main_original.py --args.task-suite-name libero_object --args.video-out-path data/libero/videos/libero_object_new
 ```
@@ -237,12 +221,17 @@ uv run scripts/serve_policy.py --env LIBERO
 
 # Pane 2: LIBERO client — first time only (creates venv + installs deps):
 cd /workspace/openpi
-uv venv --python 3.8 examples/libero/.venv
-source examples/libero/.venv/bin/activate
-uv pip install -r examples/libero/requirements.txt -r third_party/libero/requirements.txt \
+export UV_CACHE_DIR=/workspace/uv_cache
+export UV_PYTHON_INSTALL_DIR=/workspace/python
+mkdir -p "$UV_CACHE_DIR" "$UV_PYTHON_INSTALL_DIR"
+uv python install 3.8 --install-dir "$UV_PYTHON_INSTALL_DIR"
+PYTHON38=$(uv python find 3.8 --managed-python --no-project)
+uv venv --python "$PYTHON38" examples/libero/.venv
+LIBERO_PYTHON=/workspace/openpi/examples/libero/.venv/bin/python
+uv pip install --python "$LIBERO_PYTHON" -r examples/libero/requirements.txt -r third_party/libero/requirements.txt \
   --extra-index-url https://download.pytorch.org/whl/cu113 --index-strategy=unsafe-best-match
-uv pip install -e packages/openpi-client
-uv pip install -e third_party/libero
+uv pip install --python "$LIBERO_PYTHON" -e packages/openpi-client
+uv pip install --python "$LIBERO_PYTHON" -e third_party/libero
 export PYTHONPATH=$PYTHONPATH:$PWD/third_party/libero
 export MUJOCO_GL=egl   # headless rendering; fallback: MUJOCO_GL=glx
 
@@ -321,26 +310,21 @@ Confirm π₀.₅ achieves ~98% on libero_object before running any experiments.
 
 > **EGL cleanup errors at exit** — harmless. After all episodes complete, Python prints `EGLError: EGL_NOT_INITIALIZED` during garbage collection (`__del__`). This is the EGL context being destroyed after the display is already torn down. Does not affect results. Fix if annoying: `apt-get install -y libglu1-mesa`.
 
-**TODO — optimization: fast pod restarts - bring down ~15-20 min to ~2-3 min for installation during restarts**
+**Fast pod restarts**
 
-Currently `setup_pod.sh` takes ~15-20 min on every restart because:
-1. **Python 3.8** lives on the container disk → wiped on pod stop → uv re-downloads it every restart
-2. **uv's package cache** also lives on the container disk → wiped → all packages re-downloaded even if previously installed
-3. **The venv** is on `/workspace` (persists), but its Python symlink is broken since the interpreter is gone → must recreate venv every restart → all site-packages lost
+The old restart path took ~15-20 min because Python 3.8 and uv's cache lived on container disk, while the venv lived on `/workspace`. After pod stop, the venv's interpreter symlink broke and packages had to be downloaded and installed again.
 
-Net result: full venv recreate + full package reinstall on every pod restart, even though the packages themselves could in principle be cached.
+The scripts now persist both pieces on the network volume:
 
-- [ ] **Fix:** In `setup_once.sh`, install Python 3.8 directly to `/workspace`:
-  ```bash
-  uv python install 3.8 --install-dir /workspace/python
-  ```
-  Then in `setup_pod.sh`, point `uv venv` at that interpreter:
-  ```bash
-  uv venv --python /workspace/python/cpython-3.8.../bin/python3.8 examples/libero/.venv
-  ```
-  Since `/workspace` persists, Python 3.8 survives pod stop. The venv symlink stays valid. Package reinstall on restart becomes a fast no-op (already installed, just verified by uv).
-  **Target restart time: ~2-3 min** (uv reinstall + apt + env vars only).
-  **Prerequisite:** Confirm full flow works end-to-end with current slow approach first.
+```bash
+export UV_CACHE_DIR=/workspace/uv_cache
+export UV_PYTHON_INSTALL_DIR=/workspace/python
+uv python install 3.8 --install-dir "$UV_PYTHON_INSTALL_DIR"
+PYTHON38=$(uv python find 3.8 --managed-python --no-project)
+uv venv --python "$PYTHON38" --allow-existing /workspace/openpi/examples/libero/.venv
+```
+
+On restart, `setup_pod.sh` checks whether `examples/libero/.venv` is backed by `/workspace/python`. If yes, it reuses it. If the venv was created by an older script and points to a wiped container-disk interpreter, it clears and recreates it once. That one migration run can still take the old ~15-20 min; subsequent restarts should use the fast path.
 
 **TODO — fill in as Step 2 progresses:**
 - [x] Confirm uv install works on RunPod PyTorch template ✓

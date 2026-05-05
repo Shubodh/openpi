@@ -15,11 +15,13 @@ export PYTHONPATH=$PYTHONPATH:$OPENPI_DIR/third_party/libero
 export MUJOCO_GL=egl
 export OPENPI_DATA_HOME=/workspace/openpi_assets
 export LIBERO_CONFIG_PATH=$OPENPI_DIR/.libero_config
+export UV_CACHE_DIR=/workspace/uv_cache
+export UV_PYTHON_INSTALL_DIR=/workspace/python
 
 # Make sourcing this file robust after a pod restart or a fresh checkout. LIBERO's
 # package import prompts for a dataset path if config.yaml is missing, which breaks
 # non-interactive patching runs.
-mkdir -p "$LIBERO_CONFIG_PATH"
+mkdir -p "$LIBERO_CONFIG_PATH" "$OPENPI_DATA_HOME" "$UV_CACHE_DIR" "$UV_PYTHON_INSTALL_DIR"
 if [ ! -f "$LIBERO_CONFIG_PATH/config.yaml" ]; then
   cat > "$LIBERO_CONFIG_PATH/config.yaml" <<'EOF'
 assets: /workspace/openpi/third_party/libero/libero/libero/assets

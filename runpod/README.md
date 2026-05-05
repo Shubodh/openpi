@@ -1,14 +1,14 @@
 # runpod/
 
-Bash scripts for pod lifecycle management on RunPod. Full guide → [`docs/runpod_setup.md`](../docs/runpod_setup.md) ([GitHub](https://github.com/Shubodh/openpi/blob/main/docs/runpod_setup.md)).
+Bash scripts for pod lifecycle management on RunPod. Full guide → [`runpod_setup.md`](runpod_setup.md) ([GitHub](https://github.com/Shubodh/openpi/blob/main/runpod/runpod_setup.md)).
 
 ## Scripts
 
 | Script | Run when | What it does |
 |--------|----------|--------------|
-| `setup_once.sh` | Once per network volume | Clones openpi, installs uv, creates Python 3.8 venv, installs all LIBERO deps |
-| `setup_pod.sh` | Every pod restart (~15-20 min) | Reinstalls uv + recreates venv + reinstalls all deps (wiped on stop) |
-| `setup_agents.sh` | In pane 1 after server is up, each restart if you want agents | Installs Node.js + Claude Code + Codex CLI |
+| `setup_once.sh` | Once per network volume | Clones openpi, installs uv, creates persistent uv cache/Python dirs, creates LIBERO client venv + server venv, installs all deps |
+| `setup_pod.sh` | Every pod restart (~2-3 min after persistent venv exists) | Reinstalls uv, restores persistent cache/Python paths, reuses the LIBERO client venv, repairs the server venv, and verifies imports |
+| `setup_agents.sh` | In pane 1 after server is up, each restart if you want Codex | Installs Node.js + Codex CLI |
 | `start_libero.sh [suite]` | After `setup_pod.sh` | Launches tmux session: pane 0 = π₀.₅ policy server, pane 1 = clean shell with reminder |
 | `libero_env.sh` | **Source** in pane 1 once server is up | Activates venv + exports env vars + prints python command to run |
 | `run_libero_client.sh [suite] [trials] [seed] [video_path]` | To add parallel suite runs | Runs a LIBERO client against an already-running policy server |
@@ -27,21 +27,21 @@ Bash scripts for pod lifecycle management on RunPod. Full guide → [`docs/runpo
 bash /workspace/openpi/runpod/setup_once.sh
 bash /workspace/openpi/runpod/start_libero.sh
 # [pane 0] wait for "listening on :8000", then in pane 1:
-bash /workspace/openpi/runpod/setup_agents.sh   # Claude Code + Codex (optional)
+bash /workspace/openpi/runpod/setup_agents.sh   # Codex CLI (optional)
 source /workspace/openpi/runpod/libero_env.sh
 python examples/libero/main_original.py --args.task-suite-name libero_object --args.video-out-path data/libero/videos/libero_object
 
 # Every pod restart after that (most common):
-bash /workspace/openpi/runpod/setup_pod.sh      # ~15-20 min
+bash /workspace/openpi/runpod/setup_pod.sh      # ~2-3 min after persistent venv exists
 bash /workspace/openpi/runpod/start_libero.sh
 # [pane 0] wait for "listening on :8000", then in pane 1:
-bash /workspace/openpi/runpod/setup_agents.sh   # Claude Code + Codex (optional)
+bash /workspace/openpi/runpod/setup_agents.sh   # Codex CLI (optional)
 source /workspace/openpi/runpod/libero_env.sh
 # Then run whatever experiment you need, e.g.:
 bash /workspace/openpi/runpod/run_goal_suite_corrupt_check.sh
 ```
 
-For the agent-first workflow (recommended), API key setup, and permission configuration → see [`docs/runpod_setup.md §0`](../docs/runpod_setup.md).
+For the agent-first workflow (recommended), API key setup, and permission configuration → see [`runpod_setup.md §0`](runpod_setup.md).
 
 ## When to run which experiment scripts
 
@@ -122,7 +122,7 @@ scp -r -P <PORT> -i ~/.ssh/id_ed25519 \
   ~/Downloads/libero_videos/
 ```
 
-Full details (video filenames, separating mixed-suite videos) → [`docs/runpod_setup.md`](../docs/runpod_setup.md).
+Full details (video filenames, separating mixed-suite videos) → [`runpod_setup.md`](runpod_setup.md).
 
 ---
 
@@ -135,7 +135,14 @@ There are two virtual environments in this repo — not one venv and a system Py
 | **Server venv** | `/workspace/openpi/.venv` | 3.11 | JAX, openpi, flax, orbax |
 | **LIBERO client venv** | `/workspace/openpi/examples/libero/.venv` | 3.8 | LIBERO, robosuite, torch, openpi-client |
 
-**`uv run python` ignores the activated venv.** It looks for the project's `pyproject.toml` at `/workspace/openpi/` and always uses the associated venv (`.venv` at the repo root — the server venv, Python 3.11). This is true even if `source libero_env.sh` has been run and the LIBERO venv is currently active.
+`setup_once.sh` and `setup_pod.sh` also persist uv-managed Python and package cache on the network volume:
+
+| Path | Purpose |
+|---|---|
+| `/workspace/python` | uv-managed Python installs, including Python 3.8 for LIBERO |
+| `/workspace/uv_cache` | uv package/wheel cache, so restarts do not redownload everything |
+
+**`uv run python` ignores the activated venv.** It looks for the project's `pyproject.toml` at `/workspace/openpi/` and uses the associated venv (`.venv` at the repo root — the server venv, Python 3.11). This is true even if `source libero_env.sh` has been run and the LIBERO venv is currently active.
 
 **Plain `python` follows the shell's `$PATH`.** After `source libero_env.sh`, `python` points to the Python 3.8 LIBERO venv.
 
@@ -147,11 +154,13 @@ python ...                 # ← Python 3.8, LIBERO venv — no JAX, would fail
 uv run python ...          # ← Python 3.11, server venv — has JAX + LIBERO sim deps
 ```
 
-Shell-level exports (`MUJOCO_GL`, `PYTHONPATH`, `OPENPI_DATA_HOME`) are inherited by `uv run python` since they live in the shell environment, not in a venv. That is why `source libero_env.sh` is still required before running `run_patching_phase1.sh` even though the venv it activates is overridden by `uv run`.
+For patching, source `patching_env.sh`, not `libero_env.sh`. It activates the server venv directly and exports `MUJOCO_GL`, `PYTHONPATH`, `OPENPI_DATA_HOME`, and `LIBERO_CONFIG_PATH`.
 
-**LIBERO simulation deps in the server venv:** `setup_pod.sh` (and `setup_once.sh`) install mujoco, imageio, etc. into the server venv, then copy robosuite directly from the LIBERO client venv. Torch is not included — not needed for env stepping.
+**LIBERO venv persistence across pod stops:** older versions created `examples/libero/.venv` with a Python 3.8 interpreter stored on container disk. After stopping a pod, that interpreter disappeared and the venv symlink broke, forcing a full reinstall. The setup scripts now install Python 3.8 into `/workspace/python` and create the LIBERO venv from that interpreter. On restart, `setup_pod.sh` reuses the venv if it is backed by `/workspace/python`; otherwise it clears and recreates it once. That migration run can still take the old ~15-20 min, but subsequent pod restarts should use the fast path.
 
-**LIBERO config for non-interactive runs:** `setup_pod.sh`, `setup_once.sh`, and `patching_env.sh` all set `LIBERO_CONFIG_PATH=/workspace/openpi/.libero_config` and write `config.yaml` there. This is required because LIBERO prompts for a dataset path during import if the config file is missing; piped experiment commands then fail with `EOFError: EOF when reading a line`. Keeping the config under `/workspace/openpi` makes it survive pod restarts.
+**LIBERO simulation deps in the server venv:** `setup_pod.sh` (and `setup_once.sh`) install mujoco, imageio, etc. into the server venv with `uv pip install --python /workspace/openpi/.venv/bin/python`, then copy robosuite directly from the LIBERO client venv. The explicit `--python` is important: if a user launches setup from an active LIBERO shell, server deps must still land in `.venv`, not `examples/libero/.venv`. Torch is not included — not needed for env stepping.
+
+**LIBERO config for non-interactive runs:** `setup_pod.sh`, `setup_once.sh`, `libero_env.sh`, `start_libero.sh`, and `patching_env.sh` all set or use `LIBERO_CONFIG_PATH=/workspace/openpi/.libero_config`. The setup/env scripts write `config.yaml` there. This is required because LIBERO prompts for a dataset path during import if the config file is missing; piped experiment commands then fail with `EOFError: EOF when reading a line`. Keeping the config under `/workspace/openpi` makes it survive pod restarts.
 
 **Why copy robosuite instead of pip-installing it?** `pip install robosuite==1.4.1` resolves to version 1.5.x (incompatible module layout — missing `single_arm_env`), even with the exact pin. Installing from the git tag `v1.4.1` has the same problem. The only reliable source of the correct robosuite is the LIBERO client venv, which already has exactly the right version. The setup scripts do `rm -rf` then `cp -r` (not just `cp -r`, which would nest the directory inside the existing one rather than replacing it).
 
@@ -169,8 +178,8 @@ Solution: install LIBERO simulation deps into the server venv, carefully.
 
 ### Pitfalls encountered
 
-**1. `pip install` vs `uv pip install`**
-The server venv is created by uv and has no `pip` binary in `.venv/bin/`. Plain `pip` after `source activate` resolves to the system pip (`/usr/local/...`), which is invisible to the server venv. Always use `uv pip install` for the server venv. After this, the `which pip` check is unreliable — use `uv pip install` unconditionally.
+**1. `pip install` vs `uv pip install --python`**
+The server venv is created by uv and has no `pip` binary in `.venv/bin/`. Plain `pip` after `source activate` resolves to the system pip (`/usr/local/...`), which is invisible to the server venv. Use `uv pip install --python /workspace/openpi/.venv/bin/python` for the server venv. This also prevents an inherited active LIBERO venv from accidentally capturing server packages.
 
 **2. `pip install robosuite==1.4.1` installs 1.5.x**
 Despite the exact pin, PyPI's robosuite 1.4.1 resolves to a 1.5.x build with a different module layout (no `single_arm_env`). The git tag `v1.4.1` also doesn't match. The only fix: copy directly from the LIBERO client venv, which has the correct version installed. Must `rm -rf` the destination first — `cp -r src dst` when `dst` exists nests `src` inside `dst` rather than replacing it.
@@ -187,12 +196,12 @@ Both are training-only. Exclude `transformers` (and by extension tokenizers) fro
 **6. LIBERO's numpy pin (1.22.4) breaks JAX**
 Installing from requirements.txt downgrades numpy from 1.26.x → 1.22.4. JAX 0.5.3 requires `np.dtypes` (added in numpy 1.25). After the requirements.txt install, restore numpy:
 ```bash
-uv pip install "numpy>=1.22.4,<2.0.0"
+uv pip install --python /workspace/openpi/.venv/bin/python "numpy>=1.22.4,<2.0.0"
 ```
 
 ### The working manual setup sequence (as of 2026-05-04)
 
-Run with the server venv implicit (from `/workspace/openpi`):
+Run from `/workspace/openpi`. Server-venv installs are explicit via `--python`.
 
 ```bash
 cd /workspace/openpi
@@ -205,26 +214,28 @@ benchmark_root: /workspace/openpi/third_party/libero/libero/libero
 datasets: /workspace/openpi/third_party/libero/libero/datasets
 init_states: /workspace/openpi/third_party/libero/libero/libero/init_files
 EOF
-uv sync
-uv pip install "mujoco>=3.2" imageio imageio-ffmpeg "opencv-python>=4.6" scipy tqdm pyyaml pyopengl etils tyro
-uv pip install -e /workspace/openpi/packages/openpi-client
-uv pip install -e /workspace/openpi/third_party/libero
+env -u VIRTUAL_ENV uv sync
+SERVER_PYTHON=/workspace/openpi/.venv/bin/python
+LIBERO_VENV=/workspace/openpi/examples/libero/.venv
+uv pip install --python "$SERVER_PYTHON" "mujoco>=3.2" imageio imageio-ffmpeg "opencv-python>=4.6" scipy tqdm pyyaml pyopengl etils tyro
+uv pip install --python "$SERVER_PYTHON" -e /workspace/openpi/packages/openpi-client
+uv pip install --python "$SERVER_PYTHON" -e /workspace/openpi/third_party/libero
 
 # Install LIBERO requirements (excluding training-only and incompatible packages)
 grep -viE "^\s*(robosuite|torch|wandb|transformers|thop|robomimic|numpy)" \
-  /workspace/openpi/third_party/libero/requirements.txt | uv pip install -r /dev/stdin
+  /workspace/openpi/third_party/libero/requirements.txt | uv pip install --python "$SERVER_PYTHON" -r /dev/stdin
 
 # Restore numpy (LIBERO pin downgrades it, breaking JAX)
-uv pip install "numpy>=1.22.4,<2.0.0"
+uv pip install --python "$SERVER_PYTHON" "numpy>=1.22.4,<2.0.0"
 
 # Copy robosuite from LIBERO client venv (pip version is wrong)
-SERVER_SITE=$(/workspace/openpi/.venv/bin/python -c "import site; print(site.getsitepackages()[0])")
+SERVER_SITE=$("$SERVER_PYTHON" -c "import site; print(site.getsitepackages()[0])")
 rm -rf "${SERVER_SITE}/robosuite"
-cp -r /workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite "${SERVER_SITE}/robosuite"
+cp -r "$LIBERO_VENV/lib/python3.8/site-packages/robosuite" "${SERVER_SITE}/robosuite"
 
 # Verify the combined JAX + LIBERO server environment.
 PYTHONPATH="/workspace/openpi/third_party/libero:${PYTHONPATH:-}" \
-  /workspace/openpi/.venv/bin/python - <<'PY'
+  "$SERVER_PYTHON" - <<'PY'
 import bddl
 import jax
 import libero

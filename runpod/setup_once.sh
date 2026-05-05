@@ -25,14 +25,25 @@ echo "=== [3/5] Installing uv ==="
 curl -LsSf https://astral.sh/uv/install.sh | sh
 source $HOME/.local/bin/env
 
-echo "=== [4/5] Setting OPENPI_DATA_HOME (checkpoint cache → network volume) ==="
+echo "=== [4/5] Setting persistent cache/env paths on the network volume ==="
 export OPENPI_DATA_HOME=/workspace/openpi_assets
-mkdir -p /workspace/openpi_assets
+export UV_CACHE_DIR=/workspace/uv_cache
+export UV_PYTHON_INSTALL_DIR=/workspace/python
+mkdir -p "$OPENPI_DATA_HOME" "$UV_CACHE_DIR" "$UV_PYTHON_INSTALL_DIR"
 grep -qxF 'export OPENPI_DATA_HOME=/workspace/openpi_assets' ~/.bashrc || \
   echo 'export OPENPI_DATA_HOME=/workspace/openpi_assets' >> ~/.bashrc
+grep -qxF 'export UV_CACHE_DIR=/workspace/uv_cache' ~/.bashrc || \
+  echo 'export UV_CACHE_DIR=/workspace/uv_cache' >> ~/.bashrc
+grep -qxF 'export UV_PYTHON_INSTALL_DIR=/workspace/python' ~/.bashrc || \
+  echo 'export UV_PYTHON_INSTALL_DIR=/workspace/python' >> ~/.bashrc
 
 echo "=== [5/5] Setting up LIBERO client venv and installing deps ==="
 cd /workspace/openpi
+OPENPI_DIR=/workspace/openpi
+LIBERO_VENV="$OPENPI_DIR/examples/libero/.venv"
+LIBERO_PYTHON="$LIBERO_VENV/bin/python"
+SERVER_VENV="$OPENPI_DIR/.venv"
+SERVER_PYTHON="$SERVER_VENV/bin/python"
 
 echo "=== [5a/5] Configuring LIBERO paths non-interactively ==="
 # Keep LIBERO config on the persistent workspace volume. Without this file, importing
@@ -49,46 +60,47 @@ EOF
 grep -qxF 'export LIBERO_CONFIG_PATH=/workspace/openpi/.libero_config' ~/.bashrc || \
   echo 'export LIBERO_CONFIG_PATH=/workspace/openpi/.libero_config' >> ~/.bashrc
 
-uv venv --python 3.8 examples/libero/.venv
-source examples/libero/.venv/bin/activate
-uv pip install -r examples/libero/requirements.txt -r third_party/libero/requirements.txt \
+echo "=== [5b/5] Installing persistent Python 3.8 and creating LIBERO venv ==="
+uv python install 3.8 --install-dir "$UV_PYTHON_INSTALL_DIR"
+PYTHON38=$(uv python find 3.8 --managed-python --no-project)
+uv venv --python "$PYTHON38" "$LIBERO_VENV"
+uv pip install --python "$LIBERO_PYTHON" -r examples/libero/requirements.txt -r third_party/libero/requirements.txt \
   --extra-index-url https://download.pytorch.org/whl/cu113 --index-strategy=unsafe-best-match
-uv pip install -e packages/openpi-client
-uv pip install -e third_party/libero
+uv pip install --python "$LIBERO_PYTHON" -e packages/openpi-client
+uv pip install --python "$LIBERO_PYTHON" -e third_party/libero
 # Extra openpi deps not pulled in by the libero requirements (needed for analysis scripts):
-uv pip install sentencepiece "fsspec[gcs]" filelock tqdm-loggable
+uv pip install --python "$LIBERO_PYTHON" sentencepiece "fsspec[gcs]" filelock tqdm-loggable
 
 echo "=== Installing LIBERO simulation deps into server venv (for main_patching_expt.py) ==="
-# uv sync creates the server venv (.venv) from pyproject.toml; activate it explicitly.
+# uv sync creates/repairs the server venv (.venv) from pyproject.toml.
 # LIBERO client venv must already be set up (step 5/5 above) before this runs,
 # because we copy robosuite from it rather than pip-installing (see note below).
-deactivate 2>/dev/null || true
-uv sync
+env -u VIRTUAL_ENV uv sync
 # Use 'uv pip install' — uv-created venvs have no pip binary in bin/.
-# cd to /workspace/openpi already done above; uv targets the project venv (.venv).
+# Install with --python so an inherited active venv cannot capture these server deps.
 # Install non-robosuite deps
-uv pip install \
+uv pip install --python "$SERVER_PYTHON" \
   "mujoco>=3.2" imageio imageio-ffmpeg numpy "opencv-python>=4.6" scipy tqdm pyyaml \
   pyopengl etils tyro
-uv pip install -e /workspace/openpi/packages/openpi-client
+uv pip install --python "$SERVER_PYTHON" -e /workspace/openpi/packages/openpi-client
 # Install LIBERO editable + its requirements.txt (setup.py alone misses bddl, easydict, gym, etc.)
 # requirements.txt lines have leading spaces — use ^\s* not ^.
 # Exclude: robosuite (copied below), training-only packages, and numpy (restored after).
-uv pip install -e /workspace/openpi/third_party/libero
+uv pip install --python "$SERVER_PYTHON" -e /workspace/openpi/third_party/libero
 grep -viE "^\s*(robosuite|torch|wandb|transformers|thop|robomimic|numpy)" \
-  /workspace/openpi/third_party/libero/requirements.txt | uv pip install -r /dev/stdin
+  /workspace/openpi/third_party/libero/requirements.txt | uv pip install --python "$SERVER_PYTHON" -r /dev/stdin
 # Restore numpy: LIBERO requirements downgrade to 1.22.4 which breaks JAX (needs np.dtypes, >=1.25).
-uv pip install "numpy>=1.22.4,<2.0.0"
+uv pip install --python "$SERVER_PYTHON" "numpy>=1.22.4,<2.0.0"
 # Copy robosuite from LIBERO client venv — pip resolves to incompatible 1.5.x even with ==1.4.1 pin.
 # Must rm -rf first: cp -r into existing dir nests instead of replacing.
-SERVER_SITE=$(/workspace/openpi/.venv/bin/python -c "import site; print(site.getsitepackages()[0])")
+SERVER_SITE=$("$SERVER_PYTHON" -c "import site; print(site.getsitepackages()[0])")
 rm -rf "${SERVER_SITE}/robosuite"
-cp -r /workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite \
+cp -r "$LIBERO_VENV/lib/python3.8/site-packages/robosuite" \
       "${SERVER_SITE}/robosuite"
 
 echo "=== Verifying server venv patching imports ==="
 PYTHONPATH="/workspace/openpi/third_party/libero:${PYTHONPATH:-}" \
-  /workspace/openpi/.venv/bin/python - <<'PY'
+  "$SERVER_PYTHON" - <<'PY'
 import bddl
 import jax
 import libero
@@ -103,6 +115,6 @@ PY
 
 echo ""
 echo "=== setup_once.sh complete ==="
-echo "Next: run 'bash /workspace/openpi/runpod/setup_agents.sh' to install Claude Code + Codex."
+echo "Next: run 'bash /workspace/openpi/runpod/setup_agents.sh' to install Codex CLI."
 echo "Then: 'bash /workspace/openpi/runpod/start_libero.sh' to launch server + client."
 echo "(On future restarts, run setup_pod.sh first, then start_libero.sh)"
