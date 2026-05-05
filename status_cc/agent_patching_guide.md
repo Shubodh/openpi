@@ -288,6 +288,69 @@ If per-step donor also fails at 0%: stop. Write `0_FAILURE_REPORT.txt` with a su
 
 ---
 
+## Expanded Autonomous Order After Per-Step Donor Success
+
+The current branch has already moved beyond the original language-only plan: per-step full-prefix patching passed, image-prefix patching passed, and the strongest localized region so far is image-token positions `294-587`. Continue in the following order.
+
+### 1. Finish localization within image-token K/V
+
+Continue with `examples/libero/main_patching_expt_per_step_donor.py`.
+
+Next run: positions `441-587`, N=10.
+
+- If `441-587` clears `>2/10`, recurse inside `441-587`.
+- If `441-587` fails, treat `294-587` as likely requiring combined subregions and test combined/boundary windows.
+- Once the smallest defensible sufficient region is found, rerun it at N=25.
+- Update `status_cc/patching_implementation.md §8.1/§8.2` and commit after each run or binary-search iteration.
+
+### 2. Camera/token-region interpretation with visualization
+
+Before layer or K/V ablations, map the localized image-token range back to camera streams and patch coordinates:
+
+| Absolute positions | Source image | Patch grid |
+|--------------------|--------------|------------|
+| `0-195` | agentview / `base_0_rgb` | 14x14 |
+| `196-391` | wrist / `left_wrist_0_rgb` | 14x14 |
+| `392-587` | masked image stream / `right_wrist_0_rgb` | 14x14 |
+
+Create a visualization showing representative observation images with the localized patch cells highlighted. Save it under:
+
+```text
+scripts_outputs_txt/patching_phase1/patched/visualizations/
+```
+
+Record the visualization path and interpretation in `status_cc/patching_implementation.md`.
+
+### 3. Layer localization
+
+After token localization and visualization, add optional layer selection to the patching path while preserving the default all-layer behavior.
+
+Initial N=10 bands:
+
+| Band | Layers |
+|------|--------|
+| Early | `0-5` |
+| Middle | `6-11` |
+| Late | `12-17` |
+
+Recurse inside any successful band. If all individual bands fail but all-layers succeeds, test adjacent combined bands (`0-11`, `6-17`) before concluding the effect is distributed.
+
+### 4. Separate K vs V contributions
+
+After token and layer localization, add selective K-only and V-only patching if still absent.
+
+Run the best token/layer region with:
+
+| Condition | Purpose |
+|-----------|---------|
+| K+V | Positive control for the localized region |
+| K-only | Tests attention-routing contribution |
+| V-only | Tests transplanted-content contribution |
+
+Use N=10 first, then promote meaningful results to N=25.
+
+---
+
 ## Signal Files
 
 Write these to `scripts_outputs_txt/patching_phase1/patched/` (NOT the agentic subdir):

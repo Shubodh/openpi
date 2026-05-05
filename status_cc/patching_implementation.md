@@ -575,14 +575,98 @@ LIBERO-Goal initial states vary in object placement. For the sanity check, this 
 
 Once a nontrivial subset recovers **>2/10** at N=10, rerun that subset at N=25 and write `scripts_outputs_txt/patching_phase1/patched/2_PATCHING_MEANINGFUL_RESULT.txt` only if it exceeds the meaningful threshold.
 
-### 8.4 RunPod restart handoff snapshot
+### 8.4 Expanded autonomous plan
 
-**Last updated:** 2026-05-04, after commit `cba11b7` on branch `patching_phase1_agentic`.
+Proceed in this order. Do not start a later phase until the prior phase has a concrete result, a failure note, and a committed doc update.
 
-**Git state at handoff:** clean working tree; branch is ahead of `origin/patching_phase1_agentic` by 3 local commits:
+#### 8.4.1 Finish localization within image-token K/V
+
+Continue from the current best image-token region, not from the original language-token hypothesis.
+
+Immediate next run: test positions `441-587` with the per-step donor script at N=10. Interpret it as follows:
+
+| Result for `441-587` | Action |
+|----------------------|--------|
+| `>2/10` | Recurse inside `441-587` to find a smaller sufficient contiguous subset. |
+| `0-2/10` | Treat `294-587` as potentially requiring combined subregions; test combined or boundary windows rather than a simple half split. |
+
+Continue narrowing until either:
+- a smaller subset remains above the meaningful threshold (`>2/10` at N=10), or
+- further narrowing drops below threshold and the previous larger region is the smallest defensible sufficient set.
+
+Promote the smallest defensible sufficient set to N=25 before treating it as the localization result. Record every run in §8.1 and add a short interpretation note in §8.2.
+
+#### 8.4.2 Camera/token-region interpretation with visualization
+
+After the image-token region is localized, map the recovered token positions back to camera streams and image patch coordinates.
+
+Prefix image token layout:
+
+| Absolute positions | Source image | Patch grid |
+|--------------------|--------------|------------|
+| `0-195` | `base_0_rgb` / agentview | 14x14 |
+| `196-391` | `left_wrist_0_rgb` / wrist | 14x14 |
+| `392-587` | `right_wrist_0_rgb` / masked image stream | 14x14 |
+
+For each localized position range, compute:
+- source camera block,
+- local token index within that camera block,
+- row/column in the 14x14 patch grid,
+- whether the sufficient set crosses camera boundaries.
+
+Add a visualization artifact before moving to layer localization. The visualization should show representative current observation images with the localized token patches highlighted or outlined. Save it under a stable path such as:
+
+```text
+scripts_outputs_txt/patching_phase1/patched/visualizations/
+```
+
+Record the visualization path in §8.1 or §8.2. The interpretation should explicitly distinguish:
+- visual context carried by image-token K/V, and
+- language/task information that was mixed into image-token K/V during bidirectional prefix attention.
+
+#### 8.4.3 Layer localization
+
+Once there is a localized image-token region and a visualization, test which transformer layers carry the causal effect.
+
+Implementation requirement: extend the patch path to accept optional layer indices or layer ranges while preserving the current default behavior of patching all layers. Keep this scoped so existing runs remain reproducible.
+
+Initial layer bands:
+
+| Band | Layers |
+|------|--------|
+| Early | `0-5` |
+| Middle | `6-11` |
+| Late | `12-17` |
+
+Run K+V patching on the localized token region for each band at N=10. Recurse inside any band that clears `>2/10`; if no band clears threshold but all-layers still does, test combined adjacent bands (`0-11`, `6-17`) before concluding the effect is distributed across depth.
+
+Promote the smallest defensible layer/token combination to N=25.
+
+#### 8.4.4 Separate K vs V contributions
+
+After token and layer localization, separate key and value effects.
+
+Implementation requirement: add selective K-only and V-only patching support (`patch_k`, `patch_v`) if it is still absent. Preserve K+V as the default and as the control condition.
+
+For the best token/layer region, run:
+
+| Condition | Meaning |
+|-----------|---------|
+| K+V | Control, should reproduce the localized recovery. |
+| K-only | Tests whether attention routing alone carries the effect. |
+| V-only | Tests whether transplanted content alone carries the effect. |
+
+Run N=10 first, then promote any meaningful K-only or V-only result to N=25. Record whether the causal effect is K-dominant, V-dominant, or requires both.
+
+### 8.5 RunPod restart handoff snapshot
+
+**Last updated:** 2026-05-05, while adding the expanded autonomous plan on branch `patching_phase1_agentic`.
+
+**Git state at handoff:** before this expanded-plan documentation update, the working tree was clean and branch `patching_phase1_agentic` was synced with `origin/patching_phase1_agentic`.
 
 | Commit | Summary |
 |--------|---------|
+| `5a36ef1` | docs: add RunPod restart handoff snapshot |
 | `cba11b7` | docs: clarify language-token KV patching had no recovery |
 | `39123d3` | docs: clarify language remains behaviorally load-bearing |
 | `0b5de16` | agentic step5: image positions 294-440 recover 1 of 10 |
