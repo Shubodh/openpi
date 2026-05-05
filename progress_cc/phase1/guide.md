@@ -6,10 +6,10 @@
 
 You are an autonomous agent debugging a broken KV-cache patching experiment on RunPod. The experiment ran and produced 0% success on BOTH the sanity check and the main patched run. Your job is to diagnose and fix this, iterating through the steps below until you achieve:
 
-1. **Sanity check success** (C3 ≥ 3/5 episodes) → write `scripts_outputs_txt/patching_phase1/patched/1_SANITY_CHECK_SUCCESS.txt`
-2. **Meaningful patching result** (D3 > 2/10 episodes) → write `scripts_outputs_txt/patching_phase1/patched/2_PATCHING_MEANINGFUL_RESULT.txt`
+1. **Sanity check success** (C3 ≥ 3/5 episodes) → write `progress_cc/phase1/signal_files/patched/1_SANITY_CHECK_SUCCESS.txt`
+2. **Meaningful patching result** (D3 > 2/10 episodes) → write `progress_cc/phase1/signal_files/patched/2_PATCHING_MEANINGFUL_RESULT.txt`
 
-Work through the steps in order. Do not skip ahead. Commit after each step. Update `status_cc/patching_implementation.md §8.1` after each completed run.
+Work through the steps in order. Do not skip ahead. Commit after each step. Update `progress_cc/phase1/implementation.md §8.1` after each completed run.
 
 **If you get stuck or something is unclear:** record what you tried and why it failed in the relevant result file, then move to the next step. Never spin on one approach indefinitely.
 
@@ -49,9 +49,9 @@ All experiment runs use plain `python` (NOT `uv run python`) after sourcing `pat
 Key paths:
 - Main script: `examples/libero/main_patching_expt.py`
 - Per-step donor script (Step 4, you create it): `examples/libero/main_patching_expt_per_step_donor.py`
-- Agentic logs: `scripts_outputs_txt/patching_phase1/patched/agentic/`
+- Agentic logs: `progress_cc/phase1/signal_files/patched/agentic/`
 - Agentic videos: `data/libero/videos/patching_phase1/patched/agentic/`
-- Signal files: `scripts_outputs_txt/patching_phase1/patched/`
+- Signal files: `progress_cc/phase1/signal_files/patched/`
 
 ---
 
@@ -107,7 +107,7 @@ tqdm.tqdm.write(f"[DEBUG pos{mid}] donor vs corrupt L-inf: K={diff_K_mid:.6f}")
 - `diff_K` and `diff_V` >> 0 (e.g., > 0.01): donor and corrupt differ at pos 594 — patching will do something. Proceed to Step 1.
 - `diff_K` ≈ 0 and `diff_V` ≈ 0: the two prompts produce IDENTICAL KV at pos 594. The tokenizer may put "plate"/"stove" at a different position. Check `inspect_kv_cache.py` output or re-run the Phase 1 verify script. Do not proceed until this is resolved.
 
-**Log this:** record the norm values in `status_cc/patching_implementation.md §8.2` (implementation notes).
+**Log this:** record the norm values in `progress_cc/phase1/implementation.md §8.2` (implementation notes).
 
 ---
 
@@ -129,9 +129,9 @@ if args.sanity_check:
 **Run C3 (sanity, N=5):**
 ```bash
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
-FULL="scripts_outputs_txt/patching_phase1/patched/agentic/run_${TIMESTAMP}_step1_c3_full.txt"
-CLEAN="scripts_outputs_txt/patching_phase1/patched/agentic/run_${TIMESTAMP}_step1_c3_clean.txt"
-mkdir -p scripts_outputs_txt/patching_phase1/patched/agentic
+FULL="progress_cc/phase1/signal_files/patched/agentic/run_${TIMESTAMP}_step1_c3_full.txt"
+CLEAN="progress_cc/phase1/signal_files/patched/agentic/run_${TIMESTAMP}_step1_c3_clean.txt"
+mkdir -p progress_cc/phase1/signal_files/patched/agentic
 mkdir -p data/libero/videos/patching_phase1/patched/agentic/step1_c3
 
 {
@@ -173,8 +173,8 @@ If D3 > 0/5 here, proceed directly to Step 2 with N=25.
 **Run D3 (N=25):**
 ```bash
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
-FULL="scripts_outputs_txt/patching_phase1/patched/agentic/run_${TIMESTAMP}_step2_d3_pos594_full.txt"
-CLEAN="scripts_outputs_txt/patching_phase1/patched/agentic/run_${TIMESTAMP}_step2_d3_pos594_clean.txt"
+FULL="progress_cc/phase1/signal_files/patched/agentic/run_${TIMESTAMP}_step2_d3_pos594_full.txt"
+CLEAN="progress_cc/phase1/signal_files/patched/agentic/run_${TIMESTAMP}_step2_d3_pos594_clean.txt"
 mkdir -p data/libero/videos/patching_phase1/patched/agentic/step2_d3_pos594
 
 {
@@ -301,7 +301,7 @@ Next run: positions `441-587`, N=10.
 - If `441-587` clears `>2/10`, recurse inside `441-587`.
 - If `441-587` fails, treat `294-587` as likely requiring combined subregions and test combined/boundary windows.
 - Once the smallest defensible sufficient region is found, rerun it at N=25.
-- Update `status_cc/patching_implementation.md §8.1/§8.2` and commit after each run or binary-search iteration.
+- Update `progress_cc/phase1/implementation.md §8.1/§8.2` and commit after each run or binary-search iteration.
 
 ### 2. Camera/token-region interpretation with visualization
 
@@ -316,10 +316,10 @@ Before layer or K/V ablations, map the localized image-token range back to camer
 Create a visualization showing representative observation images with the localized patch cells highlighted. Save it under:
 
 ```text
-scripts_outputs_txt/patching_phase1/patched/visualizations/
+progress_cc/phase1/signal_files/patched/visualizations/
 ```
 
-Record the visualization path and interpretation in `status_cc/patching_implementation.md`.
+Record the visualization path and interpretation in `progress_cc/phase1/implementation.md`.
 
 ### 3. Layer localization
 
@@ -353,16 +353,16 @@ Use N=10 first, then promote meaningful results to N=25.
 
 ## Signal Files
 
-Write these to `scripts_outputs_txt/patching_phase1/patched/` (NOT the agentic subdir):
+Write these to `progress_cc/phase1/signal_files/patched/` (NOT the agentic subdir):
 
 **`1_SANITY_CHECK_SUCCESS.txt`** — write when C3 ≥ 3/5:
 ```
 Sanity check passed on [DATE].
 Step: [which step fixed it]
 Success rate: X/5
-Log: scripts_outputs_txt/patching_phase1/patched/agentic/[filename]
+Log: progress_cc/phase1/signal_files/patched/agentic/[filename]
 What fixed it: [one sentence — e.g., "patched only language positions 588-787 instead of all 788"]
-See status_cc/patching_implementation.md §8.1 for full results table.
+See progress_cc/phase1/implementation.md §8.1 for full results table.
 ```
 
 **`2_PATCHING_MEANINGFUL_RESULT.txt`** — write when D3 > 2/10:
@@ -371,9 +371,9 @@ Meaningful patching result on [DATE].
 Step: [which step]
 Patch positions: [what was patched — e.g., "pos 594 only" or "positions 620-650"]
 Success rate: X/N (clean baseline: 25/25, corrupt baseline: 0/25)
-Log: scripts_outputs_txt/patching_phase1/patched/agentic/[filename]
+Log: progress_cc/phase1/signal_files/patched/agentic/[filename]
 Interpretation: [one sentence — e.g., "pos 594 alone sufficient" or "positions 620-650 form minimal causal set"]
-See status_cc/patching_implementation.md §8.1 for full results table.
+See progress_cc/phase1/implementation.md §8.1 for full results table.
 ```
 
 **`0_FAILURE_REPORT.txt`** — write only if Step 4 also fails:
@@ -389,7 +389,7 @@ Hypothesis for next human investigation: [your best guess at the root cause]
 
 ## Result Recording
 
-After every completed run (pass or fail), add a row to `status_cc/patching_implementation.md §8.1`:
+After every completed run (pass or fail), add a row to `progress_cc/phase1/implementation.md §8.1`:
 
 | Run type | Prompt | KV cache | N | Success rate | Notes |
 |----------|--------|----------|---|-------------|-------|

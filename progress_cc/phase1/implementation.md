@@ -2,7 +2,7 @@
 
 **Status:** In progress — begun 2026-05-04.
 
-**Parent plan:** `status_cc/patching_implementation_dryrun.md` — all O0–O6 decisions resolved, full design rationale.
+**Parent plan:** `progress_cc/phase1/implementation_dryrun.md` — all O0–O6 decisions resolved, full design rationale.
 
 This document is the working reference for the actual implementation. It is more granular than the dry-run doc — it contains verified source-code facts, exact code to write, and a per-step checklist to fill in as work proceeds. Read this doc, not the dry-run, while writing code.
 
@@ -568,7 +568,7 @@ LIBERO-Goal initial states vary in object placement. For the sanity check, this 
 | 2026-05-05 | Step 5 image right-trim probe (`run_20260505_073828_step5_img294-477_n10_clean.txt`): positions 294-477 recovered 2/10. This is weak signal but not a meaningful result under the `>2/10` rule, so the current smallest defensible meaningful region remains 294-514 unless a left-trim probe succeeds. |
 | 2026-05-05 | Step 5 image left-trim probe (`run_20260505_074857_step5_img331-514_n10_clean.txt`): positions 331-514 recovered 2/10. Since both edge trims of 294-514 dropped to 2/10 while 294-514 itself recovered 8/10, promote 294-514 to N=25 as the smallest defensible contiguous region from the current search. |
 | 2026-05-05 | Step 5 localized image region (`run_20260505_075914_step5_img294-514_n25_clean.txt`): positions 294-514 recovered 22/25 at N=25. This completes image-token localization: the smallest defensible contiguous region spans left_wrist local tokens 98-195 and right_wrist/masked-stream local tokens 0-122. |
-| 2026-05-05 | Camera/token-region visualization created with `examples/libero/visualize_patching_region.py`. Artifacts: `scripts_outputs_txt/patching_phase1/patched/visualizations/img294-514_token_region_overlay.png` and `scripts_outputs_txt/patching_phase1/patched/visualizations/img294-514_token_region_mapping.json`. The overlay shows no selected agentview cells, the bottom half of `left_wrist_0_rgb` (local 98-195; rows 7-13), and the top/mid part of the masked padded stream `right_wrist_0_rgb` (local 0-122; rows 0-8 through col 10). |
+| 2026-05-05 | Camera/token-region visualization created with `examples/libero/visualize_patching_region.py`. Artifacts: `progress_cc/phase1/signal_files/patched/visualizations/img294-514_token_region_overlay.png` and `progress_cc/phase1/signal_files/patched/visualizations/img294-514_token_region_mapping.json`. The overlay shows no selected agentview cells, the bottom half of `left_wrist_0_rgb` (local 98-195; rows 7-13), and the top/mid part of the masked padded stream `right_wrist_0_rgb` (local 0-122; rows 0-8 through col 10). |
 | 2026-05-05 | Added layer and K/V-selective patch controls: `pi0.py` now accepts `patch_layers`, `patch_k`, and `patch_v`; `main_patching_expt_per_step_donor.py` exposes `--args.patch-layers`, `--args.patch-k`, and `--args.patch-v`. Empty `patch_layers` keeps the previous all-layer behavior. |
 | 2026-05-05 | Step 6 layer block A (`run_20260505_082736_step6_img294-514_layers0-5_n10_clean.txt`): patching layers 0-5 only with image positions 294-514 recovered 0/10. Continue coarse layer localization with layers 6-11 and 12-17. |
 | 2026-05-05 | Step 6 layer block B (`run_20260505_083834_step6_img294-514_layers6-11_n10_clean.txt`): patching layers 6-11 only recovered 0/10. Continue with layers 12-17; if that also fails, test combined layer bands because the effect may require cross-depth accumulation. |
@@ -592,8 +592,8 @@ LIBERO-Goal initial states vary in object placement. For the sanity check, this 
 - `right_wrist_0_rgb`: absolute 392-514, local 0-122, rows 0-8 through col 10. In LIBERO/pi0.5 this stream is the masked padded image input, so the causal signal here is prompt-conditioned prefix-cache state rather than live visual pixels.
 
 **Visualization:** Camera/token mapping artifacts are saved at:
-- `scripts_outputs_txt/patching_phase1/patched/visualizations/img294-514_token_region_overlay.png`
-- `scripts_outputs_txt/patching_phase1/patched/visualizations/img294-514_token_region_mapping.json`
+- `progress_cc/phase1/signal_files/patched/visualizations/img294-514_token_region_overlay.png`
+- `progress_cc/phase1/signal_files/patched/visualizations/img294-514_token_region_mapping.json`
 
 **Layer localization:** The strongest coarse block is late layers `12-17` (5/10). The smallest defensible contiguous layer block found is `12-14`: it recovered 3/10 at N=10 and 11/25 at N=25. Edge trims `12-13` and `13-14` dropped to 0/10 and 1/10, respectively.
 
@@ -643,7 +643,7 @@ For each localized position range, compute:
 Add a visualization artifact before moving to layer localization. The visualization should show representative current observation images with the localized token patches highlighted or outlined. Save it under a stable path such as:
 
 ```text
-scripts_outputs_txt/patching_phase1/patched/visualizations/
+progress_cc/phase1/signal_files/patched/visualizations/
 ```
 
 Record the visualization path in §8.1 or §8.2. The interpretation should explicitly distinguish:
@@ -719,9 +719,9 @@ cd /workspace/openpi
 source /workspace/openpi/runpod/patching_env.sh
 POSITIONS=$(python -c "print(','.join(map(str, range(441, 588))))")
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
-FULL="scripts_outputs_txt/patching_phase1/patched/agentic/run_${TIMESTAMP}_step5_img441-587_n10_full.txt"
-CLEAN="scripts_outputs_txt/patching_phase1/patched/agentic/run_${TIMESTAMP}_step5_img441-587_n10_clean.txt"
-mkdir -p scripts_outputs_txt/patching_phase1/patched/agentic
+FULL="progress_cc/phase1/signal_files/patched/agentic/run_${TIMESTAMP}_step5_img441-587_n10_full.txt"
+CLEAN="progress_cc/phase1/signal_files/patched/agentic/run_${TIMESTAMP}_step5_img441-587_n10_clean.txt"
+mkdir -p progress_cc/phase1/signal_files/patched/agentic
 mkdir -p data/libero/videos/patching_phase1/patched/agentic/step5_img441-587_n10
 
 {
