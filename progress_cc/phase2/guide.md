@@ -5,6 +5,7 @@ when-to-read: You are the autonomous agent running Phase 2. Read this before tou
 tl;dr:
   - Phase 2a: replicate Phase 1's methodology on Simple Pair 2 (different object, same destination — cabinet) → find minimal image-token patch set.
   - Phase 2b: alpha sweep on Phase 2a's minimal set — verify endpoints first (α=0 ≡ corrupt, α=1 ≡ clean), then run intermediates.
+  - Phase 2c: challenging cross-pair experiments — flip BOTH object+destination (Pair A), test decomposability (C2a dest-only, C2b obj-only), test motor-class flip (Pair D). All have automated success metrics.
   - Per-step donor only. Pre-computed donor is known to fail (stale images). Do not use main_patching_expt.py for patching runs — use main_patching_expt_per_step_donor.py.
   - No success signal for intermediate alpha values — just save videos and CSV. Do not attempt to interpret or iterate on intermediate results.
 ---
@@ -15,7 +16,7 @@ tl;dr:
 
 ## YOUR MISSION
 
-You are running Phase 2 of the AXMech activation-patching experiment on π₀.₅ + LIBERO-Goal. Phase 1 (on branch `patching_phase1_agentic`) is running in parallel and focuses on localizing the minimal patch set and sweeping layers/K-vs-V on Simple Pair 1 (`plate` ↔ `stove`). Your job is complementary: run the same initial battery on a **new task pair** (Simple Pair 2: `bowl` ↔ `wine bottle`, same destination — cabinet), then run an **alpha sweep** to test steerability.
+You are running Phase 2 of the AXMech activation-patching experiment on π₀.₅ + LIBERO-Goal. Phase 1 (on branch `patching_phase1_agentic`) is complete. Your job: run the same initial battery on a **new task pair** (Simple Pair 2: `bowl` ↔ `wine bottle`, same destination — cabinet), run an **alpha sweep** to test steerability, then run **challenging cross-pair experiments** (Phase 2c) that flip both object and destination simultaneously and test motor-class flip.
 
 **You are on branch `axmech-agentic-phase-2`.** Do not touch any other branch. Do not modify files that Phase 1 is using without adding new parameters with defaults that preserve existing behavior.
 
@@ -23,6 +24,7 @@ You are running Phase 2 of the AXMech activation-patching experiment on π₀.�
 
 1. **Phase 2a complete** → minimal sufficient image-token patch set found for Simple Pair 2, N=25 result recorded → write `progress_cc/phase2/signal_files/1_PHASE2A_MEANINGFUL_RESULT.txt`
 2. **Phase 2b complete** → alpha sweep run with verified endpoints, videos saved, CSV written → write `progress_cc/phase2/signal_files/2_PHASE2B_ALPHA_SWEEP_COMPLETE.txt`
+3. **Phase 2c complete** → all Pair A (C1/C2a/C2b) and Pair D (C3) experiments run → write `progress_cc/phase2/signal_files/3_PHASE2C_COMPLETE.txt` (or `0_PHASE2C_FAILURE.txt` if C1 fails)
 
 **If stuck:** record what you tried, why it failed, and move to the next step. Never spin on one approach indefinitely. If Phase 2a fails at the sanity check and you cannot debug within 2 iterations, write `progress_cc/phase2/signal_files/0_PHASE2A_FAILURE.txt` and stop.
 
@@ -32,13 +34,13 @@ You are running Phase 2 of the AXMech activation-patching experiment on π₀.�
 
 | Condition | Threshold | Action |
 |-----------|-----------|--------|
-| A-C3 sanity passes | ≥ 3/5 (60%) | Proceed to binary search |
-| A-C3 sanity fails | < 3/5 | Debug (≤2 iterations); if still failing, write `0_PHASE2A_FAILURE.txt` and stop |
-| Binary search meaningful | > 2/10 (20%) at N=10 | Promote to N=25 |
-| Binary search absent | 0/10 | Widen (try combined regions); if all fail, document and stop Phase 2a |
-| A-final N=25 meaningful | > 5/25 (20%) | Write `1_PHASE2A_MEANINGFUL_RESULT.txt`; proceed to Phase 2b |
-| B endpoint α=0 | ≈ 0% (within 10pp of D2) | Endpoint verified |
-| B endpoint α=1 | ≥ 60% | Endpoint verified |
+| Per-step full-prefix sanity (A-C3) passes | ≥ 3/5 (60%) | Proceed to binary search |
+| Per-step full-prefix sanity (A-C3) fails | < 3/5 | Debug ≤2 iterations; if still failing, write `0_PHASE2A_FAILURE.txt` and stop |
+| Binary search probe (N=10) meaningful | > 2/10 (20%) | Promote region; recurse |
+| Binary search probe (N=10) absent | 0/10 | Widen (try combined regions); if all fail, document and stop Phase 2a |
+| Minimal set N=25 run (A-final) meaningful | > 5/25 (20%) | Write `1_PHASE2A_MEANINGFUL_RESULT.txt`; proceed to Phase 2b |
+| Alpha endpoint α=0 (B-alpha0) | ≤ 10% | Endpoint verified |
+| Alpha endpoint α=1 (B-alpha1) | ≥ 60% | Endpoint verified |
 | Either endpoint fails | — | Alpha implementation is wrong — debug before running intermediates |
 
 **Context:** Phase 1 found clean baseline = 100%, corrupt = 0% on Simple Pair 1. Expect similar separation on Simple Pair 2. Any A-C3 > 60% confirms the mechanism works on this pair.
@@ -61,6 +63,7 @@ git pull origin axmech-agentic-phase-2
 
 | Path | Purpose |
 |------|---------|
+| `progress_cc/phase2/guide.md` | **Current guide** — you are reading this |
 | `progress_cc/phase2/implementation.md` | Results doc — update after every run |
 | `progress_cc/phase2/signal_files/` | Signal files (write here when conditions met) |
 | `progress_cc/phase2/signal_files/logs/` | All run logs (full + clean) |
@@ -74,12 +77,12 @@ git pull origin axmech-agentic-phase-2
 
 | Path | What it contains |
 |------|-----------------|
-| `status_cc/patching_implementation.md` | Phase 1 full results, architectural findings, binary search progress |
-| `status_cc/agent_patching_guide.md` | Phase 1 agent guide |
-| `scripts_outputs_txt/patching_phase1/patched/1_SANITY_CHECK_SUCCESS.txt` | Phase 1 sanity result |
-| `scripts_outputs_txt/patching_phase1/patched/2_PATCHING_MEANINGFUL_RESULT.txt` | Phase 1 main result (may not exist yet if still running) |
+| `progress_cc/phase1/implementation.md` | Phase 1 full results, architectural findings, binary search progress |
+| `progress_cc/phase1/guide.md` | Phase 1 agent guide |
+| `progress_cc/phase1/signal_files/patched/1_SANITY_CHECK_SUCCESS.txt` | Phase 1 sanity result |
+| `progress_cc/phase1/signal_files/patched/2_PATCHING_MEANINGFUL_RESULT.txt` | Phase 1 main result |
 
-Read `status_cc/patching_implementation.md §8.3` before starting to understand what Phase 1 found and why per-step donor is required.
+Read `progress_cc/phase1/implementation.md §8.3` before starting to understand what Phase 1 found and why per-step donor is required.
 
 ---
 
@@ -479,20 +482,10 @@ EOF
 
 ---
 
-## Signal Files Summary
-
-| File | Write when | Location |
-|------|-----------|----------|
-| `0_PHASE2A_FAILURE.txt` | A-C3 fails after 2 debug iterations | `progress_cc/phase2/signal_files/` |
-| `1_PHASE2A_MEANINGFUL_RESULT.txt` | A-final N=25 > 5/25 | `progress_cc/phase2/signal_files/` |
-| `2_PHASE2B_ALPHA_SWEEP_COMPLETE.txt` | All alpha values run, CSV written | `progress_cc/phase2/signal_files/` |
-
----
-
 ## Result Recording
 
 Update `progress_cc/phase2/implementation.md` after **every run**:
-- Add a row to §6.1 (Phase 2a) or §7.1/§7.2 (Phase 2b)
+- Add a row to §6.1 (Phase 2a), §7.1/§7.2 (Phase 2b), or §9.1 (Phase 2c)
 - Update §8 (current status and next steps) with one line saying what was just run and what comes next
 
 Update §8 **before committing** so that if the pod restarts, the doc tells the next session exactly where to resume.
@@ -504,7 +497,7 @@ Update §8 **before committing** so that if the pod restarts, the doc tells the 
 ```bash
 git add -p   # stage only files you modified
 git commit -m "$(cat <<'EOF'
-phase2a/2b <step>: <one-line result>
+phase2a/2b/2c <step>: <one-line result>
 
 [Optional: what you observed, why surprising, what next]
 EOF
@@ -745,7 +738,7 @@ EOF
 
 ---
 
-## Updated Signal Files Summary
+## Signal Files Summary
 
 | File | Write when | Location |
 |------|-----------|----------|
