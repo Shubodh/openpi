@@ -537,6 +537,7 @@ LIBERO-Goal initial states vary in object placement. For the sanity check, this 
 | Step 5 localized image region | `"put the bowl on the stove"` | image prefix positions 294-514 from per-step donor | 25 | **88%** (22/25) | `run_20260505_075914_step5_img294-514_n25_clean.txt`; smallest defensible contiguous image-token region validated at N=25 |
 | Step 6 layer block A | `"put the bowl on the stove"` | image positions 294-514, layers 0-5, K+V | 10 | **0%** (0/10) | `run_20260505_082736_step6_img294-514_layers0-5_n10_clean.txt`; early layers alone are insufficient |
 | Step 6 layer block B | `"put the bowl on the stove"` | image positions 294-514, layers 6-11, K+V | 10 | **0%** (0/10) | `run_20260505_083834_step6_img294-514_layers6-11_n10_clean.txt`; middle layers alone are insufficient |
+| Step 6 layer block C | `"put the bowl on the stove"` | image positions 294-514, layers 12-17, K+V | 10 | **50%** (5/10) | `run_20260505_084941_step6_img294-514_layers12-17_n10_clean.txt`; late layers carry meaningful recovery |
 | Patched (D3, pos 594, K+V) | `"put the bowl on the stove"` | pos 594 from donor | 25 | — | |
 
 ### 8.2 Implementation notes
@@ -564,6 +565,7 @@ LIBERO-Goal initial states vary in object placement. For the sanity check, this 
 | 2026-05-05 | Added layer and K/V-selective patch controls: `pi0.py` now accepts `patch_layers`, `patch_k`, and `patch_v`; `main_patching_expt_per_step_donor.py` exposes `--args.patch-layers`, `--args.patch-k`, and `--args.patch-v`. Empty `patch_layers` keeps the previous all-layer behavior. |
 | 2026-05-05 | Step 6 layer block A (`run_20260505_082736_step6_img294-514_layers0-5_n10_clean.txt`): patching layers 0-5 only with image positions 294-514 recovered 0/10. Continue coarse layer localization with layers 6-11 and 12-17. |
 | 2026-05-05 | Step 6 layer block B (`run_20260505_083834_step6_img294-514_layers6-11_n10_clean.txt`): patching layers 6-11 only recovered 0/10. Continue with layers 12-17; if that also fails, test combined layer bands because the effect may require cross-depth accumulation. |
+| 2026-05-05 | Step 6 layer block C (`run_20260505_084941_step6_img294-514_layers12-17_n10_clean.txt`): patching layers 12-17 recovered 5/10, above the meaningful threshold. Recurse inside the late block with layers 12-14 and 15-17. |
 
 ### 8.3 Current conclusion and next steps
 
