@@ -540,6 +540,7 @@ LIBERO-Goal initial states vary in object placement. For the sanity check, this 
 | Step 6 layer block C | `"put the bowl on the stove"` | image positions 294-514, layers 12-17, K+V | 10 | **50%** (5/10) | `run_20260505_084941_step6_img294-514_layers12-17_n10_clean.txt`; late layers carry meaningful recovery |
 | Step 6 layer sub-block C1 | `"put the bowl on the stove"` | image positions 294-514, layers 12-14, K+V | 10 | **30%** (3/10) | `run_20260505_085910_step6_img294-514_layers12-14_n10_clean.txt`; first half of late block is just above threshold |
 | Step 6 layer sub-block C2 | `"put the bowl on the stove"` | image positions 294-514, layers 15-17, K+V | 10 | **0%** (0/10) | `run_20260505_090903_step6_img294-514_layers15-17_n10_clean.txt`; final layers alone are insufficient |
+| Step 6 layer trim C1a | `"put the bowl on the stove"` | image positions 294-514, layers 12-13, K+V | 10 | **0%** (0/10) | `run_20260505_092001_step6_img294-514_layers12-13_n10_clean.txt`; removing layer 14 eliminates recovery |
 | Patched (D3, pos 594, K+V) | `"put the bowl on the stove"` | pos 594 from donor | 25 | — | |
 
 ### 8.2 Implementation notes
@@ -570,6 +571,7 @@ LIBERO-Goal initial states vary in object placement. For the sanity check, this 
 | 2026-05-05 | Step 6 layer block C (`run_20260505_084941_step6_img294-514_layers12-17_n10_clean.txt`): patching layers 12-17 recovered 5/10, above the meaningful threshold. Recurse inside the late block with layers 12-14 and 15-17. |
 | 2026-05-05 | Step 6 layer sub-block C1 (`run_20260505_085910_step6_img294-514_layers12-14_n10_clean.txt`): patching layers 12-14 recovered 3/10, just above the meaningful threshold. Test layers 15-17 before deciding whether to recurse further or treat late layers as distributed. |
 | 2026-05-05 | Step 6 layer sub-block C2 (`run_20260505_090903_step6_img294-514_layers15-17_n10_clean.txt`): patching layers 15-17 recovered 0/10. The current layer-localization candidate is layers 12-14; edge-trim with 12-13 and 13-14 before promoting it. |
+| 2026-05-05 | Step 6 layer trim C1a (`run_20260505_092001_step6_img294-514_layers12-13_n10_clean.txt`): patching layers 12-13 recovered 0/10, so layer 14 is necessary for the 12-14 result. Test layers 13-14 next to check whether layer 12 is also necessary. |
 
 ### 8.3 Current conclusion and next steps
 
