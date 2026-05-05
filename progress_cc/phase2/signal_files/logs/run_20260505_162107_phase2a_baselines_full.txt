@@ -1,0 +1,774 @@
+[robosuite WARNING] No private macro file found! (macros.py:53)
+[robosuite WARNING] It is recommended to use a private macro file (macros.py:54)
+[robosuite WARNING] To setup, run: python /workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite/scripts/setup_macros.py (macros.py:55)
+Gym has been unmaintained since 2022 and does not support NumPy 2.0 amongst other critical functionality.
+Please upgrade to Gymnasium, the maintained drop-in replacement of Gym, or contact the authors of your software and request that they upgrade.
+See the migration guide at https://gymnasium.farama.org/introduction/migration_guide/ for additional information.
+INFO:root:Task suite: libero_goal
+INFO:root:Waiting for server at ws://0.0.0.0:8000...
+[info] using task orders [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+  0%|          | 0/10 [00:00<?, ?it/s]/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/numba/np/arraymath.py:3845: DeprecationWarning: `np.MachAr` is deprecated (NumPy 1.22).
+  @overload(np.MachAr)
+ 10%|█         | 1/10 [00:10<01:33, 10.37s/it] 20%|██        | 2/10 [00:11<00:40,  5.00s/it] 30%|███       | 3/10 [00:12<00:22,  3.26s/it] 40%|████      | 4/10 [00:13<00:14,  2.44s/it][Warning]: datasets path /workspace/openpi/third_party/libero/libero/datasets does not exist!
+[Warning]: datasets path /workspace/openpi/third_party/libero/libero/datasets does not exist!
+[Warning]: datasets path /workspace/openpi/third_party/libero/libero/datasets does not exist!
+[Warning]: datasets path /workspace/openpi/third_party/libero/libero/datasets does not exist!
+[Warning]: datasets path /workspace/openpi/third_party/libero/libero/datasets does not exist!
+[Warning]: datasets path /workspace/openpi/third_party/libero/libero/datasets does not exist!
+[Warning]: datasets path /workspace/openpi/third_party/libero/libero/datasets does not exist!
+[Warning]: datasets path /workspace/openpi/third_party/libero/libero/datasets does not exist!
+[Warning]: datasets path /workspace/openpi/third_party/libero/libero/datasets does not exist!
+[Warning]: datasets path /workspace/openpi/third_party/libero/libero/datasets does not exist!
+
+  0%|          | 0/25 [00:00<?, ?it/s][AINFO:root:
+Task: put the bowl on top of the cabinet
+INFO:root:Starting episode 1...
+INFO:root:Success: True
+INFO:root:# episodes completed so far: 1
+INFO:root:# successes: 1 (100.0%)
+
+  4%|▍         | 1/25 [01:40<40:18, 100.75s/it][AINFO:root:
+Task: put the bowl on top of the cabinet
+INFO:root:Starting episode 2...
+INFO:root:Success: True
+INFO:root:# episodes completed so far: 2
+INFO:root:# successes: 2 (100.0%)
+
+  8%|▊         | 2/25 [01:48<17:39, 46.08s/it] [AINFO:root:
+Task: put the bowl on top of the cabinet
+INFO:root:Starting episode 3...
+INFO:root:Success: True
+INFO:root:# episodes completed so far: 3
+INFO:root:# successes: 3 (100.0%)
+
+ 12%|█▏        | 3/25 [01:55<10:22, 28.29s/it][AINFO:root:
+Task: put the bowl on top of the cabinet
+INFO:root:Starting episode 4...
+INFO:root:Success: True
+INFO:root:# episodes completed so far: 4
+INFO:root:# successes: 4 (100.0%)
+
+ 16%|█▌        | 4/25 [02:04<07:09, 20.44s/it][AINFO:root:
+Task: put the bowl on top of the cabinet
+INFO:root:Starting episode 5...
+INFO:root:Success: True
+INFO:root:# episodes completed so far: 5
+INFO:root:# successes: 5 (100.0%)
+
+ 20%|██        | 5/25 [02:12<05:22, 16.11s/it][AINFO:root:
+Task: put the bowl on top of the cabinet
+INFO:root:Starting episode 6...
+INFO:root:Success: True
+INFO:root:# episodes completed so far: 6
+INFO:root:# successes: 6 (100.0%)
+
+ 24%|██▍       | 6/25 [02:19<04:09, 13.14s/it][AINFO:root:
+Task: put the bowl on top of the cabinet
+INFO:root:Starting episode 7...
+INFO:root:Success: False
+INFO:root:# episodes completed so far: 7
+INFO:root:# successes: 6 (85.7%)
+
+ 28%|██▊       | 7/25 [02:42<04:54, 16.34s/it][AINFO:root:
+Task: put the bowl on top of the cabinet
+INFO:root:Starting episode 8...
+INFO:root:Success: True
+INFO:root:# episodes completed so far: 8
+INFO:root:# successes: 7 (87.5%)
+
+ 32%|███▏      | 8/25 [02:50<03:51, 13.64s/it][AINFO:root:
+Task: put the bowl on top of the cabinet
+INFO:root:Starting episode 9...
+INFO:root:Success: True
+INFO:root:# episodes completed so far: 9
+INFO:root:# successes: 8 (88.9%)
+
+ 36%|███▌      | 9/25 [02:57<03:05, 11.60s/it][AINFO:root:
+Task: put the bowl on top of the cabinet
+INFO:root:Starting episode 10...
+INFO:root:Success: True
+INFO:root:# episodes completed so far: 10
+INFO:root:# successes: 9 (90.0%)
+
+ 40%|████      | 10/25 [03:05<02:34, 10.30s/it][AINFO:root:
+Task: put the bowl on top of the cabinet
+INFO:root:Starting episode 11...
+INFO:root:Success: True
+INFO:root:# episodes completed so far: 11
+INFO:root:# successes: 10 (90.9%)
+
+ 44%|████▍     | 11/25 [03:12<02:09,  9.28s/it][AINFO:root:
+Task: put the bowl on top of the cabinet
+INFO:root:Starting episode 12...
+INFO:root:Success: True
+INFO:root:# episodes completed so far: 12
+INFO:root:# successes: 11 (91.7%)
+
+ 48%|████▊     | 12/25 [03:19<01:53,  8.73s/it][AINFO:root:
+Task: put the bowl on top of the cabinet
+INFO:root:Starting episode 13...
+INFO:root:Success: True
+INFO:root:# episodes completed so far: 13
+INFO:root:# successes: 12 (92.3%)
+
+ 52%|█████▏    | 13/25 [03:26<01:39,  8.26s/it][AINFO:root:
+Task: put the bowl on top of the cabinet
+INFO:root:Starting episode 14...
+INFO:root:Success: True
+INFO:root:# episodes completed so far: 14
+INFO:root:# successes: 13 (92.9%)
+
+ 56%|█████▌    | 14/25 [03:34<01:28,  8.02s/it][AINFO:root:
+Task: put the bowl on top of the cabinet
+INFO:root:Starting episode 15...
+INFO:root:Success: True
+INFO:root:# episodes completed so far: 15
+INFO:root:# successes: 14 (93.3%)
+
+ 60%|██████    | 15/25 [03:41<01:19,  7.92s/it][AINFO:root:
+Task: put the bowl on top of the cabinet
+INFO:root:Starting episode 16...
+INFO:root:Success: True
+INFO:root:# episodes completed so far: 16
+INFO:root:# successes: 15 (93.8%)
+
+ 64%|██████▍   | 16/25 [03:50<01:12,  8.11s/it][AINFO:root:
+Task: put the bowl on top of the cabinet
+INFO:root:Starting episode 17...
+INFO:root:Success: True
+INFO:root:# episodes completed so far: 17
+INFO:root:# successes: 16 (94.1%)
+
+ 68%|██████▊   | 17/25 [03:58<01:05,  8.14s/it][AINFO:root:
+Task: put the bowl on top of the cabinet
+INFO:root:Starting episode 18...
+INFO:root:Success: True
+INFO:root:# episodes completed so far: 18
+INFO:root:# successes: 17 (94.4%)
+
+ 72%|███████▏  | 18/25 [04:07<00:57,  8.25s/it][AINFO:root:
+Task: put the bowl on top of the cabinet
+INFO:root:Starting episode 19...
+INFO:root:Success: True
+INFO:root:# episodes completed so far: 19
+INFO:root:# successes: 18 (94.7%)
+
+ 76%|███████▌  | 19/25 [04:16<00:51,  8.58s/it][AINFO:root:
+Task: put the bowl on top of the cabinet
+INFO:root:Starting episode 20...
+INFO:root:Success: True
+INFO:root:# episodes completed so far: 20
+INFO:root:# successes: 19 (95.0%)
+
+ 80%|████████  | 20/25 [04:25<00:43,  8.70s/it][AINFO:root:
+Task: put the bowl on top of the cabinet
+INFO:root:Starting episode 21...
+INFO:root:Success: True
+INFO:root:# episodes completed so far: 21
+INFO:root:# successes: 20 (95.2%)
+
+ 84%|████████▍ | 21/25 [04:34<00:35,  8.82s/it][AINFO:root:
+Task: put the bowl on top of the cabinet
+INFO:root:Starting episode 22...
+INFO:root:Success: True
+INFO:root:# episodes completed so far: 22
+INFO:root:# successes: 21 (95.5%)
+
+ 88%|████████▊ | 22/25 [04:43<00:26,  8.69s/it][AINFO:root:
+Task: put the bowl on top of the cabinet
+INFO:root:Starting episode 23...
+INFO:root:Success: True
+INFO:root:# episodes completed so far: 23
+INFO:root:# successes: 22 (95.7%)
+
+ 92%|█████████▏| 23/25 [04:51<00:17,  8.52s/it][AINFO:root:
+Task: put the bowl on top of the cabinet
+INFO:root:Starting episode 24...
+INFO:root:Success: True
+INFO:root:# episodes completed so far: 24
+INFO:root:# successes: 23 (95.8%)
+
+ 96%|█████████▌| 24/25 [04:59<00:08,  8.54s/it][AINFO:root:
+Task: put the bowl on top of the cabinet
+INFO:root:Starting episode 25...
+INFO:root:Success: True
+INFO:root:# episodes completed so far: 25
+INFO:root:# successes: 24 (96.0%)
+
+100%|██████████| 25/25 [05:08<00:00,  8.50s/it][A100%|██████████| 25/25 [05:08<00:00, 12.33s/it]
+INFO:root:Current task success rate: 0.96
+INFO:root:Current total success rate: 0.96
+ 50%|█████     | 5/10 [05:23<09:25, 113.10s/it] 60%|██████    | 6/10 [05:24<05:00, 75.08s/it]  70%|███████   | 7/10 [05:25<02:32, 50.94s/it] 80%|████████  | 8/10 [05:27<01:10, 35.16s/it] 90%|█████████ | 9/10 [05:28<00:24, 24.51s/it]100%|██████████| 10/10 [05:29<00:00, 17.29s/it]100%|██████████| 10/10 [05:29<00:00, 32.94s/it]
+INFO:root:Total success rate: 0.96
+INFO:root:Total episodes: 25
+[Warning]: datasets path /workspace/openpi/third_party/libero/libero/datasets does not exist!
+[Warning]: datasets path /workspace/openpi/third_party/libero/libero/datasets does not exist!
+[Warning]: datasets path /workspace/openpi/third_party/libero/libero/datasets does not exist!
+[Warning]: datasets path /workspace/openpi/third_party/libero/libero/datasets does not exist!
+[Warning]: datasets path /workspace/openpi/third_party/libero/libero/datasets does not exist!
+[Warning]: datasets path /workspace/openpi/third_party/libero/libero/datasets does not exist!
+[Warning]: datasets path /workspace/openpi/third_party/libero/libero/datasets does not exist!
+[Warning]: datasets path /workspace/openpi/third_party/libero/libero/datasets does not exist!
+[Warning]: datasets path /workspace/openpi/third_party/libero/libero/datasets does not exist!
+[Warning]: datasets path /workspace/openpi/third_party/libero/libero/datasets does not exist!
+Exception ignored in: <function MjRenderContext.__del__ at 0x72170308dca0>
+Traceback (most recent call last):
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite/utils/binding_utils.py", line 199, in __del__
+    self.gl_ctx.free()
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite/renderers/context/egl_context.py", line 150, in free
+    EGL.eglDestroyContext(EGL_DISPLAY, self._context)
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/OpenGL/error.py", line 230, in glCheckError
+    raise self._errorClass(
+OpenGL.raw.EGL._errors.EGLError: EGLError(
+	err = EGL_NOT_INITIALIZED,
+	baseOperation = eglDestroyContext,
+	cArguments = (
+		<OpenGL._opaque.EGLDisplay_pointer object at 0x7216ed9d32c0>,
+		<OpenGL._opaque.EGLContext_pointer object at 0x7216d8bfd140>,
+	),
+	result = 0
+)
+Exception ignored in: <function EGLGLContext.__del__ at 0x72170308daf0>
+Traceback (most recent call last):
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite/renderers/context/egl_context.py", line 155, in __del__
+    self.free()
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite/renderers/context/egl_context.py", line 150, in free
+    EGL.eglDestroyContext(EGL_DISPLAY, self._context)
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/OpenGL/error.py", line 230, in glCheckError
+    raise self._errorClass(
+OpenGL.raw.EGL._errors.EGLError: EGLError(
+	err = EGL_NOT_INITIALIZED,
+	baseOperation = eglDestroyContext,
+	cArguments = (
+		<OpenGL._opaque.EGLDisplay_pointer object at 0x7216ed9d32c0>,
+		<OpenGL._opaque.EGLContext_pointer object at 0x7216d8bfd140>,
+	),
+	result = 0
+)
+Exception ignored in: <function MjRenderContext.__del__ at 0x72170308dca0>
+Traceback (most recent call last):
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite/utils/binding_utils.py", line 199, in __del__
+    self.gl_ctx.free()
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite/renderers/context/egl_context.py", line 150, in free
+    EGL.eglDestroyContext(EGL_DISPLAY, self._context)
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/OpenGL/error.py", line 230, in glCheckError
+    raise self._errorClass(
+OpenGL.raw.EGL._errors.EGLError: EGLError(
+	err = EGL_NOT_INITIALIZED,
+	baseOperation = eglDestroyContext,
+	cArguments = (
+		<OpenGL._opaque.EGLDisplay_pointer object at 0x7216ed9d32c0>,
+		<OpenGL._opaque.EGLContext_pointer object at 0x7216d86561c0>,
+	),
+	result = 0
+)
+Exception ignored in: <function EGLGLContext.__del__ at 0x72170308daf0>
+Traceback (most recent call last):
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite/renderers/context/egl_context.py", line 155, in __del__
+    self.free()
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite/renderers/context/egl_context.py", line 150, in free
+    EGL.eglDestroyContext(EGL_DISPLAY, self._context)
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/OpenGL/error.py", line 230, in glCheckError
+    raise self._errorClass(
+OpenGL.raw.EGL._errors.EGLError: EGLError(
+	err = EGL_NOT_INITIALIZED,
+	baseOperation = eglDestroyContext,
+	cArguments = (
+		<OpenGL._opaque.EGLDisplay_pointer object at 0x7216ed9d32c0>,
+		<OpenGL._opaque.EGLContext_pointer object at 0x7216d86561c0>,
+	),
+	result = 0
+)
+Exception ignored in: <function MjRenderContext.__del__ at 0x72170308dca0>
+Traceback (most recent call last):
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite/utils/binding_utils.py", line 199, in __del__
+    self.gl_ctx.free()
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite/renderers/context/egl_context.py", line 149, in free
+    EGL.eglMakeCurrent(EGL_DISPLAY, EGL.EGL_NO_SURFACE, EGL.EGL_NO_SURFACE, EGL.EGL_NO_CONTEXT)
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/OpenGL/error.py", line 230, in glCheckError
+    raise self._errorClass(
+OpenGL.raw.EGL._errors.EGLError: EGLError(
+	err = EGL_NOT_INITIALIZED,
+	baseOperation = eglMakeCurrent,
+	cArguments = (
+		<OpenGL._opaque.EGLDisplay_pointer object at 0x7216ed9d32c0>,
+		<OpenGL._opaque.EGLSurface_pointer object at 0x7217030e9740>,
+		<OpenGL._opaque.EGLSurface_pointer object at 0x7217030e9740>,
+		<OpenGL._opaque.EGLContext_pointer object at 0x7217030e9d40>,
+	),
+	result = 0
+)
+Exception ignored in: <function EGLGLContext.__del__ at 0x72170308daf0>
+Traceback (most recent call last):
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite/renderers/context/egl_context.py", line 155, in __del__
+    self.free()
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite/renderers/context/egl_context.py", line 149, in free
+    EGL.eglMakeCurrent(EGL_DISPLAY, EGL.EGL_NO_SURFACE, EGL.EGL_NO_SURFACE, EGL.EGL_NO_CONTEXT)
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/OpenGL/error.py", line 230, in glCheckError
+    raise self._errorClass(
+OpenGL.raw.EGL._errors.EGLError: EGLError(
+	err = EGL_NOT_INITIALIZED,
+	baseOperation = eglMakeCurrent,
+	cArguments = (
+		<OpenGL._opaque.EGLDisplay_pointer object at 0x7216ed9d32c0>,
+		<OpenGL._opaque.EGLSurface_pointer object at 0x7217030e9740>,
+		<OpenGL._opaque.EGLSurface_pointer object at 0x7217030e9740>,
+		<OpenGL._opaque.EGLContext_pointer object at 0x7217030e9d40>,
+	),
+	result = 0
+)
+Exception ignored in: <function MjRenderContext.__del__ at 0x72170308dca0>
+Traceback (most recent call last):
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite/utils/binding_utils.py", line 199, in __del__
+    self.gl_ctx.free()
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite/renderers/context/egl_context.py", line 150, in free
+    EGL.eglDestroyContext(EGL_DISPLAY, self._context)
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/OpenGL/error.py", line 230, in glCheckError
+    raise self._errorClass(
+OpenGL.raw.EGL._errors.EGLError: EGLError(
+	err = EGL_NOT_INITIALIZED,
+	baseOperation = eglDestroyContext,
+	cArguments = (
+		<OpenGL._opaque.EGLDisplay_pointer object at 0x7216ed9d32c0>,
+		<OpenGL._opaque.EGLContext_pointer object at 0x7216f001d540>,
+	),
+	result = 0
+)
+Exception ignored in: <function EGLGLContext.__del__ at 0x72170308daf0>
+Traceback (most recent call last):
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite/renderers/context/egl_context.py", line 155, in __del__
+    self.free()
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite/renderers/context/egl_context.py", line 150, in free
+    EGL.eglDestroyContext(EGL_DISPLAY, self._context)
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/OpenGL/error.py", line 230, in glCheckError
+    raise self._errorClass(
+OpenGL.raw.EGL._errors.EGLError: EGLError(
+	err = EGL_NOT_INITIALIZED,
+	baseOperation = eglDestroyContext,
+	cArguments = (
+		<OpenGL._opaque.EGLDisplay_pointer object at 0x7216ed9d32c0>,
+		<OpenGL._opaque.EGLContext_pointer object at 0x7216f001d540>,
+	),
+	result = 0
+)
+Exception ignored in: <function MjRenderContext.__del__ at 0x72170308dca0>
+Traceback (most recent call last):
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite/utils/binding_utils.py", line 199, in __del__
+    self.gl_ctx.free()
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite/renderers/context/egl_context.py", line 150, in free
+    EGL.eglDestroyContext(EGL_DISPLAY, self._context)
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/OpenGL/error.py", line 230, in glCheckError
+    raise self._errorClass(
+OpenGL.raw.EGL._errors.EGLError: EGLError(
+	err = EGL_NOT_INITIALIZED,
+	baseOperation = eglDestroyContext,
+	cArguments = (
+		<OpenGL._opaque.EGLDisplay_pointer object at 0x7216ed9d32c0>,
+		<OpenGL._opaque.EGLContext_pointer object at 0x7216d8b5e4c0>,
+	),
+	result = 0
+)
+Exception ignored in: <function EGLGLContext.__del__ at 0x72170308daf0>
+Traceback (most recent call last):
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite/renderers/context/egl_context.py", line 155, in __del__
+    self.free()
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite/renderers/context/egl_context.py", line 150, in free
+    EGL.eglDestroyContext(EGL_DISPLAY, self._context)
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/OpenGL/error.py", line 230, in glCheckError
+    raise self._errorClass(
+OpenGL.raw.EGL._errors.EGLError: EGLError(
+	err = EGL_NOT_INITIALIZED,
+	baseOperation = eglDestroyContext,
+	cArguments = (
+		<OpenGL._opaque.EGLDisplay_pointer object at 0x7216ed9d32c0>,
+		<OpenGL._opaque.EGLContext_pointer object at 0x7216d8b5e4c0>,
+	),
+	result = 0
+)
+[robosuite WARNING] No private macro file found! (macros.py:53)
+[robosuite WARNING] It is recommended to use a private macro file (macros.py:54)
+[robosuite WARNING] To setup, run: python /workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite/scripts/setup_macros.py (macros.py:55)
+Gym has been unmaintained since 2022 and does not support NumPy 2.0 amongst other critical functionality.
+Please upgrade to Gymnasium, the maintained drop-in replacement of Gym, or contact the authors of your software and request that they upgrade.
+See the migration guide at https://gymnasium.farama.org/introduction/migration_guide/ for additional information.
+INFO:root:Task suite: libero_goal
+INFO:root:Waiting for server at ws://0.0.0.0:8000...
+[info] using task orders [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+  0%|          | 0/10 [00:00<?, ?it/s]/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/numba/np/arraymath.py:3845: DeprecationWarning: `np.MachAr` is deprecated (NumPy 1.22).
+  @overload(np.MachAr)
+ 10%|█         | 1/10 [00:05<00:47,  5.27s/it] 20%|██        | 2/10 [00:06<00:22,  2.82s/it] 30%|███       | 3/10 [00:07<00:14,  2.03s/it] 40%|████      | 4/10 [00:08<00:10,  1.70s/it][Warning]: datasets path /workspace/openpi/third_party/libero/libero/datasets does not exist!
+[Warning]: datasets path /workspace/openpi/third_party/libero/libero/datasets does not exist!
+[Warning]: datasets path /workspace/openpi/third_party/libero/libero/datasets does not exist!
+[Warning]: datasets path /workspace/openpi/third_party/libero/libero/datasets does not exist!
+[Warning]: datasets path /workspace/openpi/third_party/libero/libero/datasets does not exist!
+[Warning]: datasets path /workspace/openpi/third_party/libero/libero/datasets does not exist!
+[Warning]: datasets path /workspace/openpi/third_party/libero/libero/datasets does not exist!
+[Warning]: datasets path /workspace/openpi/third_party/libero/libero/datasets does not exist!
+[Warning]: datasets path /workspace/openpi/third_party/libero/libero/datasets does not exist!
+[Warning]: datasets path /workspace/openpi/third_party/libero/libero/datasets does not exist!
+
+  0%|          | 0/25 [00:00<?, ?it/s][AINFO:root:
+Task: put the bowl on top of the cabinet
+INFO:root:Starting episode 1...
+INFO:root:Success: False
+INFO:root:# episodes completed so far: 1
+INFO:root:# successes: 0 (0.0%)
+
+  4%|▍         | 1/25 [00:20<08:09, 20.40s/it][AINFO:root:
+Task: put the bowl on top of the cabinet
+INFO:root:Starting episode 2...
+INFO:root:Success: False
+INFO:root:# episodes completed so far: 2
+INFO:root:# successes: 0 (0.0%)
+
+  8%|▊         | 2/25 [00:40<07:38, 19.95s/it][AINFO:root:
+Task: put the bowl on top of the cabinet
+INFO:root:Starting episode 3...
+INFO:root:Success: False
+INFO:root:# episodes completed so far: 3
+INFO:root:# successes: 0 (0.0%)
+
+ 12%|█▏        | 3/25 [01:00<07:20, 20.00s/it][AINFO:root:
+Task: put the bowl on top of the cabinet
+INFO:root:Starting episode 4...
+INFO:root:Success: False
+INFO:root:# episodes completed so far: 4
+INFO:root:# successes: 0 (0.0%)
+
+ 16%|█▌        | 4/25 [01:19<06:56, 19.83s/it][AINFO:root:
+Task: put the bowl on top of the cabinet
+INFO:root:Starting episode 5...
+INFO:root:Success: False
+INFO:root:# episodes completed so far: 5
+INFO:root:# successes: 0 (0.0%)
+
+ 20%|██        | 5/25 [01:40<06:40, 20.03s/it][AINFO:root:
+Task: put the bowl on top of the cabinet
+INFO:root:Starting episode 6...
+INFO:root:Success: False
+INFO:root:# episodes completed so far: 6
+INFO:root:# successes: 0 (0.0%)
+
+ 24%|██▍       | 6/25 [02:00<06:21, 20.09s/it][AINFO:root:
+Task: put the bowl on top of the cabinet
+INFO:root:Starting episode 7...
+INFO:root:Success: False
+INFO:root:# episodes completed so far: 7
+INFO:root:# successes: 0 (0.0%)
+
+ 28%|██▊       | 7/25 [02:20<06:02, 20.15s/it][AINFO:root:
+Task: put the bowl on top of the cabinet
+INFO:root:Starting episode 8...
+INFO:root:Success: False
+INFO:root:# episodes completed so far: 8
+INFO:root:# successes: 0 (0.0%)
+
+ 32%|███▏      | 8/25 [02:40<05:43, 20.19s/it][AINFO:root:
+Task: put the bowl on top of the cabinet
+INFO:root:Starting episode 9...
+INFO:root:Success: False
+INFO:root:# episodes completed so far: 9
+INFO:root:# successes: 0 (0.0%)
+
+ 36%|███▌      | 9/25 [03:01<05:25, 20.35s/it][AINFO:root:
+Task: put the bowl on top of the cabinet
+INFO:root:Starting episode 10...
+INFO:root:Success: False
+INFO:root:# episodes completed so far: 10
+INFO:root:# successes: 0 (0.0%)
+
+ 40%|████      | 10/25 [03:21<05:03, 20.24s/it][AINFO:root:
+Task: put the bowl on top of the cabinet
+INFO:root:Starting episode 11...
+INFO:root:Success: False
+INFO:root:# episodes completed so far: 11
+INFO:root:# successes: 0 (0.0%)
+
+ 44%|████▍     | 11/25 [03:41<04:43, 20.23s/it][AINFO:root:
+Task: put the bowl on top of the cabinet
+INFO:root:Starting episode 12...
+INFO:root:Success: False
+INFO:root:# episodes completed so far: 12
+INFO:root:# successes: 0 (0.0%)
+
+ 48%|████▊     | 12/25 [04:02<04:24, 20.34s/it][AINFO:root:
+Task: put the bowl on top of the cabinet
+INFO:root:Starting episode 13...
+INFO:root:Success: False
+INFO:root:# episodes completed so far: 13
+INFO:root:# successes: 0 (0.0%)
+
+ 52%|█████▏    | 13/25 [04:22<04:02, 20.19s/it][AINFO:root:
+Task: put the bowl on top of the cabinet
+INFO:root:Starting episode 14...
+INFO:root:Success: False
+INFO:root:# episodes completed so far: 14
+INFO:root:# successes: 0 (0.0%)
+
+ 56%|█████▌    | 14/25 [04:41<03:40, 20.06s/it][AINFO:root:
+Task: put the bowl on top of the cabinet
+INFO:root:Starting episode 15...
+INFO:root:Success: False
+INFO:root:# episodes completed so far: 15
+INFO:root:# successes: 0 (0.0%)
+
+ 60%|██████    | 15/25 [05:02<03:21, 20.19s/it][AINFO:root:
+Task: put the bowl on top of the cabinet
+INFO:root:Starting episode 16...
+INFO:root:Success: False
+INFO:root:# episodes completed so far: 16
+INFO:root:# successes: 0 (0.0%)
+
+ 64%|██████▍   | 16/25 [05:22<03:01, 20.17s/it][AINFO:root:
+Task: put the bowl on top of the cabinet
+INFO:root:Starting episode 17...
+INFO:root:Success: False
+INFO:root:# episodes completed so far: 17
+INFO:root:# successes: 0 (0.0%)
+
+ 68%|██████▊   | 17/25 [05:44<02:44, 20.59s/it][AINFO:root:
+Task: put the bowl on top of the cabinet
+INFO:root:Starting episode 18...
+INFO:root:Success: False
+INFO:root:# episodes completed so far: 18
+INFO:root:# successes: 0 (0.0%)
+
+ 72%|███████▏  | 18/25 [06:04<02:23, 20.44s/it][AINFO:root:
+Task: put the bowl on top of the cabinet
+INFO:root:Starting episode 19...
+INFO:root:Success: False
+INFO:root:# episodes completed so far: 19
+INFO:root:# successes: 0 (0.0%)
+
+ 76%|███████▌  | 19/25 [06:25<02:04, 20.68s/it][AINFO:root:
+Task: put the bowl on top of the cabinet
+INFO:root:Starting episode 20...
+INFO:root:Success: False
+INFO:root:# episodes completed so far: 20
+INFO:root:# successes: 0 (0.0%)
+
+ 80%|████████  | 20/25 [06:46<01:44, 20.90s/it][AINFO:root:
+Task: put the bowl on top of the cabinet
+INFO:root:Starting episode 21...
+INFO:root:Success: False
+INFO:root:# episodes completed so far: 21
+INFO:root:# successes: 0 (0.0%)
+
+ 84%|████████▍ | 21/25 [07:07<01:22, 20.72s/it][AINFO:root:
+Task: put the bowl on top of the cabinet
+INFO:root:Starting episode 22...
+INFO:root:Success: False
+INFO:root:# episodes completed so far: 22
+INFO:root:# successes: 0 (0.0%)
+
+ 88%|████████▊ | 22/25 [07:27<01:02, 20.67s/it][AINFO:root:
+Task: put the bowl on top of the cabinet
+INFO:root:Starting episode 23...
+INFO:root:Success: False
+INFO:root:# episodes completed so far: 23
+INFO:root:# successes: 0 (0.0%)
+
+ 92%|█████████▏| 23/25 [07:47<00:40, 20.35s/it][AINFO:root:
+Task: put the bowl on top of the cabinet
+INFO:root:Starting episode 24...
+INFO:root:Success: False
+INFO:root:# episodes completed so far: 24
+INFO:root:# successes: 0 (0.0%)
+
+ 96%|█████████▌| 24/25 [08:07<00:20, 20.34s/it][AINFO:root:
+Task: put the bowl on top of the cabinet
+INFO:root:Starting episode 25...
+INFO:root:Success: False
+INFO:root:# episodes completed so far: 25
+INFO:root:# successes: 0 (0.0%)
+
+100%|██████████| 25/25 [08:28<00:00, 20.37s/it][A100%|██████████| 25/25 [08:28<00:00, 20.32s/it]
+INFO:root:Current task success rate: 0.0
+INFO:root:Current total success rate: 0.0
+ 50%|█████     | 5/10 [08:37<15:23, 184.69s/it] 60%|██████    | 6/10 [08:39<08:09, 122.31s/it] 70%|███████   | 7/10 [08:40<04:08, 82.70s/it]  80%|████████  | 8/10 [08:41<01:53, 56.74s/it] 90%|█████████ | 9/10 [08:42<00:39, 39.35s/it]100%|██████████| 10/10 [08:43<00:00, 27.58s/it]100%|██████████| 10/10 [08:43<00:00, 52.37s/it]
+INFO:root:Total success rate: 0.0
+INFO:root:Total episodes: 25
+[Warning]: datasets path /workspace/openpi/third_party/libero/libero/datasets does not exist!
+[Warning]: datasets path /workspace/openpi/third_party/libero/libero/datasets does not exist!
+[Warning]: datasets path /workspace/openpi/third_party/libero/libero/datasets does not exist!
+[Warning]: datasets path /workspace/openpi/third_party/libero/libero/datasets does not exist!
+[Warning]: datasets path /workspace/openpi/third_party/libero/libero/datasets does not exist!
+[Warning]: datasets path /workspace/openpi/third_party/libero/libero/datasets does not exist!
+[Warning]: datasets path /workspace/openpi/third_party/libero/libero/datasets does not exist!
+[Warning]: datasets path /workspace/openpi/third_party/libero/libero/datasets does not exist!
+[Warning]: datasets path /workspace/openpi/third_party/libero/libero/datasets does not exist!
+[Warning]: datasets path /workspace/openpi/third_party/libero/libero/datasets does not exist!
+Exception ignored in: <function MjRenderContext.__del__ at 0x7ab19744c8b0>
+Traceback (most recent call last):
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite/utils/binding_utils.py", line 199, in __del__
+    self.gl_ctx.free()
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite/renderers/context/egl_context.py", line 150, in free
+    EGL.eglDestroyContext(EGL_DISPLAY, self._context)
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/OpenGL/error.py", line 230, in glCheckError
+    raise self._errorClass(
+OpenGL.raw.EGL._errors.EGLError: EGLError(
+	err = EGL_NOT_INITIALIZED,
+	baseOperation = eglDestroyContext,
+	cArguments = (
+		<OpenGL._opaque.EGLDisplay_pointer object at 0x7ab186ed04c0>,
+		<OpenGL._opaque.EGLContext_pointer object at 0x7ab1730f4a40>,
+	),
+	result = 0
+)
+Exception ignored in: <function EGLGLContext.__del__ at 0x7ab19744c700>
+Traceback (most recent call last):
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite/renderers/context/egl_context.py", line 155, in __del__
+    self.free()
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite/renderers/context/egl_context.py", line 150, in free
+    EGL.eglDestroyContext(EGL_DISPLAY, self._context)
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/OpenGL/error.py", line 230, in glCheckError
+    raise self._errorClass(
+OpenGL.raw.EGL._errors.EGLError: EGLError(
+	err = EGL_NOT_INITIALIZED,
+	baseOperation = eglDestroyContext,
+	cArguments = (
+		<OpenGL._opaque.EGLDisplay_pointer object at 0x7ab186ed04c0>,
+		<OpenGL._opaque.EGLContext_pointer object at 0x7ab1730f4a40>,
+	),
+	result = 0
+)
+Exception ignored in: <function MjRenderContext.__del__ at 0x7ab19744c8b0>
+Traceback (most recent call last):
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite/utils/binding_utils.py", line 199, in __del__
+    self.gl_ctx.free()
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite/renderers/context/egl_context.py", line 150, in free
+    EGL.eglDestroyContext(EGL_DISPLAY, self._context)
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/OpenGL/error.py", line 230, in glCheckError
+    raise self._errorClass(
+OpenGL.raw.EGL._errors.EGLError: EGLError(
+	err = EGL_NOT_INITIALIZED,
+	baseOperation = eglDestroyContext,
+	cArguments = (
+		<OpenGL._opaque.EGLDisplay_pointer object at 0x7ab186ed04c0>,
+		<OpenGL._opaque.EGLContext_pointer object at 0x7ab16fe6c540>,
+	),
+	result = 0
+)
+Exception ignored in: <function EGLGLContext.__del__ at 0x7ab19744c700>
+Traceback (most recent call last):
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite/renderers/context/egl_context.py", line 155, in __del__
+    self.free()
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite/renderers/context/egl_context.py", line 150, in free
+    EGL.eglDestroyContext(EGL_DISPLAY, self._context)
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/OpenGL/error.py", line 230, in glCheckError
+    raise self._errorClass(
+OpenGL.raw.EGL._errors.EGLError: EGLError(
+	err = EGL_NOT_INITIALIZED,
+	baseOperation = eglDestroyContext,
+	cArguments = (
+		<OpenGL._opaque.EGLDisplay_pointer object at 0x7ab186ed04c0>,
+		<OpenGL._opaque.EGLContext_pointer object at 0x7ab16fe6c540>,
+	),
+	result = 0
+)
+Exception ignored in: <function MjRenderContext.__del__ at 0x7ab19744c8b0>
+Traceback (most recent call last):
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite/utils/binding_utils.py", line 199, in __del__
+    self.gl_ctx.free()
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite/renderers/context/egl_context.py", line 149, in free
+    EGL.eglMakeCurrent(EGL_DISPLAY, EGL.EGL_NO_SURFACE, EGL.EGL_NO_SURFACE, EGL.EGL_NO_CONTEXT)
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/OpenGL/error.py", line 230, in glCheckError
+    raise self._errorClass(
+OpenGL.raw.EGL._errors.EGLError: EGLError(
+	err = EGL_NOT_INITIALIZED,
+	baseOperation = eglMakeCurrent,
+	cArguments = (
+		<OpenGL._opaque.EGLDisplay_pointer object at 0x7ab186ed04c0>,
+		<OpenGL._opaque.EGLSurface_pointer object at 0x7ab1975199c0>,
+		<OpenGL._opaque.EGLSurface_pointer object at 0x7ab1975199c0>,
+		<OpenGL._opaque.EGLContext_pointer object at 0x7ab197519e40>,
+	),
+	result = 0
+)
+Exception ignored in: <function EGLGLContext.__del__ at 0x7ab19744c700>
+Traceback (most recent call last):
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite/renderers/context/egl_context.py", line 155, in __del__
+    self.free()
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite/renderers/context/egl_context.py", line 149, in free
+    EGL.eglMakeCurrent(EGL_DISPLAY, EGL.EGL_NO_SURFACE, EGL.EGL_NO_SURFACE, EGL.EGL_NO_CONTEXT)
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/OpenGL/error.py", line 230, in glCheckError
+    raise self._errorClass(
+OpenGL.raw.EGL._errors.EGLError: EGLError(
+	err = EGL_NOT_INITIALIZED,
+	baseOperation = eglMakeCurrent,
+	cArguments = (
+		<OpenGL._opaque.EGLDisplay_pointer object at 0x7ab186ed04c0>,
+		<OpenGL._opaque.EGLSurface_pointer object at 0x7ab1975199c0>,
+		<OpenGL._opaque.EGLSurface_pointer object at 0x7ab1975199c0>,
+		<OpenGL._opaque.EGLContext_pointer object at 0x7ab197519e40>,
+	),
+	result = 0
+)
+Exception ignored in: <function MjRenderContext.__del__ at 0x7ab19744c8b0>
+Traceback (most recent call last):
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite/utils/binding_utils.py", line 199, in __del__
+    self.gl_ctx.free()
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite/renderers/context/egl_context.py", line 150, in free
+    EGL.eglDestroyContext(EGL_DISPLAY, self._context)
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/OpenGL/error.py", line 230, in glCheckError
+    raise self._errorClass(
+OpenGL.raw.EGL._errors.EGLError: EGLError(
+	err = EGL_NOT_INITIALIZED,
+	baseOperation = eglDestroyContext,
+	cArguments = (
+		<OpenGL._opaque.EGLDisplay_pointer object at 0x7ab186ed04c0>,
+		<OpenGL._opaque.EGLContext_pointer object at 0x7ab16ff71440>,
+	),
+	result = 0
+)
+Exception ignored in: <function EGLGLContext.__del__ at 0x7ab19744c700>
+Traceback (most recent call last):
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite/renderers/context/egl_context.py", line 155, in __del__
+    self.free()
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite/renderers/context/egl_context.py", line 150, in free
+    EGL.eglDestroyContext(EGL_DISPLAY, self._context)
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/OpenGL/error.py", line 230, in glCheckError
+    raise self._errorClass(
+OpenGL.raw.EGL._errors.EGLError: EGLError(
+	err = EGL_NOT_INITIALIZED,
+	baseOperation = eglDestroyContext,
+	cArguments = (
+		<OpenGL._opaque.EGLDisplay_pointer object at 0x7ab186ed04c0>,
+		<OpenGL._opaque.EGLContext_pointer object at 0x7ab16ff71440>,
+	),
+	result = 0
+)
+Exception ignored in: <function MjRenderContext.__del__ at 0x7ab19744c8b0>
+Traceback (most recent call last):
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite/utils/binding_utils.py", line 199, in __del__
+    self.gl_ctx.free()
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite/renderers/context/egl_context.py", line 150, in free
+    EGL.eglDestroyContext(EGL_DISPLAY, self._context)
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/OpenGL/error.py", line 230, in glCheckError
+    raise self._errorClass(
+OpenGL.raw.EGL._errors.EGLError: EGLError(
+	err = EGL_NOT_INITIALIZED,
+	baseOperation = eglDestroyContext,
+	cArguments = (
+		<OpenGL._opaque.EGLDisplay_pointer object at 0x7ab186ed04c0>,
+		<OpenGL._opaque.EGLContext_pointer object at 0x7ab17d932a40>,
+	),
+	result = 0
+)
+Exception ignored in: <function EGLGLContext.__del__ at 0x7ab19744c700>
+Traceback (most recent call last):
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite/renderers/context/egl_context.py", line 155, in __del__
+    self.free()
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/robosuite/renderers/context/egl_context.py", line 150, in free
+    EGL.eglDestroyContext(EGL_DISPLAY, self._context)
+  File "/workspace/openpi/examples/libero/.venv/lib/python3.8/site-packages/OpenGL/error.py", line 230, in glCheckError
+    raise self._errorClass(
+OpenGL.raw.EGL._errors.EGLError: EGLError(
+	err = EGL_NOT_INITIALIZED,
+	baseOperation = eglDestroyContext,
+	cArguments = (
+		<OpenGL._opaque.EGLDisplay_pointer object at 0x7ab186ed04c0>,
+		<OpenGL._opaque.EGLContext_pointer object at 0x7ab17d932a40>,
+	),
+	result = 0
+)

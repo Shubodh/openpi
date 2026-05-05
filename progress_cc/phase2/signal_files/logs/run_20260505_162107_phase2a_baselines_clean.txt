@@ -1,0 +1,212 @@
+INFO:root:Task suite: libero_goal
+INFO:root:Waiting for server at ws://0.0.0.0:8000...
+INFO:root:Starting episode 1...
+INFO:root:Success: True
+INFO:root:# episodes completed so far: 1
+INFO:root:# successes: 1 (100.0%)
+INFO:root:Starting episode 2...
+INFO:root:Success: True
+INFO:root:# episodes completed so far: 2
+INFO:root:# successes: 2 (100.0%)
+INFO:root:Starting episode 3...
+INFO:root:Success: True
+INFO:root:# episodes completed so far: 3
+INFO:root:# successes: 3 (100.0%)
+INFO:root:Starting episode 4...
+INFO:root:Success: True
+INFO:root:# episodes completed so far: 4
+INFO:root:# successes: 4 (100.0%)
+INFO:root:Starting episode 5...
+INFO:root:Success: True
+INFO:root:# episodes completed so far: 5
+INFO:root:# successes: 5 (100.0%)
+INFO:root:Starting episode 6...
+INFO:root:Success: True
+INFO:root:# episodes completed so far: 6
+INFO:root:# successes: 6 (100.0%)
+INFO:root:Starting episode 7...
+INFO:root:Success: False
+INFO:root:# episodes completed so far: 7
+INFO:root:# successes: 6 (85.7%)
+INFO:root:Starting episode 8...
+INFO:root:Success: True
+INFO:root:# episodes completed so far: 8
+INFO:root:# successes: 7 (87.5%)
+INFO:root:Starting episode 9...
+INFO:root:Success: True
+INFO:root:# episodes completed so far: 9
+INFO:root:# successes: 8 (88.9%)
+INFO:root:Starting episode 10...
+INFO:root:Success: True
+INFO:root:# episodes completed so far: 10
+INFO:root:# successes: 9 (90.0%)
+INFO:root:Starting episode 11...
+INFO:root:Success: True
+INFO:root:# episodes completed so far: 11
+INFO:root:# successes: 10 (90.9%)
+INFO:root:Starting episode 12...
+INFO:root:Success: True
+INFO:root:# episodes completed so far: 12
+INFO:root:# successes: 11 (91.7%)
+INFO:root:Starting episode 13...
+INFO:root:Success: True
+INFO:root:# episodes completed so far: 13
+INFO:root:# successes: 12 (92.3%)
+INFO:root:Starting episode 14...
+INFO:root:Success: True
+INFO:root:# episodes completed so far: 14
+INFO:root:# successes: 13 (92.9%)
+INFO:root:Starting episode 15...
+INFO:root:Success: True
+INFO:root:# episodes completed so far: 15
+INFO:root:# successes: 14 (93.3%)
+INFO:root:Starting episode 16...
+INFO:root:Success: True
+INFO:root:# episodes completed so far: 16
+INFO:root:# successes: 15 (93.8%)
+INFO:root:Starting episode 17...
+INFO:root:Success: True
+INFO:root:# episodes completed so far: 17
+INFO:root:# successes: 16 (94.1%)
+INFO:root:Starting episode 18...
+INFO:root:Success: True
+INFO:root:# episodes completed so far: 18
+INFO:root:# successes: 17 (94.4%)
+INFO:root:Starting episode 19...
+INFO:root:Success: True
+INFO:root:# episodes completed so far: 19
+INFO:root:# successes: 18 (94.7%)
+INFO:root:Starting episode 20...
+INFO:root:Success: True
+INFO:root:# episodes completed so far: 20
+INFO:root:# successes: 19 (95.0%)
+INFO:root:Starting episode 21...
+INFO:root:Success: True
+INFO:root:# episodes completed so far: 21
+INFO:root:# successes: 20 (95.2%)
+INFO:root:Starting episode 22...
+INFO:root:Success: True
+INFO:root:# episodes completed so far: 22
+INFO:root:# successes: 21 (95.5%)
+INFO:root:Starting episode 23...
+INFO:root:Success: True
+INFO:root:# episodes completed so far: 23
+INFO:root:# successes: 22 (95.7%)
+INFO:root:Starting episode 24...
+INFO:root:Success: True
+INFO:root:# episodes completed so far: 24
+INFO:root:# successes: 23 (95.8%)
+INFO:root:Starting episode 25...
+INFO:root:Success: True
+INFO:root:# episodes completed so far: 25
+INFO:root:# successes: 24 (96.0%)
+INFO:root:Current task success rate: 0.96
+INFO:root:Current total success rate: 0.96
+INFO:root:Total success rate: 0.96
+INFO:root:Total episodes: 25
+INFO:root:Task suite: libero_goal
+INFO:root:Waiting for server at ws://0.0.0.0:8000...
+INFO:root:Starting episode 1...
+INFO:root:Success: False
+INFO:root:# episodes completed so far: 1
+INFO:root:# successes: 0 (0.0%)
+INFO:root:Starting episode 2...
+INFO:root:Success: False
+INFO:root:# episodes completed so far: 2
+INFO:root:# successes: 0 (0.0%)
+INFO:root:Starting episode 3...
+INFO:root:Success: False
+INFO:root:# episodes completed so far: 3
+INFO:root:# successes: 0 (0.0%)
+INFO:root:Starting episode 4...
+INFO:root:Success: False
+INFO:root:# episodes completed so far: 4
+INFO:root:# successes: 0 (0.0%)
+INFO:root:Starting episode 5...
+INFO:root:Success: False
+INFO:root:# episodes completed so far: 5
+INFO:root:# successes: 0 (0.0%)
+INFO:root:Starting episode 6...
+INFO:root:Success: False
+INFO:root:# episodes completed so far: 6
+INFO:root:# successes: 0 (0.0%)
+INFO:root:Starting episode 7...
+INFO:root:Success: False
+INFO:root:# episodes completed so far: 7
+INFO:root:# successes: 0 (0.0%)
+INFO:root:Starting episode 8...
+INFO:root:Success: False
+INFO:root:# episodes completed so far: 8
+INFO:root:# successes: 0 (0.0%)
+INFO:root:Starting episode 9...
+INFO:root:Success: False
+INFO:root:# episodes completed so far: 9
+INFO:root:# successes: 0 (0.0%)
+INFO:root:Starting episode 10...
+INFO:root:Success: False
+INFO:root:# episodes completed so far: 10
+INFO:root:# successes: 0 (0.0%)
+INFO:root:Starting episode 11...
+INFO:root:Success: False
+INFO:root:# episodes completed so far: 11
+INFO:root:# successes: 0 (0.0%)
+INFO:root:Starting episode 12...
+INFO:root:Success: False
+INFO:root:# episodes completed so far: 12
+INFO:root:# successes: 0 (0.0%)
+INFO:root:Starting episode 13...
+INFO:root:Success: False
+INFO:root:# episodes completed so far: 13
+INFO:root:# successes: 0 (0.0%)
+INFO:root:Starting episode 14...
+INFO:root:Success: False
+INFO:root:# episodes completed so far: 14
+INFO:root:# successes: 0 (0.0%)
+INFO:root:Starting episode 15...
+INFO:root:Success: False
+INFO:root:# episodes completed so far: 15
+INFO:root:# successes: 0 (0.0%)
+INFO:root:Starting episode 16...
+INFO:root:Success: False
+INFO:root:# episodes completed so far: 16
+INFO:root:# successes: 0 (0.0%)
+INFO:root:Starting episode 17...
+INFO:root:Success: False
+INFO:root:# episodes completed so far: 17
+INFO:root:# successes: 0 (0.0%)
+INFO:root:Starting episode 18...
+INFO:root:Success: False
+INFO:root:# episodes completed so far: 18
+INFO:root:# successes: 0 (0.0%)
+INFO:root:Starting episode 19...
+INFO:root:Success: False
+INFO:root:# episodes completed so far: 19
+INFO:root:# successes: 0 (0.0%)
+INFO:root:Starting episode 20...
+INFO:root:Success: False
+INFO:root:# episodes completed so far: 20
+INFO:root:# successes: 0 (0.0%)
+INFO:root:Starting episode 21...
+INFO:root:Success: False
+INFO:root:# episodes completed so far: 21
+INFO:root:# successes: 0 (0.0%)
+INFO:root:Starting episode 22...
+INFO:root:Success: False
+INFO:root:# episodes completed so far: 22
+INFO:root:# successes: 0 (0.0%)
+INFO:root:Starting episode 23...
+INFO:root:Success: False
+INFO:root:# episodes completed so far: 23
+INFO:root:# successes: 0 (0.0%)
+INFO:root:Starting episode 24...
+INFO:root:Success: False
+INFO:root:# episodes completed so far: 24
+INFO:root:# successes: 0 (0.0%)
+INFO:root:Starting episode 25...
+INFO:root:Success: False
+INFO:root:# episodes completed so far: 25
+INFO:root:# successes: 0 (0.0%)
+INFO:root:Current task success rate: 0.0
+INFO:root:Current total success rate: 0.0
+INFO:root:Total success rate: 0.0
+INFO:root:Total episodes: 25

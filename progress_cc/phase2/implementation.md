@@ -180,8 +180,8 @@ Run N=5 each. If either endpoint fails, the implementation is wrong — debug be
 
 | Run code | Prompt | Patch config | N | Success rate | Log file |
 |----------|--------|-------------|---|-------------|----------|
-| A-D1 | clean | normal | 25 | | |
-| A-D2 | corrupt | normal | 25 | | |
+| A-D1 | clean | normal | 25 | 24/25 (96%) | `progress_cc/phase2/signal_files/logs/run_20260505_162107_phase2a_baselines_clean.txt` |
+| A-D2 | corrupt | normal | 25 | 0/25 (0%) | `progress_cc/phase2/signal_files/logs/run_20260505_162107_phase2a_baselines_clean.txt` |
 | A-C3 | corrupt | per-step full-prefix 0–787 | 5 | | |
 | A-lang | corrupt | per-step language-only 588–787 | 5 | | |
 | A-D3 | corrupt | per-step image prefix 0–587 | 10 | | |
@@ -193,7 +193,7 @@ Run N=5 each. If either endpoint fails, the implementation is wrong — debug be
 
 | Date | Note |
 |------|------|
-| | |
+| 2026-05-05 | A1/A2 baselines passed contrastive gate for Simple Pair 2: clean prompt recovered 24/25, corrupt wine-bottle prompt recovered 0/25 on the bowl/cabinet environment task. Proceeding to A3 full-prefix per-step sanity. |
 
 ### 6.3 Minimal patch set found
 
@@ -258,8 +258,8 @@ Run N=5 each. If either endpoint fails, the implementation is wrong — debug be
 
 *(Agent updates this section at the end of each work session.)*
 
-**Last updated:** 2026-05-05 — document updated with Phase 2c structure. Simple Pair 2 corrected to different-object-same-destination (bowl/cabinet ↔ wine_bottle/cabinet).
+**Last updated:** 2026-05-05 — A1/A2 baselines complete for Simple Pair 2.
 
-**Current state:** Not started. Begin with Phase 2a (A1: D1 baseline).
+**Current state:** Phase 2a baselines passed: A-D1 clean 24/25, A-D2 corrupt 0/25.
 
-**Next action:** Run D1 and D2 baselines on Simple Pair 2 using `main_corrupt_run_expt.py`.
+**Next action:** Run A-C3 per-step full-prefix sanity (positions 0–787, N=5).
