@@ -92,6 +92,7 @@ class Args:
     patch_layers: str = ""  # comma-separated layer indices/ranges; empty means all layers
     patch_k: bool = True
     patch_v: bool = True
+    patch_alpha: float = 1.0  # interpolation weight: 1.0 = full donor, 0.0 = no effective patch
     sanity_check: bool = False     # if True, patches language positions 588-787
 
     #################################################################################################################
@@ -179,6 +180,7 @@ def eval_libero(args: Args) -> None:
     logging.info("Patch positions: %s", patch_positions)
     logging.info("Patch layers: %s", "all" if patch_layers is None else patch_layers)
     logging.info("Patch K/V: K=%s V=%s", args.patch_k, args.patch_v)
+    logging.info("Patch alpha: %s", args.patch_alpha)
 
     # Build output directory name encoding the patch config
     pos_tag = "all" if args.sanity_check else _positions_tag(patch_positions)
@@ -255,17 +257,19 @@ def eval_libero(args: Args) -> None:
         policy._sample_kwargs["patch_layers"] = patch_layers
         policy._sample_kwargs["patch_k"] = args.patch_k
         policy._sample_kwargs["patch_v"] = args.patch_v
+        policy._sample_kwargs["patch_alpha"] = args.patch_alpha
 
         task_episodes, task_successes = 0, 0
 
         for episode_idx in tqdm.tqdm(range(args.num_trials_per_task)):
             logging.info(
-                "Starting episode %d (patch_positions=%s, patch_layers=%s, patch_k=%s, patch_v=%s) ...",
+                "Starting episode %d (patch_positions=%s, patch_layers=%s, patch_k=%s, patch_v=%s, patch_alpha=%s) ...",
                 task_episodes + 1,
                 patch_positions,
                 "all" if patch_layers is None else patch_layers,
                 args.patch_k,
                 args.patch_v,
+                args.patch_alpha,
             )
 
             env.reset()
@@ -303,6 +307,7 @@ def eval_libero(args: Args) -> None:
                         policy._sample_kwargs["patch_layers"] = patch_layers
                         policy._sample_kwargs["patch_k"] = args.patch_k
                         policy._sample_kwargs["patch_v"] = args.patch_v
+                        policy._sample_kwargs["patch_alpha"] = args.patch_alpha
                         action_chunk = policy.infer(element)["actions"]
                         assert len(action_chunk) >= args.replan_steps
                         action_plan.extend(action_chunk[: args.replan_steps])
