@@ -542,6 +542,7 @@ LIBERO-Goal initial states vary in object placement. For the sanity check, this 
 | Step 6 layer sub-block C2 | `"put the bowl on the stove"` | image positions 294-514, layers 15-17, K+V | 10 | **0%** (0/10) | `run_20260505_090903_step6_img294-514_layers15-17_n10_clean.txt`; final layers alone are insufficient |
 | Step 6 layer trim C1a | `"put the bowl on the stove"` | image positions 294-514, layers 12-13, K+V | 10 | **0%** (0/10) | `run_20260505_092001_step6_img294-514_layers12-13_n10_clean.txt`; removing layer 14 eliminates recovery |
 | Step 6 layer trim C1b | `"put the bowl on the stove"` | image positions 294-514, layers 13-14, K+V | 10 | **10%** (1/10) | `run_20260505_093113_step6_img294-514_layers13-14_n10_clean.txt`; removing layer 12 drops below threshold |
+| Step 6 localized layer block | `"put the bowl on the stove"` | image positions 294-514, layers 12-14, K+V | 25 | **44%** (11/25) | `run_20260505_094155_step6_img294-514_layers12-14_n25_clean.txt`; smallest defensible layer block validated at N=25 |
 | Patched (D3, pos 594, K+V) | `"put the bowl on the stove"` | pos 594 from donor | 25 | — | |
 
 ### 8.2 Implementation notes
@@ -574,6 +575,7 @@ LIBERO-Goal initial states vary in object placement. For the sanity check, this 
 | 2026-05-05 | Step 6 layer sub-block C2 (`run_20260505_090903_step6_img294-514_layers15-17_n10_clean.txt`): patching layers 15-17 recovered 0/10. The current layer-localization candidate is layers 12-14; edge-trim with 12-13 and 13-14 before promoting it. |
 | 2026-05-05 | Step 6 layer trim C1a (`run_20260505_092001_step6_img294-514_layers12-13_n10_clean.txt`): patching layers 12-13 recovered 0/10, so layer 14 is necessary for the 12-14 result. Test layers 13-14 next to check whether layer 12 is also necessary. |
 | 2026-05-05 | Step 6 layer trim C1b (`run_20260505_093113_step6_img294-514_layers13-14_n10_clean.txt`): patching layers 13-14 recovered 1/10. Since both edge trims are below threshold while 12-14 recovered 3/10, promote layers 12-14 to N=25 as the smallest defensible layer block. |
+| 2026-05-05 | Step 6 localized layer block (`run_20260505_094155_step6_img294-514_layers12-14_n25_clean.txt`): positions 294-514 at layers 12-14 recovered 11/25. This validates layer localization at N=25. The localized layer-only effect is smaller than all-layer patching over the same image region (22/25), so useful signal also exists outside layers 12-14, but layers 12-14 are the smallest contiguous layer block found above threshold. |
 
 ### 8.3 Current conclusion and next steps
 
