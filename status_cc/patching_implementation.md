@@ -544,6 +544,7 @@ LIBERO-Goal initial states vary in object placement. For the sanity check, this 
 | Step 6 layer trim C1b | `"put the bowl on the stove"` | image positions 294-514, layers 13-14, K+V | 10 | **10%** (1/10) | `run_20260505_093113_step6_img294-514_layers13-14_n10_clean.txt`; removing layer 12 drops below threshold |
 | Step 6 localized layer block | `"put the bowl on the stove"` | image positions 294-514, layers 12-14, K+V | 25 | **44%** (11/25) | `run_20260505_094155_step6_img294-514_layers12-14_n25_clean.txt`; smallest defensible layer block validated at N=25 |
 | Step 7 K-only ablation | `"put the bowl on the stove"` | image positions 294-514, layers 12-14, K only | 25 | **0%** (0/25) | `run_20260505_100405_step7_img294-514_layers12-14_konly_n25_clean.txt`; K-only patching is insufficient |
+| Step 7 V-only ablation | `"put the bowl on the stove"` | image positions 294-514, layers 12-14, V only | 25 | **0%** (0/25) | `run_20260505_102304_step7_img294-514_layers12-14_vonly_n25_clean.txt`; V-only patching is insufficient |
 | Patched (D3, pos 594, K+V) | `"put the bowl on the stove"` | pos 594 from donor | 25 | — | |
 
 ### 8.2 Implementation notes
@@ -578,32 +579,27 @@ LIBERO-Goal initial states vary in object placement. For the sanity check, this 
 | 2026-05-05 | Step 6 layer trim C1b (`run_20260505_093113_step6_img294-514_layers13-14_n10_clean.txt`): patching layers 13-14 recovered 1/10. Since both edge trims are below threshold while 12-14 recovered 3/10, promote layers 12-14 to N=25 as the smallest defensible layer block. |
 | 2026-05-05 | Step 6 localized layer block (`run_20260505_094155_step6_img294-514_layers12-14_n25_clean.txt`): positions 294-514 at layers 12-14 recovered 11/25. This validates layer localization at N=25. The localized layer-only effect is smaller than all-layer patching over the same image region (22/25), so useful signal also exists outside layers 12-14, but layers 12-14 are the smallest contiguous layer block found above threshold. |
 | 2026-05-05 | Step 7 K-only ablation (`run_20260505_100405_step7_img294-514_layers12-14_konly_n25_clean.txt`): patching only K at positions 294-514 and layers 12-14 recovered 0/25. Run the matching V-only ablation next. |
+| 2026-05-05 | Step 7 V-only ablation (`run_20260505_102304_step7_img294-514_layers12-14_vonly_n25_clean.txt`): patching only V at positions 294-514 and layers 12-14 recovered 0/25. Since the same localized region with K+V recovered 11/25, the localized effect requires joint K and V replacement; neither side alone is sufficient at this layer block. |
 
 ### 8.3 Current conclusion and next steps
 
-**What we achieved:** The patching mechanism has a working positive control. With a per-step donor built from the current observation and clean prompt, replacing the full prefix KV cache (`0-787`) in the corrupt run recovers clean behavior at **5/5 episodes**. This meets the C3 sanity threshold and is recorded in `scripts_outputs_txt/patching_phase1/patched/1_SANITY_CHECK_SUCCESS.txt`.
+**Final status as of 2026-05-05:** The six autonomous tasks in §8.4 are complete for the `put the bowl on the plate` / `put the bowl on the stove` pair.
 
-**What it means:** `_apply_kv_patch` is functionally correct, `policy._sample_kwargs["donor_kv_cache"]` is reaching `sample_actions()`, and the clean donor KV cache can drive the corrupt-prompt rollout to the clean target. The earlier 0/5 results are therefore not evidence of a broken patch implementation. They show that patching only language slots (`588-787`) is insufficient in π₀.₅ because prefix attention is bidirectional: corrupt language affects image-token K/V as well, and those non-language cache entries remain corrupt unless patched.
+**Mechanism status:** The per-step donor patch path is valid. Full-prefix per-step patching recovered 5/5 and 10/10, proving `_apply_kv_patch`, `build_donor_kv_cache`, and `policy._sample_kwargs` wiring are functional. The earlier language-only failures do not indicate a broken patch path; they show that bidirectional prefix attention mixes corrupt-language effects into non-language prefix K/V.
 
-**What it does not mean:** Full-prefix patching is a positive control, not yet a localized causal result. It proves the intervention can recover behavior, but it does not identify the minimal positions carrying the plate-vs-stove signal. Do not write `2_PATCHING_MEANINGFUL_RESULT.txt` from this run alone.
+**Image-token localization:** The smallest defensible contiguous image-token region found is positions `294-514`. It recovered 8/10 at N=10 and 22/25 at N=25. Edge trims `294-477` and `331-514` both dropped to 2/10. This region spans:
+- `left_wrist_0_rgb`: absolute 294-391, local 98-195, rows 7-13.
+- `right_wrist_0_rgb`: absolute 392-514, local 0-122, rows 0-8 through col 10. In LIBERO/pi0.5 this stream is the masked padded image input, so the causal signal here is prompt-conditioned prefix-cache state rather than live visual pixels.
 
-**Language effect caveat:** It is not correct to say that language has no effect on output behavior. The clean vs. corrupt baselines differ 25/25 vs. 0/25, so language is behaviorally load-bearing. The current patching result instead shows that, after π₀.₅'s bidirectional prefix pass, the behaviorally relevant language information is not confined to language-token K/V slots; it is also mixed into image-token K/V, where patching can recover clean behavior.
+**Visualization:** Camera/token mapping artifacts are saved at:
+- `scripts_outputs_txt/patching_phase1/patched/visualizations/img294-514_token_region_overlay.png`
+- `scripts_outputs_txt/patching_phase1/patched/visualizations/img294-514_token_region_mapping.json`
 
-**Language-token patching result:** In this setup, patching the language-token K/V region alone had no meaningful behavioral effect: precomputed donor `588-787` failed 0/5, and per-step donor `588-787` also failed 0/5. The correct interpretation is not "language does nothing"; it is that swapping only the language-token cache entries is too late and too narrow after bidirectional prefix mixing. The corrupt prompt has already altered other prefix cache entries, especially image-token K/V, and those unpatched entries are sufficient to keep the rollout on the corrupt behavior.
+**Layer localization:** The strongest coarse block is late layers `12-17` (5/10). The smallest defensible contiguous layer block found is `12-14`: it recovered 3/10 at N=10 and 11/25 at N=25. Edge trims `12-13` and `13-14` dropped to 0/10 and 1/10, respectively.
 
-**What did not work before and why this works now:** The original sanity run patched all 788 positions from a donor harvested once at t=0. That overwrote current image-token K/V with stale initial-scene image K/V at every rollout step, so the robot lost current visual context and failed 0/5. The next language-only fixes avoided stale image patching, but they still failed because π₀.₅ prefix attention is bidirectional: the corrupt prompt influences image-token K/V during the prefix pass, not only language-token K/V. The successful run fixes both problems at once: it rebuilds the donor from the current observation at each inference, so image K/V is current rather than stale, and it patches the full prefix (`0-787`), so no corrupt-prompt prefix state is left behind.
+**K vs V:** On the localized region (`positions=294-514`, `layers=12-14`), K+V recovered 11/25, K-only recovered 0/25, and V-only recovered 0/25. The localized recovery therefore requires joint K and V replacement; neither cache side alone is sufficient in this layer block.
 
-**Next:** Localize the sufficient patch set using the per-step donor script, starting from full-prefix success rather than language-only failure. Recommended N=10 probes:
-
-| Probe | Patch positions | Question |
-|-------|-----------------|----------|
-| Full prefix repeat | `0-787` | Confirm full-prefix recovery is stable at N=10. |
-| Image prefix only | `0-587` | Test whether corrupt-language effects in image-token K/V are sufficient to drive recovery. |
-| Language prefix only | `588-787` | Already failed 0/5; rerun only if comparing same N/control conditions. |
-| Image + target language window | `0-587` plus a small window around `594` | Test whether clean image-token K/V plus local destination token K/V is enough. |
-| Binary search over `0-787` | contiguous halves, then recurse | Find the smallest sufficient region once a nontrivial subset gives >2/10. |
-
-Once a nontrivial subset recovers **>2/10** at N=10, rerun that subset at N=25 and write `scripts_outputs_txt/patching_phase1/patched/2_PATCHING_MEANINGFUL_RESULT.txt` only if it exceeds the meaningful threshold.
+**Language effect caveat:** The result is not "language does nothing." Clean and corrupt baselines remain 25/25 vs. 0/25, so language is behaviorally load-bearing. The patching result shows that, after π₀.₅'s bidirectional prefix pass, the behaviorally relevant prompt information is not confined to language-token K/V slots; it is mixed into image/padded-image prefix K/V slots.
 
 ### 8.4 Expanded autonomous plan
 

@@ -6,3 +6,8 @@ Log: scripts_outputs_txt/patching_phase1/patched/agentic/run_20260505_075914_ste
 Interpretation: after bidirectional prefix mixing, a contiguous image-token KV region spanning positions 294-514 is sufficient to recover clean plate behavior under the corrupt stove prompt. This region is smaller than the full image prefix (0-587) and the earlier 294-587 parent, and both edge trims tested so far dropped below the strict meaningful threshold: 294-477 recovered 2/10 and 331-514 recovered 2/10.
 Token/camera mapping: positions 294-391 are left_wrist_0_rgb local tokens 98-195; positions 392-514 are right_wrist_0_rgb local tokens 0-122. The localized region crosses the left_wrist/right_wrist image-token boundary.
 See status_cc/patching_implementation.md §8.1 for the full results table.
+
+Final follow-up results on 2026-05-05:
+- Camera/token visualization saved under scripts_outputs_txt/patching_phase1/patched/visualizations/.
+- Layer localization: positions 294-514 at layers 12-14 recovered 11/25; edge trims 12-13 and 13-14 recovered 0/10 and 1/10.
+- K/V ablation at positions 294-514, layers 12-14: K-only recovered 0/25, V-only recovered 0/25, K+V recovered 11/25.
