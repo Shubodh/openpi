@@ -562,14 +562,14 @@ Rules:
 
 **Prerequisite:** `progress_cc/phase2/signal_files/2_PHASE2B_ALPHA_SWEEP_COMPLETE.txt` exists. Do not begin Phase 2c until Phase 2a and 2b are fully done.
 
-**Disclaimer:** Only C1 and Pair D have automated success metrics (done flag measures the clean task). **C2a and C2b are video-only** — they patch only a subset of language tokens into the SAME bowl/plate corrupt run, producing compositionally novel effective tasks (bowl/rack for C2a, wine_bottle/plate for C2b) that are not in LIBERO-Goal 10, so the done flag gives no useful signal. Save videos and move on — video interpretation is the human's job, not the agent's. **Agent self-correction rule:** C1 is the correctness anchor. If C1 fails (< 2/5), do not run C2a, C2b, or Pair D — write `0_PHASE2C_FAILURE.txt` and stop.
+**Disclaimer:** Only C1 and Pair D have automated success metrics (done flag measures the clean task). **C2a and C2b are video-only** — they produce compositionally novel effective tasks (bowl/rack for C2a, wine_bottle/plate for C2b) not in LIBERO-Goal 10, so the done flag gives no useful signal. Each of C2a and C2b runs **two sub-approaches** (lang tokens + C1's minimal positions) unconditionally; the agent cannot judge behavior change from video — save videos and move on. Video interpretation is the human's job. **Agent self-correction rule:** C1 is the correctness anchor. C1 tries lang → img (294–587) → full prefix (0–787) with binary search on whichever passes — only if ALL three fail write `0_PHASE2C_FAILURE.txt` and stop. Do not run C2a, C2b, or Pair D until C1 passes on some token region.
 
 **What C1, C2a, C2b, Pair D mean (defined in full below):**
 - **C1, C2a, C2b all use the SAME prompt pair:** clean=`"put the wine bottle on the rack"`, corrupt=`"put the bowl on the plate"`. What differs is *which KV token positions* are patched from clean into corrupt.
-- **C1** — Patch ALL language positions (588–787). Full clean signal → automated metric (done flag: wine bottle on rack?).
-- **C2a** — Patch ONLY the destination token ("rack", ~position 595 in clean) into the corrupt run's destination position ("plate", ~position 594 in corrupt). Effective behavior: bowl/rack — compositionally novel. **Video-only. No automated metric.**
-- **C2b** — Patch ONLY the object tokens ("wine bottle", positions 591–592 in clean) into the corrupt run's object position ("bowl", position 591 in corrupt). Effective behavior: wine_bottle/plate — compositionally novel. **Video-only. No automated metric.**
-- **Pair D** — Separate pair. clean=`"put the bowl on the stove"`, corrupt=`"turn on the stove"`. Full prefix patch. Motor-class flip: pick-place vs. knob-turn. Automated metric.
+- **C1** — Find minimal sufficient patch set for full flip (both object and destination). Try lang (588–787) first; if fails, try img (294–587); if fails, try full prefix (0–787). Binary search on whichever region passes. Automated metric.
+- **C2a** — Test destination-only decomposability. Try "rack" token (lang, clean[595]→corrupt[594]) first; if no behavior change, try C1's minimal image positions. Video-only.
+- **C2b** — Test object-only decomposability. Try "wine bottle" tokens (lang, clean[591–592]→corrupt[591]) first; if no behavior change, try C1's minimal image positions. Video-only.
+- **Pair D** — Separate pair. clean=`"put the bowl on the stove"`, corrupt=`"turn on the stove"`. Find minimal sufficient patch set for motor-class flip. Try lang → img → full prefix; binary search on whichever passes. Automated metric.
 
 **Scientific questions:**
 - Can KV-cache patching flip behavior when BOTH object AND destination differ (C1)?
@@ -592,13 +592,17 @@ Scientific contrast with Phase 2a: Phase 2a changes only the object (bowl→wine
 
 ---
 
-### Step C1 — Pair A BOTH case: sanity (N=5) + main run (N=10)
+### Step C1 — Pair A BOTH case: find minimal sufficient patch set
+
+Try lang tokens first; fall back to img if lang fails; fall back to full prefix if img also fails. Binary search on whichever region first passes. Record C1's minimal positions — C2a and C2b will use them.
+
+**C1-lang — language tokens (588–787), N=5 sanity**
 
 ```bash
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
-FULL="progress_cc/phase2/signal_files/logs/run_${TIMESTAMP}_phase2c_pairA_both_sanity_full.txt"
-CLEAN="progress_cc/phase2/signal_files/logs/run_${TIMESTAMP}_phase2c_pairA_both_sanity_clean.txt"
-mkdir -p data/libero/videos/phase2c/pairA_both_sanity
+FULL="progress_cc/phase2/signal_files/logs/run_${TIMESTAMP}_phase2c_pairA_both_lang_full.txt"
+CLEAN="progress_cc/phase2/signal_files/logs/run_${TIMESTAMP}_phase2c_pairA_both_lang_clean.txt"
+mkdir -p "data/libero/videos/phase2c/pairA_both_lang_${TIMESTAMP}"
 
 {
 python examples/libero/main_patching_expt_per_step_donor.py \
@@ -609,7 +613,7 @@ python examples/libero/main_patching_expt_per_step_donor.py \
   --args.patch-positions "$(python -c "print(','.join(map(str, range(588, 788))))")" \
   --args.num-trials-per-task 5 \
   --args.save-all-videos \
-  --args.video-out-path data/libero/videos/phase2c/pairA_both_sanity
+  --args.video-out-path "data/libero/videos/phase2c/pairA_both_lang_${TIMESTAMP}"
 } 2>&1 \
   | tee "$FULL" \
   | tr '\r' '\n' | sed -u $'s/\x1b\\[[0-9;]*[A-Za-z]//g' \
@@ -617,9 +621,64 @@ python examples/libero/main_patching_expt_per_step_donor.py \
   | tee "$CLEAN"
 ```
 
-**Interpret:**
-- ≥ 3/5: cross-pair patching works. Run N=10 (label `phase2c_pairA_both_n10`, same command, `--args.num-trials-per-task 10`). Proceed to C2a.
-- < 2/5: stop Phase 2c. Write `0_PHASE2C_FAILURE.txt` (see below). Do not run C2a, C2b, or Pair D.
+- ≥ 3/5: binary search within 588–787 (halves: 588–687, 688–787), N=10 probes each. Follow same halving logic as Phase 2a Step A5. Run N=25 on minimal set found. **Record minimal positions → C1_MINIMAL_POSITIONS.** Proceed to C2-prep.
+- < 2/5: lang-only insufficient for cross-pair flip. Proceed to C1-img.
+
+**C1-img — image tokens (294–587), N=5 sanity**
+
+```bash
+TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+FULL="progress_cc/phase2/signal_files/logs/run_${TIMESTAMP}_phase2c_pairA_both_img_full.txt"
+CLEAN="progress_cc/phase2/signal_files/logs/run_${TIMESTAMP}_phase2c_pairA_both_img_clean.txt"
+mkdir -p "data/libero/videos/phase2c/pairA_both_img_${TIMESTAMP}"
+
+{
+python examples/libero/main_patching_expt_per_step_donor.py \
+  --args.task-suite-name libero_goal \
+  --args.task-name-filter "put the wine bottle on the rack" \
+  --args.clean-prompt "put the wine bottle on the rack" \
+  --args.corrupt-prompt "put the bowl on the plate" \
+  --args.patch-positions "$(python -c "print(','.join(map(str, range(294, 588))))")" \
+  --args.num-trials-per-task 5 \
+  --args.save-all-videos \
+  --args.video-out-path "data/libero/videos/phase2c/pairA_both_img_${TIMESTAMP}"
+} 2>&1 \
+  | tee "$FULL" \
+  | tr '\r' '\n' | sed -u $'s/\x1b\\[[0-9;]*[A-Za-z]//g' \
+  | grep -E --line-buffered '^(===|\[ep |\[DEBUG|INFO:root:|ERROR:root:)' \
+  | tee "$CLEAN"
+```
+
+- ≥ 3/5: binary search within 294–587 (halves: 294–440, 441–587), N=10 each. Run N=25 on minimal set. **Record minimal positions → C1_MINIMAL_POSITIONS.** Proceed to C2-prep.
+- < 2/5: proceed to C1-full.
+
+**C1-full — full prefix (0–787), N=5 sanity**
+
+```bash
+TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+FULL="progress_cc/phase2/signal_files/logs/run_${TIMESTAMP}_phase2c_pairA_both_full_full.txt"
+CLEAN="progress_cc/phase2/signal_files/logs/run_${TIMESTAMP}_phase2c_pairA_both_full_clean.txt"
+mkdir -p "data/libero/videos/phase2c/pairA_both_full_${TIMESTAMP}"
+
+{
+python examples/libero/main_patching_expt_per_step_donor.py \
+  --args.task-suite-name libero_goal \
+  --args.task-name-filter "put the wine bottle on the rack" \
+  --args.clean-prompt "put the wine bottle on the rack" \
+  --args.corrupt-prompt "put the bowl on the plate" \
+  --args.patch-positions "$(python -c "print(','.join(map(str, range(788))))")" \
+  --args.num-trials-per-task 5 \
+  --args.save-all-videos \
+  --args.video-out-path "data/libero/videos/phase2c/pairA_both_full_${TIMESTAMP}"
+} 2>&1 \
+  | tee "$FULL" \
+  | tr '\r' '\n' | sed -u $'s/\x1b\\[[0-9;]*[A-Za-z]//g' \
+  | grep -E --line-buffered '^(===|\[ep |\[DEBUG|INFO:root:|ERROR:root:)' \
+  | tee "$CLEAN"
+```
+
+- ≥ 3/5: binary search within 0–787 (halves: 0–393, 394–787), N=10 each. Run N=25 on minimal set. **Record minimal positions → C1_MINIMAL_POSITIONS.** Proceed to C2-prep.
+- < 2/5: **write `0_PHASE2C_FAILURE.txt` and stop.** Do not run C2a, C2b, or Pair D.
 
 **Commit after C1.**
 
@@ -772,23 +831,17 @@ policy._sample_kwargs["patch_source_positions"] = patch_source_positions
 
 ---
 
-### Step C2a — Pair A, destination-only sub-test (video-only)
+### Step C2a — Pair A, destination-only sub-test (video-only, two sub-approaches)
 
-Same clean/corrupt prompts as C1. Patch ONLY the destination token ("rack", clean position 595) into the corrupt run's destination position ("plate", corrupt position 594). Effective behavior: bowl/rack — compositionally novel, not in LIBERO-Goal 10.
+Same clean/corrupt prompts as C1. Tests whether destination encoding is decomposable. Run **both** sub-approaches unconditionally — the agent cannot judge behavior change from video. Save both; video interpretation is the human's job.
 
-| Parameter | Value |
-|-----------|-------|
-| `--args.clean-prompt` | `"put the wine bottle on the rack"` |
-| `--args.corrupt-prompt` | `"put the bowl on the plate"` (same as C1) |
-| `--args.task-name-filter` | `"put the wine bottle on the rack"` |
-| Patch positions | Source: 595 (clean "rack") → Destination: 594 (corrupt "plate") |
-| Success metric | **Video-only. No automated metric.** Done flag checks wine_bottle/rack, which won't trigger for bowl/rack behavior. |
+**C2a-lang: Patch only destination language token** — "rack" clean[595] → "plate" corrupt[594]
 
 ```bash
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
-FULL="progress_cc/phase2/signal_files/logs/run_${TIMESTAMP}_phase2c_pairA_destonly_full.txt"
-CLEAN="progress_cc/phase2/signal_files/logs/run_${TIMESTAMP}_phase2c_pairA_destonly_clean.txt"
-mkdir -p data/libero/videos/phase2c/pairA_destonly
+FULL="progress_cc/phase2/signal_files/logs/run_${TIMESTAMP}_phase2c_pairA_destonly_lang_full.txt"
+CLEAN="progress_cc/phase2/signal_files/logs/run_${TIMESTAMP}_phase2c_pairA_destonly_lang_clean.txt"
+mkdir -p "data/libero/videos/phase2c/pairA_destonly_lang_${TIMESTAMP}"
 
 {
 python examples/libero/main_patching_expt_per_step_donor.py \
@@ -800,7 +853,7 @@ python examples/libero/main_patching_expt_per_step_donor.py \
   --args.patch-source-positions "595" \
   --args.num-trials-per-task 10 \
   --args.save-all-videos \
-  --args.video-out-path data/libero/videos/phase2c/pairA_destonly
+  --args.video-out-path "data/libero/videos/phase2c/pairA_destonly_lang_${TIMESTAMP}"
 } 2>&1 \
   | tee "$FULL" \
   | tr '\r' '\n' | sed -u $'s/\x1b\\[[0-9;]*[A-Za-z]//g' \
@@ -808,31 +861,48 @@ python examples/libero/main_patching_expt_per_step_donor.py \
   | tee "$CLEAN"
 ```
 
-**No automated metric.** Save videos to `data/libero/videos/phase2c/pairA_destonly` and record the run in `progress_cc/phase2/implementation.md §9.1`. Video interpretation is the human's job. Proceed to C2b.
+**C2a-c1minimal: Patch C1's minimal positions** — replace `<C1_MINIMAL_POSITIONS>` with the comma-separated positions recorded from C1's binary search
+
+```bash
+TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+FULL="progress_cc/phase2/signal_files/logs/run_${TIMESTAMP}_phase2c_pairA_destonly_c1minimal_full.txt"
+CLEAN="progress_cc/phase2/signal_files/logs/run_${TIMESTAMP}_phase2c_pairA_destonly_c1minimal_clean.txt"
+mkdir -p "data/libero/videos/phase2c/pairA_destonly_c1minimal_${TIMESTAMP}"
+
+{
+python examples/libero/main_patching_expt_per_step_donor.py \
+  --args.task-suite-name libero_goal \
+  --args.task-name-filter "put the wine bottle on the rack" \
+  --args.clean-prompt "put the wine bottle on the rack" \
+  --args.corrupt-prompt "put the bowl on the plate" \
+  --args.patch-positions "<C1_MINIMAL_POSITIONS>" \
+  --args.num-trials-per-task 10 \
+  --args.save-all-videos \
+  --args.video-out-path "data/libero/videos/phase2c/pairA_destonly_c1minimal_${TIMESTAMP}"
+} 2>&1 \
+  | tee "$FULL" \
+  | tr '\r' '\n' | sed -u $'s/\x1b\\[[0-9;]*[A-Za-z]//g' \
+  | grep -E --line-buffered '^(===|\[ep |\[DEBUG|INFO:root:|ERROR:root:)' \
+  | tee "$CLEAN"
+```
+
+Record both runs in `progress_cc/phase2/implementation.md §9.1`. Proceed to C2b.
 
 **Commit after C2a.**
 
 ---
 
-### Step C2b — Pair A, object-only sub-test (video-only)
+### Step C2b — Pair A, object-only sub-test (video-only, two sub-approaches)
 
-Same clean/corrupt prompts as C1. Patch ONLY the object tokens ("wine bottle", clean positions 591–592) into the corrupt run's object position ("bowl", corrupt position 591). Effective behavior: wine_bottle/plate — compositionally novel, not in LIBERO-Goal 10.
+Same clean/corrupt prompts as C1. Tests whether object encoding is decomposable. Run **both** sub-approaches unconditionally. Position 591 is same-index in both prompts (wine=591 in clean, bowl=591 in corrupt). Position 592 is "bottle" in clean but "on" in corrupt — patch both 591+592 as the full span.
 
-Note: position 591 is same-index in both prompts (wine=591 in clean, bowl=591 in corrupt) so this is a direct substitution. Position 592 is "bottle" in clean but "on" in corrupt — patch both 591+592 as a first attempt; if behavior is odd, try 591 alone.
-
-| Parameter | Value |
-|-----------|-------|
-| `--args.clean-prompt` | `"put the wine bottle on the rack"` |
-| `--args.corrupt-prompt` | `"put the bowl on the plate"` (same as C1) |
-| `--args.task-name-filter` | `"put the wine bottle on the rack"` |
-| Patch positions | 591, 592 (clean "wine", "bottle" → corrupt "bowl", "on") |
-| Success metric | **Video-only. No automated metric.** Done flag checks wine_bottle/rack, which won't trigger for wine_bottle/plate behavior. |
+**C2b-lang: Patch only object language tokens** — "wine bottle" clean[591–592] → corrupt[591–592]
 
 ```bash
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
-FULL="progress_cc/phase2/signal_files/logs/run_${TIMESTAMP}_phase2c_pairA_objonly_full.txt"
-CLEAN="progress_cc/phase2/signal_files/logs/run_${TIMESTAMP}_phase2c_pairA_objonly_clean.txt"
-mkdir -p data/libero/videos/phase2c/pairA_objonly
+FULL="progress_cc/phase2/signal_files/logs/run_${TIMESTAMP}_phase2c_pairA_objonly_lang_full.txt"
+CLEAN="progress_cc/phase2/signal_files/logs/run_${TIMESTAMP}_phase2c_pairA_objonly_lang_clean.txt"
+mkdir -p "data/libero/videos/phase2c/pairA_objonly_lang_${TIMESTAMP}"
 
 {
 python examples/libero/main_patching_expt_per_step_donor.py \
@@ -843,7 +913,7 @@ python examples/libero/main_patching_expt_per_step_donor.py \
   --args.patch-positions "591,592" \
   --args.num-trials-per-task 10 \
   --args.save-all-videos \
-  --args.video-out-path data/libero/videos/phase2c/pairA_objonly
+  --args.video-out-path "data/libero/videos/phase2c/pairA_objonly_lang_${TIMESTAMP}"
 } 2>&1 \
   | tee "$FULL" \
   | tr '\r' '\n' | sed -u $'s/\x1b\\[[0-9;]*[A-Za-z]//g' \
@@ -851,7 +921,32 @@ python examples/libero/main_patching_expt_per_step_donor.py \
   | tee "$CLEAN"
 ```
 
-**No automated metric.** Save videos to `data/libero/videos/phase2c/pairA_objonly` and record the run in `progress_cc/phase2/implementation.md §9.1`. Video interpretation is the human's job.
+**C2b-c1minimal: Patch C1's minimal positions** — replace `<C1_MINIMAL_POSITIONS>` with the comma-separated positions recorded from C1's binary search
+
+```bash
+TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+FULL="progress_cc/phase2/signal_files/logs/run_${TIMESTAMP}_phase2c_pairA_objonly_c1minimal_full.txt"
+CLEAN="progress_cc/phase2/signal_files/logs/run_${TIMESTAMP}_phase2c_pairA_objonly_c1minimal_clean.txt"
+mkdir -p "data/libero/videos/phase2c/pairA_objonly_c1minimal_${TIMESTAMP}"
+
+{
+python examples/libero/main_patching_expt_per_step_donor.py \
+  --args.task-suite-name libero_goal \
+  --args.task-name-filter "put the wine bottle on the rack" \
+  --args.clean-prompt "put the wine bottle on the rack" \
+  --args.corrupt-prompt "put the bowl on the plate" \
+  --args.patch-positions "<C1_MINIMAL_POSITIONS>" \
+  --args.num-trials-per-task 10 \
+  --args.save-all-videos \
+  --args.video-out-path "data/libero/videos/phase2c/pairA_objonly_c1minimal_${TIMESTAMP}"
+} 2>&1 \
+  | tee "$FULL" \
+  | tr '\r' '\n' | sed -u $'s/\x1b\\[[0-9;]*[A-Za-z]//g' \
+  | grep -E --line-buffered '^(===|\[ep |\[DEBUG|INFO:root:|ERROR:root:)' \
+  | tee "$CLEAN"
+```
+
+Record both runs in `progress_cc/phase2/implementation.md §9.1`. Video interpretation is the human's job.
 
 **Commit after C2b.**
 
@@ -869,13 +964,73 @@ python examples/libero/main_patching_expt_per_step_donor.py \
 
 **Scientific question:** Can patching flip between qualitatively different motor behaviors — pick-place (put bowl on stove) vs. knob-turn (turn on stove)? This tests whether KV patching controls action class, not just object/destination selection.
 
-### Step C3 — Pair D sanity (N=5) + main run (N=10)
+### Step C3 — Pair D: find minimal sufficient patch set
+
+Same lang → img → full prefix fallback as C1. Binary search on whichever region passes. Automated metric throughout (done flag: bowl on stove).
+
+**C3-lang — language tokens (588–787), N=5 sanity**
 
 ```bash
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
-FULL="progress_cc/phase2/signal_files/logs/run_${TIMESTAMP}_phase2c_pairD_sanity_full.txt"
-CLEAN="progress_cc/phase2/signal_files/logs/run_${TIMESTAMP}_phase2c_pairD_sanity_clean.txt"
-mkdir -p data/libero/videos/phase2c/pairD_sanity
+FULL="progress_cc/phase2/signal_files/logs/run_${TIMESTAMP}_phase2c_pairD_lang_full.txt"
+CLEAN="progress_cc/phase2/signal_files/logs/run_${TIMESTAMP}_phase2c_pairD_lang_clean.txt"
+mkdir -p "data/libero/videos/phase2c/pairD_lang_${TIMESTAMP}"
+
+{
+python examples/libero/main_patching_expt_per_step_donor.py \
+  --args.task-suite-name libero_goal \
+  --args.task-name-filter "put the bowl on the stove" \
+  --args.clean-prompt "put the bowl on the stove" \
+  --args.corrupt-prompt "turn on the stove" \
+  --args.patch-positions "$(python -c "print(','.join(map(str, range(588, 788))))")" \
+  --args.num-trials-per-task 5 \
+  --args.save-all-videos \
+  --args.video-out-path "data/libero/videos/phase2c/pairD_lang_${TIMESTAMP}"
+} 2>&1 \
+  | tee "$FULL" \
+  | tr '\r' '\n' | sed -u $'s/\x1b\\[[0-9;]*[A-Za-z]//g' \
+  | grep -E --line-buffered '^(===|\[ep |\[DEBUG|INFO:root:|ERROR:root:)' \
+  | tee "$CLEAN"
+```
+
+- ≥ 3/5: binary search within 588–787 (halves: 588–687, 688–787), N=10 each. Run N=25 on minimal set. Record result in `implementation.md §9.1`.
+- < 2/5: proceed to C3-img.
+
+**C3-img — image tokens (294–587), N=5 sanity**
+
+```bash
+TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+FULL="progress_cc/phase2/signal_files/logs/run_${TIMESTAMP}_phase2c_pairD_img_full.txt"
+CLEAN="progress_cc/phase2/signal_files/logs/run_${TIMESTAMP}_phase2c_pairD_img_clean.txt"
+mkdir -p "data/libero/videos/phase2c/pairD_img_${TIMESTAMP}"
+
+{
+python examples/libero/main_patching_expt_per_step_donor.py \
+  --args.task-suite-name libero_goal \
+  --args.task-name-filter "put the bowl on the stove" \
+  --args.clean-prompt "put the bowl on the stove" \
+  --args.corrupt-prompt "turn on the stove" \
+  --args.patch-positions "$(python -c "print(','.join(map(str, range(294, 588))))")" \
+  --args.num-trials-per-task 5 \
+  --args.save-all-videos \
+  --args.video-out-path "data/libero/videos/phase2c/pairD_img_${TIMESTAMP}"
+} 2>&1 \
+  | tee "$FULL" \
+  | tr '\r' '\n' | sed -u $'s/\x1b\\[[0-9;]*[A-Za-z]//g' \
+  | grep -E --line-buffered '^(===|\[ep |\[DEBUG|INFO:root:|ERROR:root:)' \
+  | tee "$CLEAN"
+```
+
+- ≥ 3/5: binary search within 294–587, N=10 each. Run N=25 on minimal set. Record result.
+- < 2/5: proceed to C3-full.
+
+**C3-full — full prefix (0–787), N=5 sanity**
+
+```bash
+TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+FULL="progress_cc/phase2/signal_files/logs/run_${TIMESTAMP}_phase2c_pairD_full_full.txt"
+CLEAN="progress_cc/phase2/signal_files/logs/run_${TIMESTAMP}_phase2c_pairD_full_clean.txt"
+mkdir -p "data/libero/videos/phase2c/pairD_full_${TIMESTAMP}"
 
 {
 python examples/libero/main_patching_expt_per_step_donor.py \
@@ -886,7 +1041,7 @@ python examples/libero/main_patching_expt_per_step_donor.py \
   --args.patch-positions "$(python -c "print(','.join(map(str, range(788))))")" \
   --args.num-trials-per-task 5 \
   --args.save-all-videos \
-  --args.video-out-path data/libero/videos/phase2c/pairD_sanity
+  --args.video-out-path "data/libero/videos/phase2c/pairD_full_${TIMESTAMP}"
 } 2>&1 \
   | tee "$FULL" \
   | tr '\r' '\n' | sed -u $'s/\x1b\\[[0-9;]*[A-Za-z]//g' \
@@ -894,9 +1049,8 @@ python examples/libero/main_patching_expt_per_step_donor.py \
   | tee "$CLEAN"
 ```
 
-**Interpret:**
-- ≥ 3/5: proceed to N=10 (label `phase2c_pairD_n10`). Motor-class flip is possible.
-- < 3/5: note failure. Motor-class patching may require different patch positions or may not be achievable via prefix KV alone. Record and stop.
+- ≥ 3/5: binary search within 0–787, N=10 each. Run N=25 on minimal set. Record result.
+- < 2/5: motor-class flip not achievable via prefix KV patching. Record and stop.
 
 **Commit after C3.**
 
@@ -911,22 +1065,24 @@ Write `progress_cc/phase2/signal_files/3_PHASE2C_COMPLETE.txt`:
 Phase 2c complete — [DATE]
 
 Pair A (clean=wine_bottle/rack, corrupt=bowl/plate — same prompts for C1/C2a/C2b, patch positions differ):
-  C1 sanity (all lang tokens 588-787): X/5; N=10: Y/10 — automated metric
-  C2a (dest-only, patch rack→plate pos): videos saved to data/libero/videos/phase2c/pairA_destonly/
-  C2b (obj-only, patch wine_bottle→bowl pos 591-592): videos saved to data/libero/videos/phase2c/pairA_objonly/
+  C1: region that passed = [lang/img/full]; minimal positions = [LIST]; N=25: Y/25 — automated metric
+  C2a-lang (dest-only, rack→plate lang token): videos saved to data/libero/videos/phase2c/pairA_destonly_lang_<TIMESTAMP>/
+  C2a-c1minimal (dest-only, C1 minimal positions): videos saved to data/libero/videos/phase2c/pairA_destonly_c1minimal_<TIMESTAMP>/
+  C2b-lang (obj-only, wine_bottle→bowl lang tokens): videos saved to data/libero/videos/phase2c/pairA_objonly_lang_<TIMESTAMP>/
+  C2b-c1minimal (obj-only, C1 minimal positions): videos saved to data/libero/videos/phase2c/pairA_objonly_c1minimal_<TIMESTAMP>/
 
 Pair D (bowl/stove ↔ turn_on_stove):
-  C3 sanity: X/5; N=10: Y/10
+  C3: region that passed = [lang/img/full]; minimal positions = [LIST]; N=25: Y/25 — automated metric
 
 Videos: data/libero/videos/phase2c/
 See progress_cc/phase2/implementation.md §9 for interpretation.
 ```
 
-If C1 failed, write `progress_cc/phase2/signal_files/0_PHASE2C_FAILURE.txt`:
+If C1 failed all three regions, write `progress_cc/phase2/signal_files/0_PHASE2C_FAILURE.txt`:
 ```
 Phase 2c failure — [DATE]
-C1 sanity (wine_bottle/rack ↔ bowl/plate, full prefix, N=5): X/5 — below threshold.
-Cross-pair patching does not appear to work. Phase 2c aborted.
+C1 tried: lang (X/5), img 294-587 (X/5), full prefix (X/5) — all below threshold.
+Cross-pair patching does not appear to work via prefix KV. Phase 2c aborted.
 See progress_cc/phase2/implementation.md §9 for details.
 ```
 
@@ -934,7 +1090,7 @@ See progress_cc/phase2/implementation.md §9 for details.
 ```bash
 git add progress_cc/phase2/
 git commit -m "$(cat <<'EOF'
-phase2c complete: Pair A C1=Y/10 C2a=Z/10 C2b=W/10, Pair D C3=Y/10
+phase2c complete: C1=[region] minimal=[positions] N25=Y/25; PairD=[region] N25=Y/25
 
 [Optional: key observation about cross-pair patching and motor-class flip]
 EOF
