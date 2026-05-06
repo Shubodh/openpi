@@ -14,7 +14,7 @@ tl;dr:
 
 ---
 
-## Documentation Rule
+## Documentation Rule: Implementation Notes
 
 When updating `progress_cc/phase2/implementation.md`, add or refresh implementation notes for every relevant section and subsection touched by the work. Each note should briefly state what code was used or added, and point to the script, function or method name, and current line numbers when code behavior is relevant. Keep these notes concise, but make the document self-contained enough that a future agent can understand where each result came from without rereading the full codebase.
 
