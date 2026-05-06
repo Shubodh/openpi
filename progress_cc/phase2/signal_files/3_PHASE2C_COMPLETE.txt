@@ -1,0 +1,14 @@
+Phase 2c complete — 2026-05-06
+
+Pair A (clean=wine_bottle/rack, corrupt=bowl/plate; C1/C2a/C2b use same prompts, patch positions differ):
+  C1: region that passed = full prefix; minimal positions = 394-787; N=25: 3/25 — automated metric
+  C2a-lang (dest-only, rack→plate lang token; actual clean[594]→corrupt[593]): videos saved to data/libero/videos/phase2c/pairA_destonly_lang_20260506_061405/
+  C2a-c1minimal (dest-only, C1 minimal positions): videos saved to data/libero/videos/phase2c/pairA_destonly_c1minimal_20260506_062716/
+  C2b-lang (obj-only, wine_bottle→bowl lang tokens; actual positions 590-591): videos saved to data/libero/videos/phase2c/pairA_objonly_lang_20260506_064313/
+  C2b-c1minimal (obj-only, C1 minimal positions): videos saved to data/libero/videos/phase2c/pairA_objonly_c1minimal_20260506_065605/
+
+Pair D (bowl/stove ↔ turn_on_stove):
+  C3: region that passed = img; minimal positions = 294-587; N=25: 18/25 — automated metric
+
+Videos: data/libero/videos/phase2c/
+See progress_cc/phase2/implementation.md §9 for interpretation.

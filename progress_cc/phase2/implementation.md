@@ -182,8 +182,8 @@ Run N=5 each. If either endpoint fails, the implementation is wrong — debug be
 - [x] **C2b-c1minimal.** Run obj-only with C1's minimal positions (N=10) — video-only saved
 - [x] **C3-lang.** Run Pair D lang-only (588–787, N=5) — failed 0/5; proceed to C3-img
 - [x] **C3-img.** Run Pair D img (294–587, N=5) — passed 3/5; binary search within 294–587
-- [ ] **C3-full.** Run Pair D full-prefix (0–787, N=5) — last resort; if fails, stop
-- [ ] **C4.** Write `3_PHASE2C_COMPLETE.txt` (or `0_PHASE2C_FAILURE.txt` if C1 fails all three regions)
+- [x] **C3-full.** Not run — C3-img passed, so full-prefix fallback was unnecessary
+- [x] **C4.** Write `3_PHASE2C_COMPLETE.txt`; remove superseded `0_PHASE2C_FAILURE.txt`
 
 **Implementation notes:** Checklist state is a manual tracking layer over the run logs and signal files; it does not drive code. Completed Phase 2a and 2b entries correspond to committed changes and logs from the scripts above. Phase 2c C2-code added `patch_source_positions` support in `pi0.py::_apply_kv_patch` lines 225-256 and `Pi0.sample_actions()` lines 259-299, plus CLI parsing/wiring in `main_patching_expt_per_step_donor.py::Args` lines 89-97, `eval_libero()` lines 174-190, and sample kwargs at lines 263-268 and 311-318.
 
@@ -307,12 +307,16 @@ The sweep shows a sharp threshold over the sampled values: alpha 0.25, 0.50, and
 | C3-img | D (motor-class flip, img 294–587) | img 294–587 | 5 | 3/5 (60%) | automated success rate |
 | C3-bin-1a | D (motor-class flip, img 294–440) | img 294–440 | 10 | 0/10 (0%) | automated success rate |
 | C3-bin-1b | D (motor-class flip, img 441–587) | img 441–587 | 10 | 0/10 (0%) | automated success rate |
-| C3-final | D (motor-class flip, minimal img 294–587) | img 294–587 | 25 | | automated success rate |
+| C3-final | D (motor-class flip, minimal img 294–587) | img 294–587 | 25 | 18/25 (72%) | automated success rate |
 | C3-full | D (motor-class flip, full prefix 0–787) | full 0–787 | 5 | | automated success rate |
 
 ### 9.2 Interpretation
 
-C1-lang failed 0/5 — language-only patching insufficient for cross-pair flip (consistent with Phase 1 and Phase 2a findings). C1-img also failed 0/5, so the Phase 2a image region `294-587` is not sufficient for the harder both-object-and-destination Pair A flip. C1-full passed 5/5, so cross-pair patching is possible via broader prefix KV. Binary half 0–393 failed 0/10; binary half 394–787 recovered 3/10. Both children of 394–787 failed (394–590 = 0/10, 591–787 = 0/10), so 394–787 is the smallest defensible contiguous C1 region. Its N=25 promotion recovered 3/25. C1_MINIMAL_POSITIONS=`394-787`. C2-prep/C2-code are next.
+C1-lang failed 0/5 — language-only patching insufficient for cross-pair flip (consistent with Phase 1 and Phase 2a findings). C1-img also failed 0/5, so the Phase 2a image region `294-587` is not sufficient for the harder both-object-and-destination Pair A flip. C1-full passed 5/5, so cross-pair patching is possible via broader prefix KV. Binary half 0–393 failed 0/10; binary half 394–787 recovered 3/10. Both children of 394–787 failed (394–590 = 0/10, 591–787 = 0/10), so 394–787 is the smallest defensible contiguous C1 region. Its N=25 promotion recovered 3/25. C1_MINIMAL_POSITIONS=`394-787`.
+
+C2a/C2b are video-only by design. Videos were saved for both destination-only sub-approaches and both object-only sub-approaches. The raw done flags are recorded in the table only for traceability and should not be interpreted as success metrics for the compositionally novel tasks.
+
+Pair D language-only failed 0/5, but image positions 294–587 passed 3/5. Its binary children 294–440 and 441–587 both failed 0/10, so 294–587 is the smallest defensible Pair D region. The N=25 promotion recovered 18/25, a strong motor-class flip result.
 
 **Implementation notes:** No new interpretation code exists; results are read from LIBERO done flags emitted by the evaluation scripts. For C2a/C2b, the guide marks results as video-only because the effective compositional tasks are not LIBERO-Goal success conditions, so the implementation should save videos via `main_patching_expt_per_step_donor.py` lines 330-336 and avoid drawing automated success conclusions.
 
@@ -322,10 +326,10 @@ C1-lang failed 0/5 — language-only patching insufficient for cross-pair flip (
 
 *(Agent updates this section at the end of each work session.)*
 
-**Last updated:** 2026-05-06 — Pair D C3 binary children under 294–587 both failed; promoting 294–587 to N=25.
+**Last updated:** 2026-05-06 — Phase 2c complete.
 
-**Current state:** Phase 2a and 2b complete. Phase 2c Pair A C1-lang failed 0/5, C1-img failed 0/5, and C1-full passed 5/5. Binary search found 394–787 as the smallest defensible contiguous C1 region because it recovered 3/10 while both children failed 0/10. C1-final recovered 3/25. C2-prep verified actual token positions: rack clean[594]→plate corrupt[593], wine_bottle clean[590–591]→bowl corrupt[590–591]. C2-code is implemented and the no-source default path was verified with an A-C3-style run at 5/5. The previous `0_PHASE2C_FAILURE.txt` is superseded by C1's pass and should be removed or overwritten when final Phase 2c signaling is written.
+**Current state:** Phase 2a, 2b, and 2c are complete. Pair A C1 passed only at full-prefix sanity, localized to C1_MINIMAL_POSITIONS=`394-787`, and recovered 3/25 at N=25. C2a/C2b video-only runs were saved for language-token and C1-minimal sub-approaches. Pair D localized to image positions `294-587` and recovered 18/25 at N=25. `3_PHASE2C_COMPLETE.txt` is written; the old `0_PHASE2C_FAILURE.txt` was removed because C1 no longer failed under the updated guide.
 
-**Next action:** Run Pair D C3-final positions 294–587, N=25. Record Pair D minimal positions as `294-587`.
+**Next action:** No Phase 2c experiments remain. Review videos under `data/libero/videos/phase2c/` for C2a/C2b qualitative interpretation.
 
 **Implementation notes:** `patch_source_positions` is now implemented as an additive default-preserving path. `pi0.py::_apply_kv_patch` takes source positions at line 233, defaults to same-index behavior at line 240, and applies source→destination K/V writes at lines 243-253 while preserving alpha interpolation and K/V gates. `Pi0.sample_actions()` exposes the parameter at line 271 and passes it through at lines 289-299. `main_patching_expt_per_step_donor.py` exposes `Args.patch_source_positions` at line 92, parses and validates it at lines 180-184, logs it at line 187, and sets it in `policy._sample_kwargs` at lines 263-268 and 311-318. `python -m py_compile src/openpi/models/pi0.py examples/libero/main_patching_expt_per_step_donor.py` passed, and an A-C3-style no-source verification run recovered 5/5.
