@@ -308,7 +308,7 @@ The sweep shows a sharp threshold over the sampled values: alpha 0.25, 0.50, and
 | C3-bin-1a | D (motor-class flip, img 294–440) | img 294–440 | 10 | 0/10 (0%) | automated success rate |
 | C3-bin-1b | D (motor-class flip, img 441–587) | img 441–587 | 10 | 0/10 (0%) | automated success rate |
 | C3-final | D (motor-class flip, minimal img 294–587) | img 294–587 | 25 | 18/25 (72%) | automated success rate |
-| C3-full | D (motor-class flip, full prefix 0–787) | full 0–787 | 5 | | automated success rate |
+| C3-full | D (motor-class flip, full prefix 0–787) | full 0–787 | 5 | not run — C3-img passed | automated success rate |
 
 ### 9.2 Interpretation
 
