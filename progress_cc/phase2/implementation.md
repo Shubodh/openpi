@@ -294,7 +294,9 @@ The sweep shows a sharp threshold over the sampled values: alpha 0.25, 0.50, and
 | C1-img | A (BOTH, img tokens 294–587) | img 294–587 | 5 | 0/5 (0%) | automated success rate |
 | C1-full | A (BOTH, full prefix 0–787) | full 0–787 | 5 | 5/5 (100%) | automated success rate |
 | C1-bin-1a | A (BOTH, full-prefix half 0–393) | prefix 0–393 | 10 | 0/10 (0%) | automated success rate |
-| C1-bin-1b | A (BOTH, full-prefix half 394–787) | prefix 394–787 | 10 | | automated success rate |
+| C1-bin-1b | A (BOTH, full-prefix half 394–787) | prefix 394–787 | 10 | 3/10 (30%) | automated success rate |
+| C1-bin-2a | A (BOTH, prefix quarter 394–590) | prefix 394–590 | 10 | | automated success rate |
+| C1-bin-2b | A (BOTH, prefix quarter 591–787) | prefix 591–787 | 10 | | automated success rate |
 | C2a-lang | A (dest-only, rack clean[595]→plate corrupt[594]) | lang single token | 10 | | video-only |
 | C2a-c1minimal | A (dest-only, C1 minimal positions) | C1 minimal | 10 | | video-only |
 | C2b-lang | A (obj-only, wine_bottle clean[591–592]→bowl corrupt[591–592]) | lang token span | 10 | | video-only |
@@ -305,7 +307,7 @@ The sweep shows a sharp threshold over the sampled values: alpha 0.25, 0.50, and
 
 ### 9.2 Interpretation
 
-C1-lang failed 0/5 — language-only patching insufficient for cross-pair flip (consistent with Phase 1 and Phase 2a findings). C1-img also failed 0/5, so the Phase 2a image region `294-587` is not sufficient for the harder both-object-and-destination Pair A flip. C1-full passed 5/5, so cross-pair patching is possible via broader prefix KV. The first binary half, 0–393, failed 0/10; 394–787 is next. All C2 and Pair D rows pending.
+C1-lang failed 0/5 — language-only patching insufficient for cross-pair flip (consistent with Phase 1 and Phase 2a findings). C1-img also failed 0/5, so the Phase 2a image region `294-587` is not sufficient for the harder both-object-and-destination Pair A flip. C1-full passed 5/5, so cross-pair patching is possible via broader prefix KV. Binary half 0–393 failed 0/10; binary half 394–787 recovered 3/10 and is being recursively split into 394–590 and 591–787. All C2 and Pair D rows pending.
 
 **Implementation notes:** No new interpretation code exists; results are read from LIBERO done flags emitted by the evaluation scripts. For C2a/C2b, the guide marks results as video-only because the effective compositional tasks are not LIBERO-Goal success conditions, so the implementation should save videos via `main_patching_expt_per_step_donor.py` lines 330-336 and avoid drawing automated success conclusions.
 
@@ -315,10 +317,10 @@ C1-lang failed 0/5 — language-only patching insufficient for cross-pair flip (
 
 *(Agent updates this section at the end of each work session.)*
 
-**Last updated:** 2026-05-06 — C1 binary half 0–393 failed 0/10; running 394–787 next.
+**Last updated:** 2026-05-06 — C1 binary half 394–787 recovered 3/10; recursing into 394–590 and 591–787.
 
 **Current state:** Phase 2a and 2b complete. Phase 2c Pair A C1-lang failed 0/5, C1-img failed 0/5, and C1-full passed 5/5. The previous `0_PHASE2C_FAILURE.txt` is superseded by this result and should be removed or overwritten when final Phase 2c signaling is written.
 
-**Next action:** Run C1 binary half positions 394–787, N=10. Promote/recurse if meaningful; if it fails too, 0–787 remains the smallest defensible set because the parent full-prefix run passed.
+**Next action:** Run C1 binary quarters positions 394–590 and 591–787, N=10 each. Promote/recurse on any meaningful child; if both fail, 394–787 remains the smallest defensible C1 set.
 
 **Implementation notes:** Before full Phase 2c continuation, code should be extended only if C1 passes and C2 is reached. The planned additive change is `patch_source_positions`: add a donor-source position tuple to `pi0.py::_apply_kv_patch` beside the current `patch_positions` argument at lines 229-234, pass it through `Pi0.sample_actions()` lines 251-264 and 279-282, expose it in `main_patching_expt_per_step_donor.py::Args` lines 69-108, parse it near lines 173-179, and write it into `policy._sample_kwargs` beside the existing patch settings at lines 256-260 and 303-310.
