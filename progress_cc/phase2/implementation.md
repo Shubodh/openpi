@@ -174,7 +174,7 @@ Run N=5 each. If either endpoint fails, the implementation is wrong — debug be
 
 - [x] **C1-lang.** Run Pair A lang-only sanity (588–787, N=5) — failed 0/5; proceed to C1-img
 - [x] **C1-img.** Run Pair A img sanity (294–587, N=5) — failed 0/5; proceed to C1-full
-- [ ] **C1-full.** Run Pair A full-prefix (0–787, N=5) — if fails, write `0_PHASE2C_FAILURE.txt` and stop
+- [x] **C1-full.** Run Pair A full-prefix (0–787, N=5) — passed 5/5; binary search within 0–787
 - [ ] **C2a-lang.** Run dest-only lang token (rack clean[595]→plate corrupt[594], N=10) — video-only
 - [ ] **C2a-c1minimal.** Run dest-only with C1's minimal positions (N=10) — video-only
 - [ ] **C2b-lang.** Run obj-only lang tokens (wine_bottle clean[591–592]→bowl corrupt[591–592], N=10) — video-only
@@ -292,7 +292,9 @@ The sweep shows a sharp threshold over the sampled values: alpha 0.25, 0.50, and
 |----------|------|-------------|---|--------|--------|
 | C1-lang | A (BOTH, lang tokens 588–787) | lang 588–787 | 5 | 0/5 (0%) | automated success rate |
 | C1-img | A (BOTH, img tokens 294–587) | img 294–587 | 5 | 0/5 (0%) | automated success rate |
-| C1-full | A (BOTH, full prefix 0–787) | full 0–787 | 5 | | automated success rate |
+| C1-full | A (BOTH, full prefix 0–787) | full 0–787 | 5 | 5/5 (100%) | automated success rate |
+| C1-bin-1a | A (BOTH, full-prefix half 0–393) | prefix 0–393 | 10 | | automated success rate |
+| C1-bin-1b | A (BOTH, full-prefix half 394–787) | prefix 394–787 | 10 | | automated success rate |
 | C2a-lang | A (dest-only, rack clean[595]→plate corrupt[594]) | lang single token | 10 | | video-only |
 | C2a-c1minimal | A (dest-only, C1 minimal positions) | C1 minimal | 10 | | video-only |
 | C2b-lang | A (obj-only, wine_bottle clean[591–592]→bowl corrupt[591–592]) | lang token span | 10 | | video-only |
@@ -303,7 +305,7 @@ The sweep shows a sharp threshold over the sampled values: alpha 0.25, 0.50, and
 
 ### 9.2 Interpretation
 
-C1-lang failed 0/5 — language-only patching insufficient for cross-pair flip (consistent with Phase 1 and Phase 2a findings). C1-img also failed 0/5, so the Phase 2a image region `294-587` is not sufficient for the harder both-object-and-destination Pair A flip. C1-full is the next required fallback. All other Phase 2c rows pending.
+C1-lang failed 0/5 — language-only patching insufficient for cross-pair flip (consistent with Phase 1 and Phase 2a findings). C1-img also failed 0/5, so the Phase 2a image region `294-587` is not sufficient for the harder both-object-and-destination Pair A flip. C1-full passed 5/5, so cross-pair patching is possible via broader prefix KV. Binary search within 0–787 is in progress. All C2 and Pair D rows pending.
 
 **Implementation notes:** No new interpretation code exists; results are read from LIBERO done flags emitted by the evaluation scripts. For C2a/C2b, the guide marks results as video-only because the effective compositional tasks are not LIBERO-Goal success conditions, so the implementation should save videos via `main_patching_expt_per_step_donor.py` lines 330-336 and avoid drawing automated success conclusions.
 
@@ -313,10 +315,10 @@ C1-lang failed 0/5 — language-only patching insufficient for cross-pair flip (
 
 *(Agent updates this section at the end of each work session.)*
 
-**Last updated:** 2026-05-06 — C1-img failed 0/5; proceeding to C1-full.
+**Last updated:** 2026-05-06 — C1-full passed 5/5; binary search within 0–787 is next.
 
-**Current state:** Phase 2a and 2b complete. Phase 2c C1-lang failed 0/5 and C1-img failed 0/5. The guide requires one more Pair A fallback: C1-full over positions 0–787. `0_PHASE2C_FAILURE.txt` written previously should be treated as superseded by the guide update unless C1-full also fails.
+**Current state:** Phase 2a and 2b complete. Phase 2c Pair A C1-lang failed 0/5, C1-img failed 0/5, and C1-full passed 5/5. The previous `0_PHASE2C_FAILURE.txt` is superseded by this result and should be removed or overwritten when final Phase 2c signaling is written.
 
-**Next action:** Run **C1-full** — patch full prefix positions 0–787, N=5 sanity. If ≥ 3/5: binary search within 0–787, then N=25; record C1_MINIMAL_POSITIONS. If < 2/5: write `0_PHASE2C_FAILURE.txt` and stop Phase 2c.
+**Next action:** Run C1 binary search halves: positions 0–393 and 394–787, N=10 each. Promote/recurse on any meaningful region, then run N=25 on the smallest defensible set and record C1_MINIMAL_POSITIONS.
 
 **Implementation notes:** Before full Phase 2c continuation, code should be extended only if C1 passes and C2 is reached. The planned additive change is `patch_source_positions`: add a donor-source position tuple to `pi0.py::_apply_kv_patch` beside the current `patch_positions` argument at lines 229-234, pass it through `Pi0.sample_actions()` lines 251-264 and 279-282, expose it in `main_patching_expt_per_step_donor.py::Args` lines 69-108, parse it near lines 173-179, and write it into `policy._sample_kwargs` beside the existing patch settings at lines 256-260 and 303-310.
