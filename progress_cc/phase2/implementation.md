@@ -48,6 +48,8 @@
 
 **Pre-computed vs per-step:** Pre-computed full-prefix was tested as the original sanity check (`run_patching_phase1.sh` C3 condition) and failed because it overwrites current image-token K/V with stale t=0 donor images, blinding the model. **Per-step donor is the only working approach.** Phase 2 confirms this finding on a new pair and uses per-step donor throughout.
 
+**Implementation notes:** Phase 2 reuses the existing baseline runner `examples/libero/main_corrupt_run_expt.py::eval_libero` for clean/corrupt no-patch controls; task filtering and prompt override happen at lines 95-100, websocket policy inference at lines 142-163, and video/result logging at lines 182-204. Patched runs use `examples/libero/main_patching_expt_per_step_donor.py::eval_libero`, which rebuilds a donor KV cache from the current observation before each action chunk at lines 301-310 and then calls `policy.infer()` with the corrupt prompt at line 311.
+
 ---
 
 ## 2. Architecture Decisions for Phase 2
@@ -62,6 +64,8 @@
 | Alpha endpoint gate | α=0 must ≈ corrupt baseline (~0%), α=1 must reproduce per-step full-prefix result (≥60%) before running intermediate values |
 | Output structure | Videos → `data/libero/videos/phase2/`; logs → `progress_cc/phase2/signal_files/logs/`; signal files → `progress_cc/phase2/signal_files/` |
 | Script policy | Additive changes only to `pi0.py` — new default-preserving parameters. No modification of existing Phase 1 behavior. |
+
+**Implementation notes:** The per-step donor path is implemented by `build_kv_cache_from_element()` in `examples/libero/main_patching_expt_per_step_donor.py` lines 124-133 and `make_element()` lines 136-142. Patch configuration is parsed and logged in `eval_libero()` lines 173-183, then wired into `policy._sample_kwargs` at lines 256-260 and again for each replanned action chunk at lines 303-310. Model-side patching is centralized in `src/openpi/models/pi0.py::_apply_kv_patch` lines 229-248 and invoked from `Pi0.sample_actions()` lines 279-282.
 
 ---
 
@@ -90,6 +94,8 @@
 **Success gates:**
 - A-C3 ≥ 3/5 before anything else. If A-C3 fails, stop and write `0_PHASE2A_FAILURE.txt`.
 - A-lang is run after A-C3 regardless. If A-lang passes, run A-lang-binary before A-D3. If A-lang fails, proceed directly to A-D3.
+
+**Implementation notes:** No new code was required for Phase 2a. Baselines used `main_corrupt_run_expt.py::eval_libero`, where `args.corrupt_prompt` can override task language at lines 99-100. Patching probes used `main_patching_expt_per_step_donor.py::eval_libero`; `--args.patch-positions` is parsed by `_parse_int_spec()` lines 155-166 and applied through `policy._sample_kwargs["patch_positions"]` at lines 256 and 306. The actual KV replacement for the requested absolute prefix positions happens in `pi0.py::_apply_kv_patch` lines 239-247.
 
 ---
 
@@ -138,6 +144,8 @@ Run N=5 each. If either endpoint fails, the implementation is wrong — debug be
 - Success rates: `progress_cc/phase2/signal_files/alpha_sweep_results.csv` with columns: `alpha,successes,trials,success_rate`
 - A-D2 and A-C3 results from Phase 2a serve as the α=0 and α=1 reference values in the CSV
 
+**Implementation notes:** Phase 2b added alpha interpolation in `src/openpi/models/pi0.py::_apply_kv_patch`: the `alpha` parameter is in the signature at line 233, corrupt and donor K/V slices are read at lines 240-243, and the interpolated write is performed at lines 244-245. `Pi0.sample_actions()` exposes `patch_alpha` at line 263 and passes it into `_apply_kv_patch()` at lines 279-282. The CLI surface is `examples/libero/main_patching_expt_per_step_donor.py::Args.patch_alpha` line 95; `eval_libero()` logs it at line 183 and writes it into `policy._sample_kwargs` at lines 260 and 310.
+
 ---
 
 ## 5. Implementation Checklist
@@ -176,6 +184,8 @@ Run N=5 each. If either endpoint fails, the implementation is wrong — debug be
 - [ ] **C3-full.** Run Pair D full-prefix (0–787, N=5) — last resort; if fails, stop
 - [ ] **C4.** Write `3_PHASE2C_COMPLETE.txt` (or `0_PHASE2C_FAILURE.txt` if C1 fails all three regions)
 
+**Implementation notes:** Checklist state is a manual tracking layer over the run logs and signal files; it does not drive code. Completed Phase 2a and 2b entries correspond to committed changes and logs from the scripts above. The only pending code change called out by the updated Phase 2c guide is `patch_source_positions` support, which is not present yet in `pi0.py::_apply_kv_patch` lines 229-248 or `main_patching_expt_per_step_donor.py::Args` lines 69-108.
+
 ---
 
 ## 6. Results — Phase 2a
@@ -183,6 +193,8 @@ Run N=5 each. If either endpoint fails, the implementation is wrong — debug be
 *(Agent fills this in after each run.)*
 
 ### 6.1 Results table
+
+**Implementation notes:** All A-D1/A-D2 rows were produced by `examples/libero/main_corrupt_run_expt.py::eval_libero`, using the prompt override path at lines 99-100 and websocket inference at lines 142-163. All patched rows were produced by `examples/libero/main_patching_expt_per_step_donor.py::eval_libero`; the donor cache is rebuilt from each live observation at lines 301-305 before the corrupt-prompt inference at line 311. Success/failure counts in the table come from the scripts' final log summaries: baseline logging at `main_corrupt_run_expt.py` lines 195-204, patched logging at `main_patching_expt_per_step_donor.py` lines 338-342.
 
 | Run code | Prompt | Patch config | N | Success rate | Log file |
 |----------|--------|-------------|---|-------------|----------|
@@ -201,6 +213,8 @@ Run N=5 each. If either endpoint fails, the implementation is wrong — debug be
 ### 6.2 Implementation notes
 
 *(Surprises, deviations from plan, debugging notes.)*
+
+Code-level summary: Phase 2a relied on existing per-step donor mechanics. `_parse_int_spec()` in `main_patching_expt_per_step_donor.py` lines 155-166 allowed both comma-separated and range-style patch specs, `_positions_tag()` lines 145-152 made stable output-directory tags, and `pi0.py::_apply_kv_patch` lines 239-247 overwrote the selected K/V cache positions across all layers by default.
 
 | Date | Note |
 |------|------|
@@ -222,6 +236,8 @@ Run N=5 each. If either endpoint fails, the implementation is wrong — debug be
 
 *(Fill after binary search complete.)*
 
+**Implementation notes:** The minimal-set claim is an experiment-selection result, not a separate code path. The same `main_patching_expt_per_step_donor.py::eval_libero` code path handled full prefix, image half, image quarter, and final promotion by changing only `--args.patch-positions`; model-side behavior stayed in `pi0.py::_apply_kv_patch` lines 239-247. Because both child quarters failed after parent `294-587` passed, `294-587` is recorded as the smallest defensible contiguous region for this phase.
+
 - Minimal sufficient positions: 294–587
 - Success rate at N=25: 21/25 (84%)
 - Comparison to Phase 1 result (294–587 or similar): Phase 2a matches Phase 1's main image-token half. Phase 1 later narrowed to 294–514, while Phase 2a's direct quarters 294–440 and 441–587 both failed alone, so the defensible Phase 2a contiguous set is 294–587.
@@ -234,12 +250,16 @@ Run N=5 each. If either endpoint fails, the implementation is wrong — debug be
 
 ### 7.1 Endpoint verification
 
+**Implementation notes:** Endpoint verification exercised the new alpha code without changing patch positions. At alpha 0, `pi0.py::_apply_kv_patch` lines 244-245 writes the corrupt K/V values back into the cache, so behavior should match the corrupt baseline. At alpha 1, the same lines write full donor K/V, matching the previous patch behavior. The CLI value came from `main_patching_expt_per_step_donor.py::Args.patch_alpha` line 95 and was passed to the model through `policy._sample_kwargs["patch_alpha"]` lines 260 and 310.
+
 | Alpha | N | Success rate | Matches expected? |
 |-------|---|-------------|------------------|
 | 0.0 | 5 | 0/5 (0%) | yes |
 | 1.0 | 5 | 5/5 (100%) | yes |
 
 ### 7.2 Alpha sweep results
+
+**Implementation notes:** Intermediate alpha runs used the same per-step donor path as Phase 2a and changed only `--args.patch-alpha`. The interpolation is applied independently to K and V at every selected cache position in `pi0.py::_apply_kv_patch` lines 240-245; `patch_k` and `patch_v` gates are still respected at lines 246-247. The CSV was written as an experiment artifact in `progress_cc/phase2/signal_files/alpha_sweep_results.csv`.
 
 | Alpha | Successes | Trials | Success rate | Video path |
 |-------|-----------|--------|-------------|-----------|
@@ -253,6 +273,8 @@ Run N=5 each. If either endpoint fails, the implementation is wrong — debug be
 
 The sweep shows a sharp threshold over the sampled values: alpha 0.25, 0.50, and 0.75 all recovered 0/10, while alpha 1.0 recovered 5/5 at the endpoint and the full Phase 2a region recovered 21/25. No intermediate sampled alpha produced meaningful recovery.
 
+**Implementation notes:** This interpretation depends on the additive alpha implementation only; no thresholding or alternate model path was added. The relevant code remains `pi0.py::_apply_kv_patch` lines 229-248, `Pi0.sample_actions()` lines 251-264 and 279-282, and `main_patching_expt_per_step_donor.py::eval_libero` lines 256-260 and 303-311.
+
 ---
 
 
@@ -260,7 +282,11 @@ The sweep shows a sharp threshold over the sampled values: alpha 0.25, 0.50, and
 
 *(Agent fills this in. Run only after Phase 2b complete and `2_PHASE2B_ALPHA_SWEEP_COMPLETE.txt` exists.)*
 
+**Implementation notes:** Phase 2c has only completed C1-lang so far, using the same per-step donor patch script and model alpha-capable patch path as Phase 2a/2b. The old failure file from the previous guide is superseded by the updated guide: C1 now continues from lang to image positions `294-587`, then full prefix `0-787` before declaring failure. The required future `patch_source_positions` feature for C2a is not implemented yet; current `_apply_kv_patch` reads and writes the same absolute position (`pos`) at `pi0.py` lines 239-245.
+
 ### 9.1 Results table
+
+**Implementation notes:** C1-lang used `main_patching_expt_per_step_donor.py::eval_libero` with `--args.patch-positions` covering `588-787`; `eval_libero()` parsed those positions at lines 173-179, rebuilt the clean-prompt donor cache at lines 301-305, and inferred under the corrupt prompt at line 311. Pending C2a destination-only remapping will require adding source-position support because "rack" is clean absolute position 595 while "plate" is corrupt absolute position 594.
 
 | Run code | Pair | Patch region | N | Result | Metric |
 |----------|------|-------------|---|--------|--------|
@@ -279,6 +305,8 @@ The sweep shows a sharp threshold over the sampled values: alpha 0.25, 0.50, and
 
 C1-lang failed 0/5 — language-only patching insufficient for cross-pair flip (consistent with Phase 1 and Phase 2a findings). C1-img is the next step: image tokens (294–587) are the primary signal region established in Phase 2a. All other Phase 2c rows pending.
 
+**Implementation notes:** No new interpretation code exists; results are read from LIBERO done flags emitted by the evaluation scripts. For C2a/C2b, the guide marks results as video-only because the effective compositional tasks are not LIBERO-Goal success conditions, so the implementation should save videos via `main_patching_expt_per_step_donor.py` lines 330-336 and avoid drawing automated success conclusions.
+
 ---
 
 ## 8. Current Status and Next Steps
@@ -290,3 +318,5 @@ C1-lang failed 0/5 — language-only patching insufficient for cross-pair flip (
 **Current state:** Phase 2a and 2b complete. Phase 2c C1-lang failed 0/5 (language-only insufficient, consistent with Phase 1 and Phase 2a). The guide has been updated: C1 now tries lang → img (294–587) → full prefix (0–787) before stopping. `0_PHASE2C_FAILURE.txt` written previously should be treated as superseded by the guide update.
 
 **Next action:** Run **C1-img** — patch image positions 294–587, N=5 sanity. Command in `guide.md` Step C1 → C1-img block. If ≥ 3/5: binary search within 294–587, then N=25; record C1_MINIMAL_POSITIONS. If < 3/5: proceed to C1-full.
+
+**Implementation notes:** Before full Phase 2c continuation, code should be extended only if C1 passes and C2 is reached. The planned additive change is `patch_source_positions`: add a donor-source position tuple to `pi0.py::_apply_kv_patch` beside the current `patch_positions` argument at lines 229-234, pass it through `Pi0.sample_actions()` lines 251-264 and 279-282, expose it in `main_patching_expt_per_step_donor.py::Args` lines 69-108, parse it near lines 173-179, and write it into `policy._sample_kwargs` beside the existing patch settings at lines 256-260 and 303-310.

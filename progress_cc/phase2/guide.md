@@ -14,6 +14,12 @@ tl;dr:
 
 ---
 
+## Documentation Rule
+
+When updating `progress_cc/phase2/implementation.md`, add or refresh implementation notes for every relevant section and subsection touched by the work. Each note should briefly state what code was used or added, and point to the script, function or method name, and current line numbers when code behavior is relevant. Keep these notes concise, but make the document self-contained enough that a future agent can understand where each result came from without rereading the full codebase.
+
+---
+
 ## YOUR MISSION
 
 You are running Phase 2 of the AXMech activation-patching experiment on π₀.₅ + LIBERO-Goal. Phase 1 (on branch `patching_phase1_agentic`) is complete. Your job: run the same initial battery on a **new task pair** (Simple Pair 2: `bowl` ↔ `wine bottle`, same destination — cabinet), run an **alpha sweep** to test steerability, then run **challenging cross-pair experiments** (Phase 2c) that flip both object and destination simultaneously and test motor-class flip.
