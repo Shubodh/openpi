@@ -567,8 +567,8 @@ Rules:
 **What C1, C2a, C2b, Pair D mean (defined in full below):**
 - **C1, C2a, C2b all use the SAME prompt pair:** clean=`"put the wine bottle on the rack"`, corrupt=`"put the bowl on the plate"`. What differs is *which KV token positions* are patched from clean into corrupt.
 - **C1** — Find minimal sufficient patch set for full flip (both object and destination). Try lang (588–787) first; if fails, try img (294–587); if fails, try full prefix (0–787). Binary search on whichever region passes. Automated metric.
-- **C2a** — Test destination-only decomposability. Try "rack" token (lang, clean[595]→corrupt[594]) first; if no behavior change, try C1's minimal image positions. Video-only.
-- **C2b** — Test object-only decomposability. Try "wine bottle" tokens (lang, clean[591–592]→corrupt[591]) first; if no behavior change, try C1's minimal image positions. Video-only.
+- **C2a** — Test destination-only decomposability. Runs two sub-approaches unconditionally: (1) "rack" token only (lang, clean[595]→corrupt[594]); (2) C1's minimal positions. Video-only — agent cannot judge behavior change.
+- **C2b** — Test object-only decomposability. Runs two sub-approaches unconditionally: (1) "wine bottle" tokens only (lang, clean[591–592]→corrupt[591–592]); (2) C1's minimal positions. Video-only — agent cannot judge behavior change.
 - **Pair D** — Separate pair. clean=`"put the bowl on the stove"`, corrupt=`"turn on the stove"`. Find minimal sufficient patch set for motor-class flip. Try lang → img → full prefix; binary search on whichever passes. Automated metric.
 
 **Scientific questions:**
@@ -622,7 +622,7 @@ python examples/libero/main_patching_expt_per_step_donor.py \
 ```
 
 - ≥ 3/5: binary search within 588–787 (halves: 588–687, 688–787), N=10 probes each. Follow same halving logic as Phase 2a Step A5. Run N=25 on minimal set found. **Record minimal positions → C1_MINIMAL_POSITIONS.** Proceed to C2-prep.
-- < 2/5: lang-only insufficient for cross-pair flip. Proceed to C1-img.
+- < 3/5: lang-only insufficient for cross-pair flip. Proceed to C1-img.
 
 **C1-img — image tokens (294–587), N=5 sanity**
 
@@ -650,7 +650,7 @@ python examples/libero/main_patching_expt_per_step_donor.py \
 ```
 
 - ≥ 3/5: binary search within 294–587 (halves: 294–440, 441–587), N=10 each. Run N=25 on minimal set. **Record minimal positions → C1_MINIMAL_POSITIONS.** Proceed to C2-prep.
-- < 2/5: proceed to C1-full.
+- < 3/5: proceed to C1-full.
 
 **C1-full — full prefix (0–787), N=5 sanity**
 
@@ -968,6 +968,8 @@ Record both runs in `progress_cc/phase2/implementation.md §9.1`. Video interpre
 
 Same lang → img → full prefix fallback as C1. Binary search on whichever region passes. Automated metric throughout (done flag: bowl on stove).
 
+**Token alignment note:** "put the bowl on the stove" and "turn on the stove" have different sentence structure and different token counts — language positions are not aligned between clean and corrupt. For broad region patching (C3-lang: 588–787, C3-img: 294–587, C3-full: 0–787) this is acceptable: we are probing whether the region carries signal at all, not asserting correspondence between individual token slots. If C3-lang passes and binary search narrows to specific positions, apply the token alignment convention from Step C2-prep before targeting individual tokens.
+
 **C3-lang — language tokens (588–787), N=5 sanity**
 
 ```bash
@@ -994,7 +996,7 @@ python examples/libero/main_patching_expt_per_step_donor.py \
 ```
 
 - ≥ 3/5: binary search within 588–787 (halves: 588–687, 688–787), N=10 each. Run N=25 on minimal set. Record result in `implementation.md §9.1`.
-- < 2/5: proceed to C3-img.
+- < 3/5: proceed to C3-img.
 
 **C3-img — image tokens (294–587), N=5 sanity**
 
@@ -1022,7 +1024,7 @@ python examples/libero/main_patching_expt_per_step_donor.py \
 ```
 
 - ≥ 3/5: binary search within 294–587, N=10 each. Run N=25 on minimal set. Record result.
-- < 2/5: proceed to C3-full.
+- < 3/5: proceed to C3-full.
 
 **C3-full — full prefix (0–787), N=5 sanity**
 
@@ -1107,4 +1109,4 @@ EOF
 | `1_PHASE2A_MEANINGFUL_RESULT.txt` | A-final N=25 > 5/25 | `progress_cc/phase2/signal_files/` |
 | `2_PHASE2B_ALPHA_SWEEP_COMPLETE.txt` | All alpha values run, CSV written | `progress_cc/phase2/signal_files/` |
 | `3_PHASE2C_COMPLETE.txt` | All Phase 2c sub-experiments run | `progress_cc/phase2/signal_files/` |
-| `0_PHASE2C_FAILURE.txt` | C1 fails (< 2/5) | `progress_cc/phase2/signal_files/` |
+| `0_PHASE2C_FAILURE.txt` | C1 fails all three regions (lang + img + full prefix) | `progress_cc/phase2/signal_files/` |
