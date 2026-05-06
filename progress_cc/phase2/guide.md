@@ -5,7 +5,7 @@ when-to-read: You are the autonomous agent running Phase 2. Read this before tou
 tl;dr:
   - Phase 2a: replicate Phase 1's methodology on Simple Pair 2 (different object, same destination — cabinet) → test language-token patching (new vs Phase 1) then image-token, find minimal sufficient patch set.
   - Phase 2b: alpha sweep on Phase 2a's minimal set — verify endpoints first (α=0 ≡ corrupt, α=1 ≡ clean), then run intermediates.
-  - Phase 2c: C1 patches ALL language tokens (wine_bottle/rack ↔ bowl/plate, automated metric); C2a patches ONLY destination tokens ("rack" from clean into corrupt's "plate" position → effective behavior bowl/rack, video-only); C2b patches ONLY object tokens ("wine bottle" from clean into corrupt's "bowl" position → effective behavior wine_bottle/plate, video-only). Pair D motor-class flip (automated metric). C1/C2a/C2b all use identical clean+corrupt prompts — only patch positions differ.
+  - Phase 2c: C1 finds minimal sufficient patch set for wine_bottle/rack ↔ bowl/plate (tries lang→img→full prefix with binary search; automated metric); C2a and C2b each run TWO sub-approaches unconditionally (lang token + C1's minimal positions; video-only, agent saves both); Pair D (bowl/stove ↔ turn_on_stove) same lang→img→full structure, automated metric. C1/C2a/C2b all use identical clean+corrupt prompts — only patch positions differ. C1 must pass some region before C2a/C2b/PairD run.
   - Per-step donor only. Pre-computed donor is known to fail (stale images). Do not use main_patching_expt.py for patching runs — use main_patching_expt_per_step_donor.py.
   - No success signal for intermediate alpha values — just save videos and CSV. Do not attempt to interpret or iterate on intermediate results.
 ---

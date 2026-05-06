@@ -164,11 +164,17 @@ Run N=5 each. If either endpoint fails, the implementation is wrong — debug be
 
 ### Phase 2c (run after 2a+2b complete)
 
-- [ ] **C1.** Run Pair A BOTH case sanity (N=5) + main run (N=10): `wine_bottle/rack ↔ bowl/plate` — gate for all of Phase 2c
-- [ ] **C2a.** Run Pair A destination-only (N=10): clean=`wine_bottle/rack`, corrupt=`bowl/plate`, patch only destination token (rack→plate pos) — **video-only, no automated metric**; human inspects videos later for bowl/rack behavior
-- [ ] **C2b.** Run Pair A object-only (N=10): clean=`wine_bottle/rack`, corrupt=`bowl/plate`, patch only object tokens (wine_bottle→bowl pos 591-592) — **video-only, no automated metric**; human inspects videos later for wine_bottle/plate behavior
-- [ ] **C3.** Run Pair D sanity (N=5) + main run (N=10): `bowl/stove ↔ turn_on_stove` — motor-class flip test
-- [ ] **C4.** Write `3_PHASE2C_COMPLETE.txt` (or `0_PHASE2C_FAILURE.txt` if C1 fails)
+- [x] **C1-lang.** Run Pair A lang-only sanity (588–787, N=5) — failed 0/5; proceed to C1-img
+- [ ] **C1-img.** Run Pair A img sanity (294–587, N=5) — if passes, binary search + N=25; if fails, proceed to C1-full
+- [ ] **C1-full.** Run Pair A full-prefix (0–787, N=5) — if fails, write `0_PHASE2C_FAILURE.txt` and stop
+- [ ] **C2a-lang.** Run dest-only lang token (rack clean[595]→plate corrupt[594], N=10) — video-only
+- [ ] **C2a-c1minimal.** Run dest-only with C1's minimal positions (N=10) — video-only
+- [ ] **C2b-lang.** Run obj-only lang tokens (wine_bottle clean[591–592]→bowl corrupt[591–592], N=10) — video-only
+- [ ] **C2b-c1minimal.** Run obj-only with C1's minimal positions (N=10) — video-only
+- [ ] **C3-lang.** Run Pair D lang-only (588–787, N=5) — if passes, binary search + N=25; if fails, proceed to C3-img
+- [ ] **C3-img.** Run Pair D img (294–587, N=5) — fallback
+- [ ] **C3-full.** Run Pair D full-prefix (0–787, N=5) — last resort; if fails, stop
+- [ ] **C4.** Write `3_PHASE2C_COMPLETE.txt` (or `0_PHASE2C_FAILURE.txt` if C1 fails all three regions)
 
 ---
 
@@ -256,18 +262,22 @@ The sweep shows a sharp threshold over the sampled values: alpha 0.25, 0.50, and
 
 ### 9.1 Results table
 
-| Run code | Pair | Corrupt prompt | N | Result | Metric |
-|----------|------|---------------|---|--------|--------|
-| C1-sanity | A (BOTH, all lang tokens 588-787) | put the bowl on the plate | 5 | 0/5 (0%) | automated success rate |
-| C1-main | A (BOTH, all lang tokens 588-787) | put the bowl on the plate | 10 | | automated success rate |
-| C2a | A (dest-only patch, pos 595→594) | put the bowl on the plate | 10 | | video-only: bowl/rack behavior? |
-| C2b | A (obj-only patch, pos 591-592) | put the bowl on the plate | 10 | | video-only: wine_bottle/plate behavior? |
-| C3-sanity | D (motor-class flip) | turn on the stove | 5 | | automated success rate |
-| C3-main | D (motor-class flip) | turn on the stove | 10 | | automated success rate |
+| Run code | Pair | Patch region | N | Result | Metric |
+|----------|------|-------------|---|--------|--------|
+| C1-lang | A (BOTH, lang tokens 588–787) | lang 588–787 | 5 | 0/5 (0%) | automated success rate |
+| C1-img | A (BOTH, img tokens 294–587) | img 294–587 | 5 | | automated success rate |
+| C1-full | A (BOTH, full prefix 0–787) | full 0–787 | 5 | | automated success rate |
+| C2a-lang | A (dest-only, rack clean[595]→plate corrupt[594]) | lang single token | 10 | | video-only |
+| C2a-c1minimal | A (dest-only, C1 minimal positions) | C1 minimal | 10 | | video-only |
+| C2b-lang | A (obj-only, wine_bottle clean[591–592]→bowl corrupt[591–592]) | lang token span | 10 | | video-only |
+| C2b-c1minimal | A (obj-only, C1 minimal positions) | C1 minimal | 10 | | video-only |
+| C3-lang | D (motor-class flip, lang 588–787) | lang 588–787 | 5 | | automated success rate |
+| C3-img | D (motor-class flip, img 294–587) | img 294–587 | 5 | | automated success rate |
+| C3-full | D (motor-class flip, full prefix 0–787) | full 0–787 | 5 | | automated success rate |
 
 ### 9.2 Interpretation
 
-Pair A C1 failed 0/5, below the Phase 2c continuation threshold. Per the guide, Phase 2c was aborted before C1-main, C2a, C2b, and Pair D; no decomposability or motor-class flip conclusions should be drawn from unrun conditions.
+C1-lang failed 0/5 — language-only patching insufficient for cross-pair flip (consistent with Phase 1 and Phase 2a findings). C1-img is the next step: image tokens (294–587) are the primary signal region established in Phase 2a. All other Phase 2c rows pending.
 
 ---
 
@@ -275,8 +285,8 @@ Pair A C1 failed 0/5, below the Phase 2c continuation threshold. Per the guide, 
 
 *(Agent updates this section at the end of each work session.)*
 
-**Last updated:** 2026-05-05 — Phase 2c aborted at C1 sanity.
+**Last updated:** 2026-05-06 — Phase 2c guide updated; C1-lang result (0/5) stands, proceeding to C1-img.
 
-**Current state:** Phase 2c Pair A C1 sanity failed 0/5, so `0_PHASE2C_FAILURE.txt` has been written and later Phase 2c runs were not started.
+**Current state:** Phase 2a and 2b complete. Phase 2c C1-lang failed 0/5 (language-only insufficient, consistent with Phase 1 and Phase 2a). The guide has been updated: C1 now tries lang → img (294–587) → full prefix (0–787) before stopping. `0_PHASE2C_FAILURE.txt` written previously should be treated as superseded by the guide update.
 
-**Next action:** None for Phase 2c under the current guide; the phase is stopped at the C1 failure gate.
+**Next action:** Run **C1-img** — patch image positions 294–587, N=5 sanity. Command in `guide.md` Step C1 → C1-img block. If ≥ 3/5: binary search within 294–587, then N=25; record C1_MINIMAL_POSITIONS. If < 3/5: proceed to C1-full.
