@@ -230,19 +230,27 @@ class Pi0(_model.BaseModel):
         patch_layers: tuple[int, ...] | None = None,
         patch_k: bool = True,
         patch_v: bool = True,
+        patch_source_positions: tuple[int, ...] | None = None,
         alpha: float = 1.0,
     ) -> _gemma.KVCache:
         """Replace specified prefix positions in corrupt cache with donor cache values."""
         K_d, V_d = donor_kv_cache
         K, V = corrupt_kv_cache
         layer_indices = tuple(range(K.shape[0])) if patch_layers is None else patch_layers
-        for pos in patch_positions:
-            K_corrupt_pos = K[layer_indices, :, pos, :, :]
-            V_corrupt_pos = V[layer_indices, :, pos, :, :]
-            K_donor_pos = K_d[layer_indices, :, pos, :, :]
-            V_donor_pos = V_d[layer_indices, :, pos, :, :]
-            K_patched = K.at[layer_indices, :, pos, :, :].set(alpha * K_donor_pos + (1 - alpha) * K_corrupt_pos)
-            V_patched = V.at[layer_indices, :, pos, :, :].set(alpha * V_donor_pos + (1 - alpha) * V_corrupt_pos)
+        src_positions = patch_source_positions if patch_source_positions is not None else patch_positions
+        if len(src_positions) != len(patch_positions):
+            raise ValueError("patch_source_positions must have the same length as patch_positions")
+        for src_pos, dst_pos in zip(src_positions, patch_positions):
+            K_corrupt_pos = K[layer_indices, :, dst_pos, :, :]
+            V_corrupt_pos = V[layer_indices, :, dst_pos, :, :]
+            K_donor_pos = K_d[layer_indices, :, src_pos, :, :]
+            V_donor_pos = V_d[layer_indices, :, src_pos, :, :]
+            K_patched = K.at[layer_indices, :, dst_pos, :, :].set(
+                alpha * K_donor_pos + (1 - alpha) * K_corrupt_pos
+            )
+            V_patched = V.at[layer_indices, :, dst_pos, :, :].set(
+                alpha * V_donor_pos + (1 - alpha) * V_corrupt_pos
+            )
             K = jax.lax.cond(patch_k, lambda _: K_patched, lambda _: K, operand=None)
             V = jax.lax.cond(patch_v, lambda _: V_patched, lambda _: V, operand=None)
         return (K, V)
@@ -260,6 +268,7 @@ class Pi0(_model.BaseModel):
         patch_layers: tuple[int, ...] | None = None,
         patch_k: bool = True,
         patch_v: bool = True,
+        patch_source_positions: tuple[int, ...] | None = None,
         patch_alpha: float = 1.0,
     ) -> _model.Actions:
         observation = _model.preprocess_observation(None, observation, train=False)
@@ -278,7 +287,14 @@ class Pi0(_model.BaseModel):
 
         if donor_kv_cache is not None:
             kv_cache = self._apply_kv_patch(
-                kv_cache, donor_kv_cache, patch_positions, patch_layers, patch_k, patch_v, alpha=patch_alpha
+                kv_cache,
+                donor_kv_cache,
+                patch_positions,
+                patch_layers,
+                patch_k,
+                patch_v,
+                patch_source_positions=patch_source_positions,
+                alpha=patch_alpha,
             )
 
         def step(carry):

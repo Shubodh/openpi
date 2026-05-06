@@ -89,6 +89,7 @@ class Args:
     clean_prompt: str = "put the bowl on the plate"   # donor source — clean task language
     corrupt_prompt: str = "put the bowl on the stove"  # sent to model each step
     patch_positions: str = "594"   # comma-separated absolute KV cache indices to overwrite
+    patch_source_positions: str = ""  # donor KV positions to read; empty means same as patch_positions
     patch_layers: str = ""  # comma-separated layer indices/ranges; empty means all layers
     patch_k: bool = True
     patch_v: bool = True
@@ -176,8 +177,14 @@ def eval_libero(args: Args) -> None:
         logging.info("SANITY CHECK MODE: patching language prefix positions 588-787")
     else:
         patch_positions = _parse_int_spec(args.patch_positions)
+    patch_source_positions = (
+        _parse_int_spec(args.patch_source_positions) if args.patch_source_positions.strip() else None
+    )
+    if patch_source_positions is not None and len(patch_source_positions) != len(patch_positions):
+        raise ValueError("--args.patch-source-positions must have the same number of entries as --args.patch-positions")
     patch_layers = _parse_int_spec(args.patch_layers) if args.patch_layers.strip() else None
     logging.info("Patch positions: %s", patch_positions)
+    logging.info("Patch source positions: %s", patch_source_positions if patch_source_positions is not None else "same")
     logging.info("Patch layers: %s", "all" if patch_layers is None else patch_layers)
     logging.info("Patch K/V: K=%s V=%s", args.patch_k, args.patch_v)
     logging.info("Patch alpha: %s", args.patch_alpha)
@@ -254,6 +261,7 @@ def eval_libero(args: Args) -> None:
         diff_K_mid = float(jnp.max(jnp.abs(K_d[:, :, mid, :, :] - K_c[:, :, mid, :, :])))
         tqdm.tqdm.write(f"[DEBUG pos{mid}] donor vs corrupt L-inf: K={diff_K_mid:.6f}")
         policy._sample_kwargs["patch_positions"] = patch_positions
+        policy._sample_kwargs["patch_source_positions"] = patch_source_positions
         policy._sample_kwargs["patch_layers"] = patch_layers
         policy._sample_kwargs["patch_k"] = args.patch_k
         policy._sample_kwargs["patch_v"] = args.patch_v
@@ -304,6 +312,7 @@ def eval_libero(args: Args) -> None:
                             policy, donor_kv_builder, clean_element
                         )
                         policy._sample_kwargs["patch_positions"] = patch_positions
+                        policy._sample_kwargs["patch_source_positions"] = patch_source_positions
                         policy._sample_kwargs["patch_layers"] = patch_layers
                         policy._sample_kwargs["patch_k"] = args.patch_k
                         policy._sample_kwargs["patch_v"] = args.patch_v

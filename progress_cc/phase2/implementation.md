@@ -175,16 +175,17 @@ Run N=5 each. If either endpoint fails, the implementation is wrong — debug be
 - [x] **C1-lang.** Run Pair A lang-only sanity (588–787, N=5) — failed 0/5; proceed to C1-img
 - [x] **C1-img.** Run Pair A img sanity (294–587, N=5) — failed 0/5; proceed to C1-full
 - [x] **C1-full.** Run Pair A full-prefix (0–787, N=5) — passed 5/5; binary search within 0–787
-- [ ] **C2a-lang.** Run dest-only lang token (rack clean[595]→plate corrupt[594], N=10) — video-only
+- [x] **C2-code.** Add `patch_source_positions` for source→destination remapping — default path verified 5/5
+- [ ] **C2a-lang.** Run dest-only lang token (rack clean[594]→plate corrupt[593], N=10) — video-only
 - [ ] **C2a-c1minimal.** Run dest-only with C1's minimal positions (N=10) — video-only
-- [ ] **C2b-lang.** Run obj-only lang tokens (wine_bottle clean[591–592]→bowl corrupt[591–592], N=10) — video-only
+- [ ] **C2b-lang.** Run obj-only lang tokens (wine_bottle clean[590–591]→bowl corrupt[590–591], N=10) — video-only
 - [ ] **C2b-c1minimal.** Run obj-only with C1's minimal positions (N=10) — video-only
 - [ ] **C3-lang.** Run Pair D lang-only (588–787, N=5) — if passes, binary search + N=25; if fails, proceed to C3-img
 - [ ] **C3-img.** Run Pair D img (294–587, N=5) — fallback
 - [ ] **C3-full.** Run Pair D full-prefix (0–787, N=5) — last resort; if fails, stop
 - [ ] **C4.** Write `3_PHASE2C_COMPLETE.txt` (or `0_PHASE2C_FAILURE.txt` if C1 fails all three regions)
 
-**Implementation notes:** Checklist state is a manual tracking layer over the run logs and signal files; it does not drive code. Completed Phase 2a and 2b entries correspond to committed changes and logs from the scripts above. The only pending code change called out by the updated Phase 2c guide is `patch_source_positions` support, which is not present yet in `pi0.py::_apply_kv_patch` lines 229-248 or `main_patching_expt_per_step_donor.py::Args` lines 69-108.
+**Implementation notes:** Checklist state is a manual tracking layer over the run logs and signal files; it does not drive code. Completed Phase 2a and 2b entries correspond to committed changes and logs from the scripts above. Phase 2c C2-code added `patch_source_positions` support in `pi0.py::_apply_kv_patch` lines 225-256 and `Pi0.sample_actions()` lines 259-299, plus CLI parsing/wiring in `main_patching_expt_per_step_donor.py::Args` lines 89-97, `eval_libero()` lines 174-190, and sample kwargs at lines 263-268 and 311-318.
 
 ---
 
@@ -282,11 +283,11 @@ The sweep shows a sharp threshold over the sampled values: alpha 0.25, 0.50, and
 
 *(Agent fills this in. Run only after Phase 2b complete and `2_PHASE2B_ALPHA_SWEEP_COMPLETE.txt` exists.)*
 
-**Implementation notes:** Phase 2c has only completed C1-lang so far, using the same per-step donor patch script and model alpha-capable patch path as Phase 2a/2b. The old failure file from the previous guide is superseded by the updated guide: C1 now continues from lang to image positions `294-587`, then full prefix `0-787` before declaring failure. The required future `patch_source_positions` feature for C2a is not implemented yet; current `_apply_kv_patch` reads and writes the same absolute position (`pos`) at `pi0.py` lines 239-245.
+**Implementation notes:** Phase 2c uses the same per-step donor patch script and model alpha-capable patch path as Phase 2a/2b. The old failure file from the previous guide is superseded: C1 continued from lang to image positions `294-587`, then full prefix `0-787`, and full prefix passed. C2-code added source→destination position remapping: `_apply_kv_patch()` now accepts `patch_source_positions` at `pi0.py` line 233, defaults source positions to destination positions at line 240, validates equal lengths at lines 241-242, and reads donor K/V from `src_pos` while writing corrupt K/V to `dst_pos` at lines 243-253.
 
 ### 9.1 Results table
 
-**Implementation notes:** C1-lang used `main_patching_expt_per_step_donor.py::eval_libero` with `--args.patch-positions` covering `588-787`; `eval_libero()` parsed those positions at lines 173-179, rebuilt the clean-prompt donor cache at lines 301-305, and inferred under the corrupt prompt at line 311. Pending C2a destination-only remapping will require adding source-position support because "rack" is clean absolute position 595 while "plate" is corrupt absolute position 594.
+**Implementation notes:** C1-lang used `main_patching_expt_per_step_donor.py::eval_libero` with `--args.patch-positions` covering `588-787`; `eval_libero()` parsed those positions at lines 174-185, rebuilt the clean-prompt donor cache at lines 311-313, and inferred under the corrupt prompt after setting sample kwargs at lines 314-319. C2-prep tokenizer verification used `/workspace/openpi_assets/big_vision/paligemma_tokenizer.model` and found actual Pair A positions differ from the guide table by one slot: clean `wine=590`, `bottle=591`, `rack=594`; corrupt `bowl=590`, `plate=593`. C2a-lang will therefore patch destination position 593 from source position 594.
 
 | Run code | Pair | Patch region | N | Result | Metric |
 |----------|------|-------------|---|--------|--------|
@@ -298,9 +299,9 @@ The sweep shows a sharp threshold over the sampled values: alpha 0.25, 0.50, and
 | C1-bin-2a | A (BOTH, prefix quarter 394–590) | prefix 394–590 | 10 | 0/10 (0%) | automated success rate |
 | C1-bin-2b | A (BOTH, prefix quarter 591–787) | prefix 591–787 | 10 | 0/10 (0%) | automated success rate |
 | C1-final | A (BOTH, minimal prefix 394–787) | prefix 394–787 | 25 | 3/25 (12%) | automated success rate |
-| C2a-lang | A (dest-only, rack clean[595]→plate corrupt[594]) | lang single token | 10 | | video-only |
+| C2a-lang | A (dest-only, rack clean[594]→plate corrupt[593]) | lang single token | 10 | | video-only |
 | C2a-c1minimal | A (dest-only, C1 minimal positions) | C1 minimal | 10 | | video-only |
-| C2b-lang | A (obj-only, wine_bottle clean[591–592]→bowl corrupt[591–592]) | lang token span | 10 | | video-only |
+| C2b-lang | A (obj-only, wine_bottle clean[590–591]→bowl corrupt[590–591]) | lang token span | 10 | | video-only |
 | C2b-c1minimal | A (obj-only, C1 minimal positions) | C1 minimal | 10 | | video-only |
 | C3-lang | D (motor-class flip, lang 588–787) | lang 588–787 | 5 | | automated success rate |
 | C3-img | D (motor-class flip, img 294–587) | img 294–587 | 5 | | automated success rate |
@@ -318,10 +319,10 @@ C1-lang failed 0/5 — language-only patching insufficient for cross-pair flip (
 
 *(Agent updates this section at the end of each work session.)*
 
-**Last updated:** 2026-05-06 — C1-final on 394–787 recovered 3/25; proceeding to C2-prep/C2-code.
+**Last updated:** 2026-05-06 — C2-code implemented and default path verified 5/5; proceeding to C2a video-only runs.
 
-**Current state:** Phase 2a and 2b complete. Phase 2c Pair A C1-lang failed 0/5, C1-img failed 0/5, and C1-full passed 5/5. Binary search found 394–787 as the smallest defensible contiguous C1 region because it recovered 3/10 while both children failed 0/10. C1-final recovered 3/25. The previous `0_PHASE2C_FAILURE.txt` is superseded by this result and should be removed or overwritten when final Phase 2c signaling is written.
+**Current state:** Phase 2a and 2b complete. Phase 2c Pair A C1-lang failed 0/5, C1-img failed 0/5, and C1-full passed 5/5. Binary search found 394–787 as the smallest defensible contiguous C1 region because it recovered 3/10 while both children failed 0/10. C1-final recovered 3/25. C2-prep verified actual token positions: rack clean[594]→plate corrupt[593], wine_bottle clean[590–591]→bowl corrupt[590–591]. C2-code is implemented and the no-source default path was verified with an A-C3-style run at 5/5. The previous `0_PHASE2C_FAILURE.txt` is superseded by C1's pass and should be removed or overwritten when final Phase 2c signaling is written.
 
-**Next action:** Run C2-prep token-position verification, then add `patch_source_positions` support before C2a destination-only remapping.
+**Next action:** Run C2a video-only subtests unconditionally: C2a-lang with `--args.patch-positions "593" --args.patch-source-positions "594"`, then C2a-c1minimal with `--args.patch-positions "394-787"`.
 
-**Implementation notes:** Before full Phase 2c continuation, code should be extended only if C1 passes and C2 is reached. The planned additive change is `patch_source_positions`: add a donor-source position tuple to `pi0.py::_apply_kv_patch` beside the current `patch_positions` argument at lines 229-234, pass it through `Pi0.sample_actions()` lines 251-264 and 279-282, expose it in `main_patching_expt_per_step_donor.py::Args` lines 69-108, parse it near lines 173-179, and write it into `policy._sample_kwargs` beside the existing patch settings at lines 256-260 and 303-310.
+**Implementation notes:** `patch_source_positions` is now implemented as an additive default-preserving path. `pi0.py::_apply_kv_patch` takes source positions at line 233, defaults to same-index behavior at line 240, and applies source→destination K/V writes at lines 243-253 while preserving alpha interpolation and K/V gates. `Pi0.sample_actions()` exposes the parameter at line 271 and passes it through at lines 289-299. `main_patching_expt_per_step_donor.py` exposes `Args.patch_source_positions` at line 92, parses and validates it at lines 180-184, logs it at line 187, and sets it in `policy._sample_kwargs` at lines 263-268 and 311-318. `python -m py_compile src/openpi/models/pi0.py examples/libero/main_patching_expt_per_step_donor.py` passed, and an A-C3-style no-source verification run recovered 5/5.
